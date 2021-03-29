@@ -1,0 +1,54 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Fri, 12 Mar 2021 15:47:12 +0900
+Source: bss
+Binary: bss
+Architecture: source amd64
+Version: 0.1.0-1
+Distribution: unstable
+Urgency: low
+Maintainer: Osamu Aoki <osamu@debian.org>
+Changed-By: Osamu Aoki <osamu@debian.org>
+Description:
+ bss        - Btrfs Subvolume Snapshot Utility
+Changes:
+ bss (0.1.0-1) unstable; urgency=low
+ .
+   * Initial release to github.
+Checksums-Sha1:
+ 040a2680b120f982f11b2f819fa6a68b0ac1ac32 1660 bss_0.1.0-1.dsc
+ 2baefd61302d90727fc7f5d33c99e33a7b77b6ea 24328 bss_0.1.0.orig.tar.xz
+ 0658bc11771fccc421927d2007d851ff6c210703 2480 bss_0.1.0-1.debian.tar.xz
+ b7c99cbb35c8b842fe931a01ffd35c6cf420e8bd 5701 bss_0.1.0-1_amd64.buildinfo
+ 0c78971bd835b7b38a63b3c3a2ee5bbc3d02cb15 24680 bss_0.1.0-1_amd64.deb
+Checksums-Sha256:
+ d905b3dac44fe0245bdfd41a1481db9f9fc4a6c0e464e72a16b5b1948f56f3fc 1660 bss_0.1.0-1.dsc
+ 53cb79d621d17406e8eb847148ea4ad2bc314dc1d1f19f57e11747fba4ce5d53 24328 bss_0.1.0.orig.tar.xz
+ 9cdbd9ed02b35cc3aec2d17d4f4d6a42667b4f2ea117a69ebe06948671802645 2480 bss_0.1.0-1.debian.tar.xz
+ 1bab894c4d1aa99c42ea5f58642d40f7a3d1182ed06d3ec8058a12b1f6a710f9 5701 bss_0.1.0-1_amd64.buildinfo
+ d1892ee084a9c78c0621fed3c191ac25079d9422e5b2439fe2d9d29ab498c15a 24680 bss_0.1.0-1_amd64.deb
+Files:
+ d2aa635be3c7c58bbb7ac2a881293c2b 1660 utils optional bss_0.1.0-1.dsc
+ e1a9c70c3c3b0d7a6107361fb893bc9f 24328 utils optional bss_0.1.0.orig.tar.xz
+ b8b8c2f1f5226c6f4e2f8d7a71067e25 2480 utils optional bss_0.1.0-1.debian.tar.xz
+ 356375d5d5baca2cc3cce13a1fc9186c 5701 utils optional bss_0.1.0-1_amd64.buildinfo
+ 08f0e679551a312d7d7f4dc548be09a9 24680 utils optional bss_0.1.0-1_amd64.deb
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEMTNyTWIHiBV56V1iHhNWiB3Y15EFAmBhL74ACgkQHhNWiB3Y
+15FhQQ/+JI6iL7NHEvfZQhOvIiXcfP1fvIEj6e4F8hpMxNlgsmBnCWc1tp43A6Fc
++jmwlg4dZrdXficYLXlBBmpI71uE3T2IIcFMvVQ5L1D+oyH9l+xm1kyiMQSCzPow
+dqeURQJBE9WdaaTDuqmiDXGDByacnk/WwYMFJTP/lU5CUxp8JICq+Dhr9Ez+5JgH
+CvUyirURJELaof+oM2+dt0nvEIhoNjAoK7OJc3E1OgRS7wdIGwUHYB2eciUvcLLd
+uP0xlEyEXQYjU5UUVIgE3+43SeDqdKDVKxbN+BLwc350Jzl3fzU8520SW2SIJ/4Q
+CH3+hxxQwawj6o2zPdl4z/fdV5GaR4l6zVMBa0AhGdyEAurTpWbIxDgr76ZPaGYT
+DW8HCoNEZMwPpuSiYWQA7IeBZNZrXiRO34QoXZu/6c6OdlN/p1DKSUq4cSky9Vjg
+UPKEbbOc9NH1tRjS0Q9Rq6Mt/Sf5vTPH7gvYMYtaw/h4f7B5BOwZFHj+lT0LcEYh
+3FzGhra3fDZ/Jbrd1z3/Pl4wXw6uhS8uBxlA6Z2on/STorOx4hdfeT3hBywZa3ni
+55dLpYhhtd/m/onXL54sW4B8hlxQCYm5KCT6rC0EPLn1c0RssUwT3geSKVIlKJkP
+WgyqTj/xcPgb3J/ZNynTN4WzPKebTnKgJXTab5paf2jrwVEId14=
+=1TKY
+-----END PGP SIGNATURE-----

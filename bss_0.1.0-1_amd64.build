@@ -1,0 +1,128 @@
+ dpkg-buildpackage -us -uc -ui -i
+dpkg-buildpackage: info: source package bss
+dpkg-buildpackage: info: source version 0.1.0-1
+dpkg-buildpackage: info: source distribution unstable
+dpkg-buildpackage: info: source changed by Osamu Aoki <osamu@debian.org>
+ dpkg-source -i --before-build .
+dpkg-buildpackage: info: host architecture amd64
+dpkg-source: info: using options from bss/debian/source/options: --single-debian-patch --auto-commit
+ fakeroot debian/rules clean
+dh clean
+   dh_auto_clean
+	make -j12 distclean
+make[1]: Entering directory '/home/osamu/src/public/bss/bss'
+rm bss.help2man bss.1 bss.1.orig bss.1.old bss.1.rej
+rm: cannot remove 'bss.help2man': No such file or directory
+rm: cannot remove 'bss.1': No such file or directory
+rm: cannot remove 'bss.1.orig': No such file or directory
+rm: cannot remove 'bss.1.old': No such file or directory
+rm: cannot remove 'bss.1.rej': No such file or directory
+make[1]: [Makefile:29: clean] Error 1 (ignored)
+make[1]: Leaving directory '/home/osamu/src/public/bss/bss'
+   dh_clean
+ dpkg-source -i -b .
+dpkg-source: info: using options from bss/debian/source/options: --single-debian-patch --auto-commit
+dpkg-source: info: using source format '3.0 (quilt)'
+dpkg-source: info: building bss using existing ./bss_0.1.0.orig.tar.xz
+dpkg-source: info: building bss in bss_0.1.0-1.debian.tar.xz
+dpkg-source: info: building bss in bss_0.1.0-1.dsc
+ debian/rules build
+dh build
+   dh_update_autotools_config
+   dh_autoreconf
+   dh_auto_configure
+   dh_auto_build
+	make -j12 "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/home/osamu/src/public/bss/bss'
+: Do nothing
+make[1]: Leaving directory '/home/osamu/src/public/bss/bss'
+   dh_auto_test
+	make -j12 test
+make[1]: Entering directory '/home/osamu/src/public/bss/bss'
+sh -n usr/bin/bss
+# check version
+if [ -d debian ] && [ -r debian/changelog ]; then \
+	U_VER=$(sed -n -e '/^BSS_VERSION=/s/"//g' -e "/^BSS_VERSION=/s/'//g" -e '/^BSS_VERSION=/s/BSS_VERSION=//p' usr/bin/bss) ; \
+	D_VER=$(dpkg-parsechangelog -S Version) ; \
+	if [ "$U_VER" != "${D_VER%-*}" ]; then \
+		echo "ERROR: fix version in source $U_VER or debian/changelog  $D_VER" ; \
+		exit 1 ; \
+	fi ; \
+fi
+make[1]: Leaving directory '/home/osamu/src/public/bss/bss'
+   create-stamp debian/debhelper-build-stamp
+ fakeroot debian/rules binary
+dh binary
+   dh_testroot
+   dh_prep
+   dh_auto_install
+	make -j12 install DESTDIR=/home/osamu/src/public/bss/bss/debian/bss AM_UPDATE_INFO_DIR=no "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/home/osamu/src/public/bss/bss'
+install        -D usr/bin/bss                                 /home/osamu/src/public/bss/bss/debian/bss//usr/bin/bss
+install -m 644 -D etc/apt/apt.conf.d/80bss                    /home/osamu/src/public/bss/bss/debian/bss//etc/apt/apt.conf.d/80bss
+install -m 644 -D etc/logrotate.d/bss                         /home/osamu/src/public/bss/bss/debian/bss//etc/logrotate.d/bss
+install -m 644 -D lib/systemd/system/bss-root-boot.timer      /home/osamu/src/public/bss/bss/debian/bss//lib/systemd/system/bss-root-boot.timer
+install -m 644 -D lib/systemd/system/bss-root-boot.service    /home/osamu/src/public/bss/bss/debian/bss//lib/systemd/system/bss-root-boot.service
+install -m 644 -D lib/systemd/system/bss-root-process.timer   /home/osamu/src/public/bss/bss/debian/bss//lib/systemd/system/bss-root-process.timer
+install -m 644 -D lib/systemd/system/bss-root-process.service /home/osamu/src/public/bss/bss/debian/bss//lib/systemd/system/bss-root-process.service
+install -m 644 -D lib/systemd/system/bss-root-hour.timer      /home/osamu/src/public/bss/bss/debian/bss//lib/systemd/system/bss-root-hour.timer
+install -m 644 -D lib/systemd/system/bss-root-hour.service    /home/osamu/src/public/bss/bss/debian/bss//lib/systemd/system/bss-root-hour.service
+install -m 644 -D usr/share/bash-completion/completions/bss   /home/osamu/src/public/bss/bss/debian/bss//usr/share/bash-completion/completions/bss
+install -m 644 -D usr/share/man/man1/bss.1                    /home/osamu/src/public/bss/bss/debian/bss//usr/share/man/man1/bss.1
+install -m 644 -D README.md                                   /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/README
+install -m 644 -D examples/user/bss-home-boot.timer           /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/examples/user/bss-home-boot.timer
+install -m 644 -D examples/user/bss-home-boot.service         /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/examples/user/bss-home-boot.service
+install -m 644 -D examples/user/bss-home-process.timer        /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/examples/user/bss-home-process.timer
+install -m 644 -D examples/user/bss-home-process.service      /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/examples/user/bss-home-process.service
+install -m 644 -D examples/user/bss-home-hour.timer           /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/examples/user/bss-home-hour.timer
+install -m 644 -D examples/user/bss-home-hour.service         /home/osamu/src/public/bss/bss/debian/bss//usr/share/doc/bss/examples/user/bss-home-hour.service
+make[1]: Leaving directory '/home/osamu/src/public/bss/bss'
+   dh_installdocs
+   dh_installchangelogs
+   dh_installman
+   dh_installsystemd
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_dwz -a
+   dh_strip -a
+   dh_makeshlibs -a
+   dh_shlibdeps -a
+   dh_installdeb
+   dh_gencontrol
+dpkg-gencontrol: warning: Depends field of package bss: substitution variable ${shlibs:Depends} used, but is not defined
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'bss' in '../bss_0.1.0-1_amd64.deb'.
+ dpkg-genbuildinfo
+ dpkg-genchanges  >../bss_0.1.0-1_amd64.changes
+dpkg-genchanges: info: including full source code in upload
+ dpkg-source -i --after-build .
+dpkg-source: info: using options from bss/debian/source/options: --single-debian-patch --auto-commit
+dpkg-buildpackage: info: full upload (original source is included)
+Now running lintian -i -I --show-overrides bss_0.1.0-1_amd64.changes ...
+W: bss: initial-upload-closes-no-bugs
+N:
+W: initial-upload-closes-no-bugs
+N:
+N:   This package appears to be the first packaging of a new upstream
+N:   software package (there is only one changelog entry and the Debian
+N:   revision is 1), but it does not close any bugs. The initial upload of
+N:   a new package should close the corresponding ITP bug for that package.
+N:   
+N:   This warning can be ignored if the package is not intended for Debian
+N:   or if it is a split of an existing Debian package.
+N:   
+N:   Refer to Debian Developer's Reference section 5.1 (New packages) for
+N:   details.
+N:   
+N:   Severity: warning
+N:   
+N:   Check: debian/changelog
+N:   
+N:   Renamed from: new-package-should-close-itp-bug
+N:
+Finished running lintian.

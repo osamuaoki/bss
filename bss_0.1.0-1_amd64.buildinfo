@@ -1,0 +1,197 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.0
+Source: bss
+Binary: bss
+Architecture: amd64 source
+Version: 0.1.0-1
+Checksums-Md5:
+ d2aa635be3c7c58bbb7ac2a881293c2b 1660 bss_0.1.0-1.dsc
+ 08f0e679551a312d7d7f4dc548be09a9 24680 bss_0.1.0-1_amd64.deb
+Checksums-Sha1:
+ 040a2680b120f982f11b2f819fa6a68b0ac1ac32 1660 bss_0.1.0-1.dsc
+ 0c78971bd835b7b38a63b3c3a2ee5bbc3d02cb15 24680 bss_0.1.0-1_amd64.deb
+Checksums-Sha256:
+ d905b3dac44fe0245bdfd41a1481db9f9fc4a6c0e464e72a16b5b1948f56f3fc 1660 bss_0.1.0-1.dsc
+ d1892ee084a9c78c0621fed3c191ac25079d9422e5b2439fe2d9d29ab498c15a 24680 bss_0.1.0-1_amd64.deb
+Build-Origin: Debian
+Build-Architecture: amd64
+Build-Date: Mon, 29 Mar 2021 10:38:26 +0900
+Build-Tainted-By:
+ merged-usr-via-aliased-dirs
+Installed-Build-Depends:
+ autoconf (= 2.69-14),
+ automake (= 1:1.16.3-2),
+ autopoint (= 0.21-4),
+ autotools-dev (= 20180224.1+nmu1),
+ base-files (= 11),
+ base-passwd (= 3.5.49),
+ bash (= 5.1-2+b1),
+ binutils (= 2.35.2-2),
+ binutils-common (= 2.35.2-2),
+ binutils-x86-64-linux-gnu (= 2.35.2-2),
+ bsdextrautils (= 2.36.1-7),
+ bsdmainutils (= 12.1.7+nmu2),
+ bsdutils (= 1:2.36.1-7),
+ build-essential (= 12.9),
+ bzip2 (= 1.0.8-4),
+ coreutils (= 8.32-4+b1),
+ cpp (= 4:10.2.1-1),
+ cpp-10 (= 10.2.1-6),
+ dash (= 0.5.11+git20200708+dd9ef66-5),
+ debconf (= 1.5.75),
+ debhelper (= 13.3.4),
+ debianutils (= 4.11.2),
+ dh-autoreconf (= 20),
+ dh-strip-nondeterminism (= 1.11.0-1),
+ diffutils (= 1:3.7-5),
+ dpkg (= 1.20.7.1),
+ dpkg-dev (= 1.20.7.1),
+ dwz (= 0.13+20210201-1),
+ file (= 1:5.39-3),
+ findutils (= 4.8.0-1),
+ g++ (= 4:10.2.1-1),
+ g++-10 (= 10.2.1-6),
+ gawk (= 1:5.1.0-1),
+ gcc (= 4:10.2.1-1),
+ gcc-10 (= 10.2.1-6),
+ gcc-10-base (= 10.2.1-6),
+ gettext (= 0.21-4),
+ gettext-base (= 0.21-4),
+ grep (= 3.6-1),
+ groff-base (= 1.22.4-6),
+ gzip (= 1.10-4),
+ hostname (= 3.23),
+ init-system-helpers (= 1.60),
+ install-info (= 6.7.0.dfsg.2-6),
+ intltool-debian (= 0.35.0+20060710.5),
+ libacl1 (= 2.2.53-10),
+ libarchive-zip-perl (= 1.68-1),
+ libasan6 (= 10.2.1-6),
+ libatomic1 (= 10.2.1-6),
+ libattr1 (= 1:2.4.48-6),
+ libaudit-common (= 1:3.0-2),
+ libaudit1 (= 1:3.0-2),
+ libbinutils (= 2.35.2-2),
+ libblkid1 (= 2.36.1-7),
+ libbz2-1.0 (= 1.0.8-4),
+ libc-bin (= 2.31-10),
+ libc-dev-bin (= 2.31-10),
+ libc6 (= 2.31-10),
+ libc6-dev (= 2.31-10),
+ libcap-ng0 (= 0.7.9-2.2+b1),
+ libcc1-0 (= 10.2.1-6),
+ libcom-err2 (= 1.46.2-1),
+ libcrypt-dev (= 1:4.4.17-1),
+ libcrypt1 (= 1:4.4.17-1),
+ libctf-nobfd0 (= 2.35.2-2),
+ libctf0 (= 2.35.2-2),
+ libdb5.3 (= 5.3.28+dfsg1-0.8),
+ libdebconfclient0 (= 0.256),
+ libdebhelper-perl (= 13.3.4),
+ libdpkg-perl (= 1.20.7.1),
+ libelf1 (= 0.183-1),
+ libfile-stripnondeterminism-perl (= 1.11.0-1),
+ libgcc-10-dev (= 10.2.1-6),
+ libgcc-s1 (= 10.2.1-6),
+ libgcrypt20 (= 1.8.7-3),
+ libgdbm-compat4 (= 1.19-2),
+ libgdbm6 (= 1.19-2),
+ libgmp10 (= 2:6.2.1+dfsg-1),
+ libgomp1 (= 10.2.1-6),
+ libgpg-error0 (= 1.38-2),
+ libgssapi-krb5-2 (= 1.18.3-4),
+ libicu67 (= 67.1-6),
+ libisl23 (= 0.23-1),
+ libitm1 (= 10.2.1-6),
+ libk5crypto3 (= 1.18.3-4),
+ libkeyutils1 (= 1.6.1-2),
+ libkrb5-3 (= 1.18.3-4),
+ libkrb5support0 (= 1.18.3-4),
+ liblsan0 (= 10.2.1-6),
+ liblz4-1 (= 1.9.3-1),
+ liblzma5 (= 5.2.5-1.0),
+ libmagic-mgc (= 1:5.39-3),
+ libmagic1 (= 1:5.39-3),
+ libmount1 (= 2.36.1-7),
+ libmpc3 (= 1.2.0-1),
+ libmpfr6 (= 4.1.0-3),
+ libnsl-dev (= 1.3.0-2),
+ libnsl2 (= 1.3.0-2),
+ libpam-modules (= 1.4.0-7),
+ libpam-modules-bin (= 1.4.0-7),
+ libpam-runtime (= 1.4.0-7),
+ libpam0g (= 1.4.0-7),
+ libpcre2-8-0 (= 10.36-2),
+ libpcre3 (= 2:8.39-13),
+ libperl5.32 (= 5.32.1-3),
+ libpipeline1 (= 1.5.3-1),
+ libquadmath0 (= 10.2.1-6),
+ libreadline8 (= 8.1-1),
+ libseccomp2 (= 2.5.1-1),
+ libselinux1 (= 3.1-3),
+ libsigsegv2 (= 2.13-1),
+ libsmartcols1 (= 2.36.1-7),
+ libssl1.1 (= 1.1.1k-1),
+ libstdc++-10-dev (= 10.2.1-6),
+ libstdc++6 (= 10.2.1-6),
+ libsub-override-perl (= 0.09-2),
+ libsystemd0 (= 247.3-3),
+ libtinfo6 (= 6.2+20201114-2),
+ libtirpc-common (= 1.3.1-1),
+ libtirpc-dev (= 1.3.1-1),
+ libtirpc3 (= 1.3.1-1),
+ libtool (= 2.4.6-15),
+ libtsan0 (= 10.2.1-6),
+ libubsan1 (= 10.2.1-6),
+ libuchardet0 (= 0.0.7-1),
+ libudev1 (= 247.3-3),
+ libunistring2 (= 0.9.10-4),
+ libuuid1 (= 2.36.1-7),
+ libxml2 (= 2.9.10+dfsg-6.3+b1),
+ libzstd1 (= 1.4.8+dfsg-2.1),
+ linux-libc-dev (= 5.10.24-1),
+ login (= 1:4.8.1-1),
+ lsb-base (= 11.1.0),
+ m4 (= 1.4.18-5),
+ make (= 4.3-4),
+ man-db (= 2.9.4-2),
+ mawk (= 1.3.4.20200120-2),
+ ncal (= 12.1.7+nmu2),
+ ncurses-base (= 6.2+20201114-2),
+ ncurses-bin (= 6.2+20201114-2),
+ patch (= 2.7.6-7),
+ perl (= 5.32.1-3),
+ perl-base (= 5.32.1-3),
+ perl-modules-5.32 (= 5.32.1-3),
+ po-debconf (= 1.0.21+nmu1),
+ readline-common (= 8.1-1),
+ sed (= 4.7-1),
+ sensible-utils (= 0.0.14),
+ sysvinit-utils (= 2.96-6),
+ tar (= 1.34+dfsg-1),
+ util-linux (= 2.36.1-7),
+ xz-utils (= 5.2.5-1.0),
+ zlib1g (= 1:1.2.11.dfsg-2)
+Environment:
+ DEB_BUILD_OPTIONS="parallel=12"
+ LANG="en_US.UTF-8"
+ SOURCE_DATE_EPOCH="1615531632"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEMTNyTWIHiBV56V1iHhNWiB3Y15EFAmBhL70ACgkQHhNWiB3Y
+15EfLBAAuWPBVsnP2255x423W/aXT7UrOfL5Hmh8A6xtehtHmnTeetR58Y8y8mTS
+C9IyVr22AagZkJQETr1UL0wNhqMfzpBoJLy6qPNpIC0VHWh4w2/jQrZKxQMQsc5q
+yptHJjyBS9DRg6fQo/IdDuCVg5BCi0mlSs9i8NkW4lC1ca76mCxOkj8uyqqtUHGc
+VTSUxJlZI3kgXzACOGOHrAFbP/aIJaCsOaGM3NX64H8yZHUsCKsnB1NGZliy6DjY
+ukVF6IIL3Vsj+ql+eVOROq7/PtmEYDTxzD8DplqVUFLAL9opaz79B5y1r50iF35I
+M/OSOZouDTYxU7D8C3b3cebwz8agHFHnydGvvqTy4Lbrwbub3Gl3eU1GQcNzGmiu
+rzdIAl/Jj9ZqqEK9qmT1WlYjGRQLCB8tdZrTSFEUgePuzHUc4RW1DCNg/uznasjj
+UBHv/lOjwtbYg36T6SeCDA0t+32SQCdimpVryBrry7CWdIT2XMG5bwR0j4tofNHx
+tY+ne+zBcoZFgqV/C1EgD9WRVzu0pIC9eJozKhcWqEjhmiltVFzzb4hFbjzFzlfY
+n7FdQRzETo8vBH3t8yKS8Wzl9dXr/FffKpGFVC4LhOmjBB9jWoZb0iqzuSOHVEL/
+BuF9LMPHB0FOQ0Fk4YC51PmBUvl82RpfzL4b9YPTyR1Y6Y2opWM=
+=NERc
+-----END PGP SIGNATURE-----
