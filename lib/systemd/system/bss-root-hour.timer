@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Take a btrfs subvolume snapshot of / on every hour
+Documentation=man:bss(1)
+
+[Timer]
+OnCalendar=*:10
+
+[Install]
+WantedBy=timers.target
+

@@ -1,0 +1,12 @@
+
+[Unit]
+Description=Daily aging of btrfs subvolume snapshots for user's home
+Documentation=man:bss(1)
+
+[Timer]
+OnBootSec=20m
+OnUnitActiveSec=1d
+
+[Install]
+WantedBy=timers.target
+

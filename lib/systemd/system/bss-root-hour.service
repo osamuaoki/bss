@@ -1,0 +1,14 @@
+
+[Unit]
+Description=Take a btrfs subvolume snapshot of / on every hour
+Description=Daily management of btrfs subvolume snapshots
+Documentation=man:bss(1)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bss snapshot --logger --type=hour /
+ioschedulingclass=idle
+cpuschedulingpolicy=idle
+StandardInput=null
+StandardOutput=append:/var/log/bss.log
+StandardError=append:/var/log/bss.log

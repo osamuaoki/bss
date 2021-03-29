@@ -1,0 +1,14 @@
+
+[Unit]
+description=Daily aging of btrfs subvolume snapshots for /
+Documentation=man:bss(1)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bss process --logger /
+IOSchedulingClass=idle
+CPUSchedulingPolicy=idle
+StandardInput=null
+StandardOutput=append:/var/log/bss.log
+StandardError=append:/var/log/bss.log
+

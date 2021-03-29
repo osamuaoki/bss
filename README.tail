@@ -1,0 +1,200 @@
+<!---
+vim:se tw=78 ai si sts=4 sw=4 et:
+-->
+## Note on "revert" operation
+
+This is rather untested experimental feature with limited capabilities.  Use
+with care!
+
+## Note on the code design
+
+This "bss" is designed with following consideration:
+
+* Make package simple and small but powerful and configurable.
+  * Use plain POSIX-shell
+  * Configurable aging timing.
+  * Configurable file filtering.
+  * Prevention safeguard for the filling up of btrfs.
+  * Capability to limit number of snapshots by number or age.
+  * Logging to syslog is available (-l).
+  * Easy monitoring of its internal actions (-v and -vv).
+  * Snapshots have identifiable names (more like `timeshift`)
+  * Offer CLI (more like `snapper`).
+  * Accept shortened subcommands.
+  * Use UT (+00:00) for code simplicity
+  * Use STDOUT for data and STDERR for internal state for consistency.
+* Support snapshot of any target btrfs data.
+  * This can be used to snapshot the root filesystem on btrfs.
+    * No requirement to make the root filesystem as `subvol=@`.
+    * Automatic boot time snapshots via systemd.
+    * Automatic hourly time snapshots via systemd.
+    * Automatic pre and post package installation snapshots via APT
+      operations on Debian/Ubuntu/... system.
+    * Automatic aging via systemd.
+    * All system-level systemd processes log their activities at
+      '/var/log/$BSS.log".
+    * Manual snapshot by `bss snap /`.
+    * Manual process data according to their age by `bss process /`.
+  * This can be used to snapshot non-system partition on btrfs.
+    * Manual snapshot of user's home directory by `bss snap ~`.
+    * Manual process user's home directory by `bss process ~`.
+    * Manual snapshot of a subvolume containing any directory by `bss snap /path/to/dir`.
+    * Manual process user's a subvolume containing any directory by `bss process /path/to/dir`.
+    * Configuration example for automatic boot time snapshots via systemd.
+    * Configuration example for automatic hourly time snapshots via systemd.
+    * Configuration example for automatic processing via systemd.
+
+## Note on installation
+
+### For Debain/Ubuntu system (easy)
+
+Check pre-build packages at: https://github.com/osamuaoki/bss/tree/deb and
+identify desired package, e.g., `bss_0.2.3-1_amd64.deb` .
+
+```
+ $ wget https://github.com/osamuaoki/bss/raw/deb/bss_0.2.3-1_amd64.deb
+ $ sudo dpkg -i bss_0.2.3-1_amd64.deb
+```
+
+### For Debain/Ubuntu system (latest)
+
+```
+ $ git clone https://github.com/osamuaoki/bss.git
+ $ cd bss
+ $ git-deborig
+ $ debuild
+ $ cd ..
+ $ sudo dpkg -i bss_0.2.3-1_amd64.deb
+```
+
+### For other system
+
+```
+ $ git clone https://github.com/osamuaoki/bss.git
+ $ cd bss
+ $ sudo make install
+```
+
+## Getting started
+
+### Basics
+
+* Install bss Debian package
+* Move the current working directory to a btrfs managed by "bss"
+* Get help with `bss h`.
+* Manually create a snapshot with `bss s` or just by `bss`
+* Manually process snapshots with `bss p`
+* Check existing snapshots with `bss l`.
+* Check aging status of existing snapshots with `bss o`.
+* Check automatic jobs with `bss j`.
+* Manipulate non-current directory by providing PATH after subcommands.
+
+Use of `-v` option gives verbose information.
+
+### Customization of aging behavior
+
+* Create template configuration and filter by `bss t`
+  * Adjust configuration by editing ".bss.d/.bss.conf"
+  * Adjust filter by editing ".bss.d/.bss.conf"
+
+### Customization of automatic snapshots
+
+Automatic snapshot supports for the root subvolume is provided just by
+installing this "bss".  The frequency is fixed but you can always issue manual
+command to make additional snapshots and additional aging process.
+
+* snapshot is made upon booting the system (1min delay after booting)
+* snapshots are made before and after the system update via APT.
+* snapshot is made 10 min. past every exact hour.
+* snapshots are processed daily according to their age (or 10min delay after booting)
+
+All boot and APT snapshots are excluded from deletion by automatic processing
+up to TMID.  If you are using "bss" on a typical laptop with default timing
+and powering down everyday, you have at least one snapshot a day up to 10
+days.
+
+Automatic snapshot supports for non-root subvolumes need to be managed by the
+user. This is because we have no idea how you use your system.
+You can find examples for managing user's home directory in
+`/usr/share/doc/bss/examples/user` in the installed system (which is under
+`examples/user` in the source).  You can use them as:
+
+```
+ $ mkdir -p ~/.config/systemd/user/
+ $ cd /usr/share/doc/bss/examples/user
+ $ cp * ~/.config/systemd/user/
+ $ systemctl --user enable bss-home-process.timer bss-home-boot.timer bss-home-hour.timer
+ $ tree /home/<username>/.config/systemd/user/
+/home/<username>/.config/systemd/user/
+├── bss-home-boot.service
+├── bss-home-boot.timer
+├── bss-home-hour.service
+├── bss-home-hour.timer
+├── bss-home-process.service
+├── bss-home-process.timer
+└── timers.target.wants
+    ├── bss-home-boot.timer -> /home/<username>/.config/systemd/user/bss-home-boot.timer
+    ├── bss-home-hour.timer -> /home/<username>/.config/systemd/user/bss-home-hour.timer
+    └── bss-home-process.timer -> /home/<username>/.config/systemd/user/bss-home-process.timer
+```
+
+After doing all these, please reboot the system.
+
+The logfile of the user's systemd processes is `~/.cache/ststemd-bss.log`.
+You may edit `/etc/logrotate.d/bss` to rotate
+`/home/<username>/cache/ststemd-bss.log`
+
+## Tips
+
+### Removing many subvolumes by bss
+
+If quota is enabled, removing many subvolumes by bss may cause issues.
+
+### Excluding files from the "`snapshot`" operation
+
+If you wish to exclude files under a particular directory, simply creating a
+pertinent subvolume containing those files in place of the directory allows to
+exclude them to be a part of the "`snapshot`" operation.
+
+### Database file and CoW issue
+
+Please consider to set 'no copy on write' (C) attribute recursively on the
+directory prior to placing files such as the database file in it.  For
+example:
+
+```
+ $ sudo chattr -R +C /var/lib/mysql
+```
+
+### Migration of the root filesystem to `subvol=@` on Btrfs.
+
+See [Btrfs migration](https://wiki.debian.org/Btrfs%20migration)
+
+### Backup
+
+The snapshot mechanism of btrfs offers efficient historical storage but is
+never meant to replace full capabilities of the backup mechanism.  For disk
+failures, you should rely on data on different storage devices.  The easiest
+backup for the consumer grade system is full backup to USB connected SSD.
+
+Although the combination of `btrfs send` with the incremental mode (options
+`-p` and `-c`) and `btrfs receive` provides the fast and efficient backup, it
+needs to be used carefully.  So for the robustness of backup for a careless
+person (i.e., myself), I integrated `rsync` approach to this script as "bss
+copy".
+
+"bss copy" makes readonly snapshot and run "rsync -aHAXx ..." (H: hardlink, A:
+ACLs, X: extended attributes, x: one filesystem) on it to the specified
+destination.
+
+```
+ $ bss copy / /media/usb_ssd/root
+ $ bss copy ~ /media/usb_ssd/userdata
+```
+
+The backup data may use btrfs on USB connected SSD and you can use `bss` to
+manage its history.  In this case, `bss` related files in the ".bss.d/"
+directory are protected via `rsync` filter rules so aging on USB connected SSD
+can be managed independently.
+
+

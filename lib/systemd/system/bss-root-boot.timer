@@ -1,0 +1,9 @@
+[Unit]
+Description=Take a btrfs subvolume snapshot of / on boot
+Documentation=man:bss(1)
+
+[Timer]
+OnBootSec=1m
+
+[Install]
+WantedBy=timers.target
