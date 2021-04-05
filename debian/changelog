@@ -1,3 +1,9 @@
+bss (0.1.0-2) unstable; urgency=medium
+
+  * Fix typos in systemd files.
+
+ -- Osamu Aoki <osamu@debian.org>  Mon, 05 Apr 2021 10:00:04 +0900
+
 bss (0.1.0-1) unstable; urgency=low
 
   * Initial release to github.

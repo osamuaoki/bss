@@ -9,7 +9,7 @@ Homepage: https://github.com/osamuaoki/bss
 Package: bss
 Architecture: any
 Multi-Arch: foreign
-Depends: ${misc:Depends}, ${shlibs:Depends}, btrfs-progs, systemd
+Depends: btrfs-progs, systemd, ${misc:Depends}, ${shlibs:Depends}
 Recommends: sudo
 Description: Btrfs Subvolume Snapshot Utility
  "bss" is basically a "btrfs subvolume ..." command wrapper to create and age
