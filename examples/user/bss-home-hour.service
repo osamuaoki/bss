@@ -1,7 +1,5 @@
-
 [Unit]
 Description=Take a btrfs subvolume snapshot of user's home on every hour
-Description=Daily management of btrfs subvolume snapshots
 Documentation=man:bss(1)
 
 [Service]

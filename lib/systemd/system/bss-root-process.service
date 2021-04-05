@@ -1,6 +1,5 @@
-
 [Unit]
-description=Daily aging of btrfs subvolume snapshots for /
+Description=Daily aging of btrfs subvolume snapshots for /
 Documentation=man:bss(1)
 
 [Service]
