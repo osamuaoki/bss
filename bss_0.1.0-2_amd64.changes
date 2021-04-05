@@ -1,0 +1,51 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 05 Apr 2021 10:00:04 +0900
+Source: bss
+Binary: bss
+Architecture: source amd64
+Version: 0.1.0-2
+Distribution: unstable
+Urgency: medium
+Maintainer: Osamu Aoki <osamu@debian.org>
+Changed-By: Osamu Aoki <osamu@debian.org>
+Description:
+ bss        - Btrfs Subvolume Snapshot Utility
+Changes:
+ bss (0.1.0-2) unstable; urgency=medium
+ .
+   * Fix typos in systemd files.
+Checksums-Sha1:
+ 86345f5d169d401680a98e2dbd33bd14c6367847 1660 bss_0.1.0-2.dsc
+ 268a1716e59252ffbf0e2ce3cfb79e9ccab0d95d 2940 bss_0.1.0-2.debian.tar.xz
+ e812cf09b3f222f9fc9e47d729e418f3582a2cbd 5697 bss_0.1.0-2_amd64.buildinfo
+ c4d5c606247b0518ee4da227a6edfd075b796bd3 24708 bss_0.1.0-2_amd64.deb
+Checksums-Sha256:
+ c695dbde4c7d62386db9ac7166b56e78208d4655ac9fef76e466f89b27b1869a 1660 bss_0.1.0-2.dsc
+ 6409bdeac67e1fa2a59f1cff342db0ce1290266dc2cd4376356f46c4cdaad359 2940 bss_0.1.0-2.debian.tar.xz
+ e3c0b59d93029abe30c29f89a9a9615ab7242908f84937e69d0ae1e7024017a0 5697 bss_0.1.0-2_amd64.buildinfo
+ 229d4dec1824b29b30b3ee0621e0304aa6e07f736890fc5abe3144cb60018db4 24708 bss_0.1.0-2_amd64.deb
+Files:
+ 2a6afe735629cabaab5e889768ef9a2a 1660 utils optional bss_0.1.0-2.dsc
+ 38f553b7ba132e4084b677eb8bbe0f59 2940 utils optional bss_0.1.0-2.debian.tar.xz
+ a82e8e9ae15806b5bb54560bdcf8677d 5697 utils optional bss_0.1.0-2_amd64.buildinfo
+ 4f735e84f2984db45a013a09bf322efb 24708 utils optional bss_0.1.0-2_amd64.deb
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEMTNyTWIHiBV56V1iHhNWiB3Y15EFAmBqYp0ACgkQHhNWiB3Y
+15Gg6A//e6lSLjE00kOnFLVxOSPd6Te4k42xy8XordEKNAEJ0cv+8nHaL2h/NuA4
+f5eHFKNHCeZND3sbeJ6QAUwJxW1XLK/BUEyRWg4SN2h6Ckrtu8nZEYap/JgwfiWX
+VULq7hM8Hd2mxhAl1uSSJBYRahfhl4ilfXVrcvUXAvJ7aN4Izu14GhZ2hJjJphky
+Ly82vc5XjudemEoG/M+TS0voIT7j201iwwAY7H1c1zhJYgQJR4ojnqSyKAHPEPb6
+/HY1GI53AAreBKEsxscMVMptzMYGEUKY5sckng64UG8N9LewYc3gJqCWZypWhn9p
+h2JSJ1628mxNkI6AhnYDb9tJKqgNZIbET4buf07ixQYGoh2xXu7dquJH5JkST4Pr
+oTWpywN6ia3vXVY4/iIxmsjwRIE6qgBocVAHQ5M2VJ6XbyPf0NIoG1g4ICJdpCEy
+H+1DOtjxU9gJU0Bu1UBGk1M4gFDjunWvkBgHTcsY9Fn/93bUb7rH0oX/Jwh9wlj9
+OcO7SO0lS//NmqZFkPDhcYFadxxPTHdUEJlRjA3TaJBhlhDAGChkrRrQ9JlHp2BZ
+2hznZrxdokf5chX2TFz9HaX+XFqVomI9/VPsM67tAibYazWl2OpfIiliqfGDPlbj
+ELBSdxBmNzui+Zc40fb0kSR4kl/7u01mH0rIrePaHouvdLmulGs=
+=sgYP
+-----END PGP SIGNATURE-----
