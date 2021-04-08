@@ -898,6 +898,8 @@ __template () {
   if [ ! -d "$BSS_DIR_BASE" ]; then
     if [ -z "$NOOP" ]; then
       $SUDO mkdir -p "$BSS_DIR_BASE" >/dev/null
+      # match owner with the parent directory
+      $NOOP $SUDO chown "$BTRFS_BASE_UID":"$BTRFS_BASE_GID" "$BSS_DIR_BASE"
     else
       __echo 0 "'$BSS template' must not be used with --noop nor -n option."
       exit 1
