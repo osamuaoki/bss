@@ -1,0 +1,1386 @@
+sbuild (Debian sbuild) 0.81.2 (31 January 2021) on goofy.localdomain
+
++==============================================================================+
+| bss 0.1.0-3 (amd64)                          Thu, 08 Apr 2021 13:25:38 +0000 |
++==============================================================================+
+
+Package: bss
+Version: 0.1.0-3
+Source Version: 0.1.0-3
+Distribution: unstable
+Machine Architecture: amd64
+Host Architecture: amd64
+Build Architecture: amd64
+Build Type: binary
+
+I: NOTICE: Log filtering will replace 'var/run/schroot/mount/unstable-amd64-sbuild-09959f49-74ea-44a3-ae6e-4482809f9ee7' with '<<CHROOT>>'
+I: NOTICE: Log filtering will replace 'build/bss-nS3e60/resolver-Ttm02V' with '<<RESOLVERDIR>>'
+
++------------------------------------------------------------------------------+
+| Update chroot                                                                |
++------------------------------------------------------------------------------+
+
+Get:1 http://127.0.0.1:3142/deb.debian.org/debian unstable InRelease [154 kB]
+Get:2 http://127.0.0.1:3142/deb.debian.org/debian unstable/main Sources.diff/Index [63.6 kB]
+Get:3 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 Packages.diff/Index [63.6 kB]
+Get:4 http://127.0.0.1:3142/deb.debian.org/debian unstable/main Sources T-2021-04-08-0800.33-F-2021-04-08-0800.33.pdiff [2485 B]
+Get:4 http://127.0.0.1:3142/deb.debian.org/debian unstable/main Sources T-2021-04-08-0800.33-F-2021-04-08-0800.33.pdiff [2485 B]
+Get:5 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 Packages T-2021-04-08-0800.33-F-2021-04-08-0800.33.pdiff [1136 B]
+Get:5 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 Packages T-2021-04-08-0800.33-F-2021-04-08-0800.33.pdiff [1136 B]
+Fetched 284 kB in 2s (134 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Calculating upgrade...
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+
++------------------------------------------------------------------------------+
+| Fetch source files                                                           |
++------------------------------------------------------------------------------+
+
+
+Local sources
+-------------
+
+/home/osamu/src/public/bss/bss_0.1.0-3.dsc exists in /home/osamu/src/public/bss; copying to chroot
+I: NOTICE: Log filtering will replace 'build/bss-nS3e60/bss-0.1.0' with '<<PKGBUILDDIR>>'
+I: NOTICE: Log filtering will replace 'build/bss-nS3e60' with '<<BUILDDIR>>'
+
++------------------------------------------------------------------------------+
+| Install package build dependencies                                           |
++------------------------------------------------------------------------------+
+
+
+Setup apt archive
+-----------------
+
+Merged Build-Depends: debhelper-compat (= 13), build-essential, fakeroot
+Filtered Build-Depends: debhelper-compat (= 13), build-essential, fakeroot
+dpkg-deb: building package 'sbuild-build-depends-main-dummy' in '/<<RESOLVERDIR>>/apt_archive/sbuild-build-depends-main-dummy.deb'.
+Ign:1 copy:/<<RESOLVERDIR>>/apt_archive ./ InRelease
+Get:2 copy:/<<RESOLVERDIR>>/apt_archive ./ Release [957 B]
+Ign:3 copy:/<<RESOLVERDIR>>/apt_archive ./ Release.gpg
+Get:4 copy:/<<RESOLVERDIR>>/apt_archive ./ Sources [370 B]
+Get:5 copy:/<<RESOLVERDIR>>/apt_archive ./ Packages [449 B]
+Fetched 1776 B in 0s (165 kB/s)
+Reading package lists...
+Reading package lists...
+
+Install main build dependencies (apt-based resolver)
+----------------------------------------------------
+
+Installing build dependencies
+Reading package lists...
+Building dependency tree...
+The following additional packages will be installed:
+  autoconf automake autopoint autotools-dev bsdextrautils debhelper
+  dh-autoreconf dh-strip-nondeterminism dwz file gettext gettext-base
+  groff-base intltool-debian libarchive-zip-perl libdebhelper-perl libelf1
+  libfile-stripnondeterminism-perl libicu67 libmagic-mgc libmagic1
+  libpipeline1 libsigsegv2 libsub-override-perl libtool libuchardet0 libxml2
+  m4 man-db po-debconf sensible-utils
+Suggested packages:
+  autoconf-archive gnu-standards autoconf-doc dh-make gettext-doc
+  libasprintf-dev libgettextpo-dev groff libtool-doc gfortran
+  | fortran95-compiler gcj-jdk m4-doc apparmor less www-browser
+  libmail-box-perl
+Recommended packages:
+  curl | wget | lynx libarchive-cpio-perl libltdl-dev libmail-sendmail-perl
+The following NEW packages will be installed:
+  autoconf automake autopoint autotools-dev bsdextrautils debhelper
+  dh-autoreconf dh-strip-nondeterminism dwz file gettext gettext-base
+  groff-base intltool-debian libarchive-zip-perl libdebhelper-perl libelf1
+  libfile-stripnondeterminism-perl libicu67 libmagic-mgc libmagic1
+  libpipeline1 libsigsegv2 libsub-override-perl libtool libuchardet0 libxml2
+  m4 man-db po-debconf sbuild-build-depends-main-dummy sensible-utils
+0 upgraded, 32 newly installed, 0 to remove and 0 not upgraded.
+Need to get 18.2 MB of archives.
+After this operation, 67.4 MB of additional disk space will be used.
+Get:1 copy:/<<RESOLVERDIR>>/apt_archive ./ sbuild-build-depends-main-dummy 0.invalid.0 [876 B]
+Get:2 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 bsdextrautils amd64 2.36.1-7 [145 kB]
+Get:3 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libuchardet0 amd64 0.0.7-1 [67.8 kB]
+Get:4 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 groff-base amd64 1.22.4-6 [936 kB]
+Get:5 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libpipeline1 amd64 1.5.3-1 [34.3 kB]
+Get:6 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 man-db amd64 2.9.4-2 [1354 kB]
+Get:7 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 sensible-utils all 0.0.14 [14.8 kB]
+Get:8 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmagic-mgc amd64 1:5.39-3 [273 kB]
+Get:9 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmagic1 amd64 1:5.39-3 [126 kB]
+Get:10 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 file amd64 1:5.39-3 [69.1 kB]
+Get:11 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 gettext-base amd64 0.21-4 [175 kB]
+Get:12 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsigsegv2 amd64 2.13-1 [34.8 kB]
+Get:13 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 m4 amd64 1.4.18-5 [204 kB]
+Get:14 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 autoconf all 2.69-14 [313 kB]
+Get:15 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 autotools-dev all 20180224.1+nmu1 [77.1 kB]
+Get:16 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 automake all 1:1.16.3-2 [814 kB]
+Get:17 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 autopoint all 0.21-4 [510 kB]
+Get:18 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdebhelper-perl all 13.3.4 [189 kB]
+Get:19 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtool all 2.4.6-15 [513 kB]
+Get:20 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 dh-autoreconf all 20 [17.1 kB]
+Get:21 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libarchive-zip-perl all 1.68-1 [104 kB]
+Get:22 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-override-perl all 0.09-2 [10.2 kB]
+Get:23 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libfile-stripnondeterminism-perl all 1.11.0-1 [25.6 kB]
+Get:24 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 dh-strip-nondeterminism all 1.11.0-1 [15.3 kB]
+Get:25 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libelf1 amd64 0.183-3 [165 kB]
+Get:26 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 dwz amd64 0.14-1 [98.3 kB]
+Get:27 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libicu67 amd64 67.1-6 [8625 kB]
+Get:28 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libxml2 amd64 2.9.10+dfsg-6.3+b1 [693 kB]
+Get:29 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 gettext amd64 0.21-4 [1311 kB]
+Get:30 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 intltool-debian all 0.35.0+20060710.5 [26.8 kB]
+Get:31 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 po-debconf all 1.0.21+nmu1 [248 kB]
+Get:32 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 debhelper all 13.3.4 [1049 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 18.2 MB in 0s (169 MB/s)
+Selecting previously unselected package bsdextrautils.
+(Reading database ... 12735 files and directories currently installed.)
+Preparing to unpack .../00-bsdextrautils_2.36.1-7_amd64.deb ...
+Unpacking bsdextrautils (2.36.1-7) ...
+Selecting previously unselected package libuchardet0:amd64.
+Preparing to unpack .../01-libuchardet0_0.0.7-1_amd64.deb ...
+Unpacking libuchardet0:amd64 (0.0.7-1) ...
+Selecting previously unselected package groff-base.
+Preparing to unpack .../02-groff-base_1.22.4-6_amd64.deb ...
+Unpacking groff-base (1.22.4-6) ...
+Selecting previously unselected package libpipeline1:amd64.
+Preparing to unpack .../03-libpipeline1_1.5.3-1_amd64.deb ...
+Unpacking libpipeline1:amd64 (1.5.3-1) ...
+Selecting previously unselected package man-db.
+Preparing to unpack .../04-man-db_2.9.4-2_amd64.deb ...
+Unpacking man-db (2.9.4-2) ...
+Selecting previously unselected package sensible-utils.
+Preparing to unpack .../05-sensible-utils_0.0.14_all.deb ...
+Unpacking sensible-utils (0.0.14) ...
+Selecting previously unselected package libmagic-mgc.
+Preparing to unpack .../06-libmagic-mgc_1%3a5.39-3_amd64.deb ...
+Unpacking libmagic-mgc (1:5.39-3) ...
+Selecting previously unselected package libmagic1:amd64.
+Preparing to unpack .../07-libmagic1_1%3a5.39-3_amd64.deb ...
+Unpacking libmagic1:amd64 (1:5.39-3) ...
+Selecting previously unselected package file.
+Preparing to unpack .../08-file_1%3a5.39-3_amd64.deb ...
+Unpacking file (1:5.39-3) ...
+Selecting previously unselected package gettext-base.
+Preparing to unpack .../09-gettext-base_0.21-4_amd64.deb ...
+Unpacking gettext-base (0.21-4) ...
+Selecting previously unselected package libsigsegv2:amd64.
+Preparing to unpack .../10-libsigsegv2_2.13-1_amd64.deb ...
+Unpacking libsigsegv2:amd64 (2.13-1) ...
+Selecting previously unselected package m4.
+Preparing to unpack .../11-m4_1.4.18-5_amd64.deb ...
+Unpacking m4 (1.4.18-5) ...
+Selecting previously unselected package autoconf.
+Preparing to unpack .../12-autoconf_2.69-14_all.deb ...
+Unpacking autoconf (2.69-14) ...
+Selecting previously unselected package autotools-dev.
+Preparing to unpack .../13-autotools-dev_20180224.1+nmu1_all.deb ...
+Unpacking autotools-dev (20180224.1+nmu1) ...
+Selecting previously unselected package automake.
+Preparing to unpack .../14-automake_1%3a1.16.3-2_all.deb ...
+Unpacking automake (1:1.16.3-2) ...
+Selecting previously unselected package autopoint.
+Preparing to unpack .../15-autopoint_0.21-4_all.deb ...
+Unpacking autopoint (0.21-4) ...
+Selecting previously unselected package libdebhelper-perl.
+Preparing to unpack .../16-libdebhelper-perl_13.3.4_all.deb ...
+Unpacking libdebhelper-perl (13.3.4) ...
+Selecting previously unselected package libtool.
+Preparing to unpack .../17-libtool_2.4.6-15_all.deb ...
+Unpacking libtool (2.4.6-15) ...
+Selecting previously unselected package dh-autoreconf.
+Preparing to unpack .../18-dh-autoreconf_20_all.deb ...
+Unpacking dh-autoreconf (20) ...
+Selecting previously unselected package libarchive-zip-perl.
+Preparing to unpack .../19-libarchive-zip-perl_1.68-1_all.deb ...
+Unpacking libarchive-zip-perl (1.68-1) ...
+Selecting previously unselected package libsub-override-perl.
+Preparing to unpack .../20-libsub-override-perl_0.09-2_all.deb ...
+Unpacking libsub-override-perl (0.09-2) ...
+Selecting previously unselected package libfile-stripnondeterminism-perl.
+Preparing to unpack .../21-libfile-stripnondeterminism-perl_1.11.0-1_all.deb ...
+Unpacking libfile-stripnondeterminism-perl (1.11.0-1) ...
+Selecting previously unselected package dh-strip-nondeterminism.
+Preparing to unpack .../22-dh-strip-nondeterminism_1.11.0-1_all.deb ...
+Unpacking dh-strip-nondeterminism (1.11.0-1) ...
+Selecting previously unselected package libelf1:amd64.
+Preparing to unpack .../23-libelf1_0.183-3_amd64.deb ...
+Unpacking libelf1:amd64 (0.183-3) ...
+Selecting previously unselected package dwz.
+Preparing to unpack .../24-dwz_0.14-1_amd64.deb ...
+Unpacking dwz (0.14-1) ...
+Selecting previously unselected package libicu67:amd64.
+Preparing to unpack .../25-libicu67_67.1-6_amd64.deb ...
+Unpacking libicu67:amd64 (67.1-6) ...
+Selecting previously unselected package libxml2:amd64.
+Preparing to unpack .../26-libxml2_2.9.10+dfsg-6.3+b1_amd64.deb ...
+Unpacking libxml2:amd64 (2.9.10+dfsg-6.3+b1) ...
+Selecting previously unselected package gettext.
+Preparing to unpack .../27-gettext_0.21-4_amd64.deb ...
+Unpacking gettext (0.21-4) ...
+Selecting previously unselected package intltool-debian.
+Preparing to unpack .../28-intltool-debian_0.35.0+20060710.5_all.deb ...
+Unpacking intltool-debian (0.35.0+20060710.5) ...
+Selecting previously unselected package po-debconf.
+Preparing to unpack .../29-po-debconf_1.0.21+nmu1_all.deb ...
+Unpacking po-debconf (1.0.21+nmu1) ...
+Selecting previously unselected package debhelper.
+Preparing to unpack .../30-debhelper_13.3.4_all.deb ...
+Unpacking debhelper (13.3.4) ...
+Selecting previously unselected package sbuild-build-depends-main-dummy.
+Preparing to unpack .../31-sbuild-build-depends-main-dummy_0.invalid.0_amd64.deb ...
+Unpacking sbuild-build-depends-main-dummy (0.invalid.0) ...
+Setting up libpipeline1:amd64 (1.5.3-1) ...
+Setting up bsdextrautils (2.36.1-7) ...
+update-alternatives: using /usr/bin/write.ul to provide /usr/bin/write (write) in auto mode
+Setting up libicu67:amd64 (67.1-6) ...
+Setting up libmagic-mgc (1:5.39-3) ...
+Setting up libarchive-zip-perl (1.68-1) ...
+Setting up libdebhelper-perl (13.3.4) ...
+Setting up libmagic1:amd64 (1:5.39-3) ...
+Setting up gettext-base (0.21-4) ...
+Setting up file (1:5.39-3) ...
+Setting up autotools-dev (20180224.1+nmu1) ...
+Setting up libsigsegv2:amd64 (2.13-1) ...
+Setting up autopoint (0.21-4) ...
+Setting up sensible-utils (0.0.14) ...
+Setting up libuchardet0:amd64 (0.0.7-1) ...
+Setting up libsub-override-perl (0.09-2) ...
+Setting up libelf1:amd64 (0.183-3) ...
+Setting up libxml2:amd64 (2.9.10+dfsg-6.3+b1) ...
+Setting up libfile-stripnondeterminism-perl (1.11.0-1) ...
+Setting up gettext (0.21-4) ...
+Setting up libtool (2.4.6-15) ...
+Setting up m4 (1.4.18-5) ...
+Setting up intltool-debian (0.35.0+20060710.5) ...
+Setting up autoconf (2.69-14) ...
+Setting up dh-strip-nondeterminism (1.11.0-1) ...
+Setting up dwz (0.14-1) ...
+Setting up groff-base (1.22.4-6) ...
+Setting up automake (1:1.16.3-2) ...
+update-alternatives: using /usr/bin/automake-1.16 to provide /usr/bin/automake (automake) in auto mode
+Setting up po-debconf (1.0.21+nmu1) ...
+Setting up man-db (2.9.4-2) ...
+Not building database; man-db/auto-update is not 'true'.
+Setting up dh-autoreconf (20) ...
+Setting up debhelper (13.3.4) ...
+Setting up sbuild-build-depends-main-dummy (0.invalid.0) ...
+Processing triggers for libc-bin (2.31-11) ...
+
++------------------------------------------------------------------------------+
+| Check architectures                                                          |
++------------------------------------------------------------------------------+
+
+Arch check ok (amd64 included in any)
+
++------------------------------------------------------------------------------+
+| Build environment                                                            |
++------------------------------------------------------------------------------+
+
+Kernel: Linux 5.10.0-5-amd64 #1 SMP Debian 5.10.24-1 (2021-03-19) amd64 (x86_64)
+Toolchain package versions: binutils_2.35.2-2 dpkg-dev_1.20.7.1 g++-10_10.2.1-6 gcc-10_10.2.1-6 libc6-dev_2.31-11 libstdc++-10-dev_10.2.1-6 libstdc++6_10.2.1-6 linux-libc-dev_5.10.26-1
+Package versions: adduser_3.118 apt_2.2.2 autoconf_2.69-14 automake_1:1.16.3-2 autopoint_0.21-4 autotools-dev_20180224.1+nmu1 base-files_11 base-passwd_3.5.49 bash_5.1-2+b1 binutils_2.35.2-2 binutils-common_2.35.2-2 binutils-x86-64-linux-gnu_2.35.2-2 bsdextrautils_2.36.1-7 bsdutils_1:2.36.1-7 build-essential_12.9 bzip2_1.0.8-4 ccache_4.2-1 coreutils_8.32-4+b1 cpp_4:10.2.1-1 cpp-10_10.2.1-6 dash_0.5.11+git20210120+802ebd4-1 debconf_1.5.76 debhelper_13.3.4 debian-archive-keyring_2021.1.1 debianutils_4.11.2 dh-autoreconf_20 dh-strip-nondeterminism_1.11.0-1 diffutils_1:3.7-5 dirmngr_2.2.27-1 dpkg_1.20.7.1 dpkg-dev_1.20.7.1 dwz_0.14-1 e2fsprogs_1.46.2-1 eatmydata_105-9 fakeroot_1.25.3-1.1 file_1:5.39-3 findutils_4.8.0-1 g++_4:10.2.1-1 g++-10_10.2.1-6 gcc_4:10.2.1-1 gcc-10_10.2.1-6 gcc-10-base_10.2.1-6 gcc-9-base_9.3.0-22 gettext_0.21-4 gettext-base_0.21-4 gnupg_2.2.27-1 gnupg-l10n_2.2.27-1 gnupg-utils_2.2.27-1 gpg_2.2.27-1 gpg-agent_2.2.27-1 gpg-wks-client_2.2.27-1 gpg-wks-server_2.2.27-1 gpgconf_2.2.27-1 gpgsm_2.2.27-1 gpgv_2.2.27-1 grep_3.6-1 groff-base_1.22.4-6 gzip_1.10-4 hostname_3.23 init-system-helpers_1.60 intltool-debian_0.35.0+20060710.5 libacl1_2.2.53-10 libapt-pkg6.0_2.2.2 libarchive-zip-perl_1.68-1 libasan6_10.2.1-6 libassuan0_2.5.4-1 libatomic1_10.2.1-6 libattr1_1:2.4.48-6 libaudit-common_1:3.0-2 libaudit1_1:3.0-2 libbinutils_2.35.2-2 libblkid1_2.36.1-7 libbz2-1.0_1.0.8-4 libc-bin_2.31-11 libc-dev-bin_2.31-11 libc6_2.31-11 libc6-dev_2.31-11 libcap-ng0_0.7.9-2.2+b1 libcc1-0_10.2.1-6 libcom-err2_1.46.2-1 libcrypt-dev_1:4.4.18-2 libcrypt1_1:4.4.18-2 libctf-nobfd0_2.35.2-2 libctf0_2.35.2-2 libdb5.3_5.3.28+dfsg1-0.8 libdebconfclient0_0.257 libdebhelper-perl_13.3.4 libdpkg-perl_1.20.7.1 libeatmydata1_105-9 libelf1_0.183-3 libext2fs2_1.46.2-1 libfakeroot_1.25.3-1.1 libffi7_3.3-6 libfile-stripnondeterminism-perl_1.11.0-1 libgcc-10-dev_10.2.1-6 libgcc-s1_10.2.1-6 libgcrypt20_1.8.7-3 libgdbm-compat4_1.19-2 libgdbm6_1.19-2 libgmp10_2:6.2.1+dfsg-1 libgnutls30_3.7.1-3 libgomp1_10.2.1-6 libgpg-error0_1.38-2 libgssapi-krb5-2_1.18.3-4 libhogweed6_3.7.2-3 libicu67_67.1-6 libidn2-0_2.3.0-5 libisl23_0.23-1 libitm1_10.2.1-6 libk5crypto3_1.18.3-4 libkeyutils1_1.6.1-2 libkrb5-3_1.18.3-4 libkrb5support0_1.18.3-4 libksba8_1.5.0-3 libldap-2.4-2_2.4.57+dfsg-2 liblsan0_10.2.1-6 liblz4-1_1.9.3-1 liblzma5_5.2.5-2 libmagic-mgc_1:5.39-3 libmagic1_1:5.39-3 libmount1_2.36.1-7 libmpc3_1.2.0-1 libmpfr6_4.1.0-3 libncursesw6_6.2+20201114-2 libnettle8_3.7.2-3 libnpth0_1.6-3 libnsl-dev_1.3.0-2 libnsl2_1.3.0-2 libp11-kit0_0.23.22-1 libpam-modules_1.4.0-7 libpam-modules-bin_1.4.0-7 libpam-runtime_1.4.0-7 libpam0g_1.4.0-7 libpcre2-8-0_10.36-2 libpcre3_2:8.39-13 libperl5.32_5.32.1-3 libpipeline1_1.5.3-1 libquadmath0_10.2.1-6 libreadline8_8.1-1 libsasl2-2_2.1.27+dfsg-2.1 libsasl2-modules-db_2.1.27+dfsg-2.1 libseccomp2_2.5.1-1 libselinux1_3.1-3 libsemanage-common_3.1-1 libsemanage1_3.1-1+b2 libsepol1_3.1-1 libsigsegv2_2.13-1 libsmartcols1_2.36.1-7 libsqlite3-0_3.34.1-3 libss2_1.46.2-1 libssl1.1_1.1.1k-1 libstdc++-10-dev_10.2.1-6 libstdc++6_10.2.1-6 libsub-override-perl_0.09-2 libsystemd0_247.3-3 libtasn1-6_4.16.0-2 libtinfo6_6.2+20201114-2 libtirpc-common_1.3.1-1 libtirpc-dev_1.3.1-1 libtirpc3_1.3.1-1 libtool_2.4.6-15 libtsan0_10.2.1-6 libubsan1_10.2.1-6 libuchardet0_0.0.7-1 libudev1_247.3-3 libunistring2_0.9.10-4 libuuid1_2.36.1-7 libxml2_2.9.10+dfsg-6.3+b1 libxxhash0_0.8.0-2 libzstd1_1.4.8+dfsg-2.1 linux-libc-dev_5.10.26-1 login_1:4.8.1-1 logsave_1.46.2-1 lsb-base_11.1.0 m4_1.4.18-5 make_4.3-4 man-db_2.9.4-2 mawk_1.3.4.20200120-2 mount_2.36.1-7 ncurses-base_6.2+20201114-2 ncurses-bin_6.2+20201114-2 passwd_1:4.8.1-1 patch_2.7.6-7 perl_5.32.1-3 perl-base_5.32.1-3 perl-modules-5.32_5.32.1-3 pinentry-curses_1.1.0-4 po-debconf_1.0.21+nmu1 readline-common_8.1-1 sbuild-build-depends-main-dummy_0.invalid.0 sed_4.7-1 sensible-utils_0.0.14 sysvinit-utils_2.96-6 tar_1.34+dfsg-1 tzdata_2021a-1 util-linux_2.36.1-7 xz-utils_5.2.5-2 zlib1g_1:1.2.11.dfsg-2
+
++------------------------------------------------------------------------------+
+| Build                                                                        |
++------------------------------------------------------------------------------+
+
+
+Unpack source
+-------------
+
+Format: 3.0 (quilt)
+Source: bss
+Binary: bss
+Architecture: any
+Version: 0.1.0-3
+Maintainer: Osamu Aoki <osamu@debian.org>
+Homepage: https://github.com/osamuaoki/bss
+Standards-Version: 4.5.1
+Build-Depends: debhelper-compat (= 13)
+Package-List:
+ bss deb utils optional arch=any
+Checksums-Sha1:
+ 2baefd61302d90727fc7f5d33c99e33a7b77b6ea 24328 bss_0.1.0.orig.tar.xz
+ 7e742ccc6fb22c3f12b30f4a75dfa354738a75a5 3232 bss_0.1.0-3.debian.tar.xz
+Checksums-Sha256:
+ 53cb79d621d17406e8eb847148ea4ad2bc314dc1d1f19f57e11747fba4ce5d53 24328 bss_0.1.0.orig.tar.xz
+ c84f6ff786c1255c6e7401834fd1215ed786ea7ffde3ae85bf128f92705138b1 3232 bss_0.1.0-3.debian.tar.xz
+Files:
+ e1a9c70c3c3b0d7a6107361fb893bc9f 24328 bss_0.1.0.orig.tar.xz
+ c2892e726e23973a40af928daeec5976 3232 bss_0.1.0-3.debian.tar.xz
+
+dpkg-source: warning: extracting unsigned source package (bss_0.1.0-3.dsc)
+dpkg-source: info: extracting bss in /<<PKGBUILDDIR>>
+dpkg-source: info: unpacking bss_0.1.0.orig.tar.xz
+dpkg-source: info: unpacking bss_0.1.0-3.debian.tar.xz
+dpkg-source: info: using patch list from debian/patches/series
+dpkg-source: info: applying debian-changes
+
+Check disk space
+----------------
+
+Sufficient free space for build
+
+User Environment
+----------------
+
+APT_CONFIG=/var/lib/sbuild/apt.conf
+DEB_BUILD_OPTIONS=parallel=5
+HOME=/sbuild-nonexistent
+LANG=en_US.UTF-8
+LC_ALL=C.UTF-8
+LD_LIBRARY_PATH=/usr/lib/libeatmydata
+LD_PRELOAD=libeatmydata.so
+LOGNAME=osamu
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+PWD=/<<PKGBUILDDIR>>
+SCHROOT_ALIAS_NAME=unstable-amd64-sbuild
+SCHROOT_CHROOT_NAME=unstable-amd64-sbuild
+SCHROOT_COMMAND=env
+SCHROOT_GID=1000
+SCHROOT_GROUP=osamu
+SCHROOT_SESSION_ID=unstable-amd64-sbuild-09959f49-74ea-44a3-ae6e-4482809f9ee7
+SCHROOT_UID=1000
+SCHROOT_USER=osamu
+SHELL=/bin/sh
+USER=osamu
+
+dpkg-buildpackage
+-----------------
+
+Command: dpkg-buildpackage --sanitize-env -us -uc -b -rfakeroot
+dpkg-buildpackage: info: source package bss
+dpkg-buildpackage: info: source version 0.1.0-3
+dpkg-buildpackage: info: source distribution UNRELEASED
+dpkg-buildpackage: info: source changed by Osamu Aoki <osamu@debian.org>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture amd64
+dpkg-source: info: using options from bss-0.1.0/debian/source/options: --single-debian-patch --auto-commit
+ fakeroot debian/rules clean
+dh clean
+   dh_auto_clean
+	make -j5 distclean
+make[1]: Entering directory '/<<PKGBUILDDIR>>'
+rm bss.help2man bss.1 bss.1.orig bss.1.old bss.1.rej
+rm: cannot remove 'bss.help2man': No such file or directory
+rm: cannot remove 'bss.1': No such file or directory
+rm: cannot remove 'bss.1.orig': No such file or directory
+rm: cannot remove 'bss.1.old': No such file or directory
+rm: cannot remove 'bss.1.rej': No such file or directory
+make[1]: [Makefile:29: clean] Error 1 (ignored)
+make[1]: Leaving directory '/<<PKGBUILDDIR>>'
+   dh_clean
+ debian/rules build
+dh build
+   dh_update_autotools_config
+   dh_autoreconf
+   dh_auto_configure
+   dh_auto_build
+	make -j5 "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/<<PKGBUILDDIR>>'
+: Do nothing
+make[1]: Leaving directory '/<<PKGBUILDDIR>>'
+   dh_auto_test
+	make -j5 test
+make[1]: Entering directory '/<<PKGBUILDDIR>>'
+sh -n usr/bin/bss
+# check version
+if [ -d debian ] && [ -r debian/changelog ]; then \
+	U_VER=$(sed -n -e '/^BSS_VERSION=/s/"//g' -e "/^BSS_VERSION=/s/'//g" -e '/^BSS_VERSION=/s/BSS_VERSION=//p' usr/bin/bss) ; \
+	D_VER=$(dpkg-parsechangelog -S Version) ; \
+	if [ "$U_VER" != "${D_VER%-*}" ]; then \
+		echo "ERROR: fix version in source $U_VER or debian/changelog  $D_VER" ; \
+		exit 1 ; \
+	fi ; \
+fi
+make[1]: Leaving directory '/<<PKGBUILDDIR>>'
+   create-stamp debian/debhelper-build-stamp
+ fakeroot debian/rules binary
+dh binary
+   dh_testroot
+   dh_prep
+   dh_auto_install
+	make -j5 install DESTDIR=/<<PKGBUILDDIR>>/debian/bss AM_UPDATE_INFO_DIR=no "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/<<PKGBUILDDIR>>'
+install        -D usr/bin/bss                                 /<<PKGBUILDDIR>>/debian/bss//usr/bin/bss
+install -m 644 -D etc/apt/apt.conf.d/80bss                    /<<PKGBUILDDIR>>/debian/bss//etc/apt/apt.conf.d/80bss
+install -m 644 -D etc/logrotate.d/bss                         /<<PKGBUILDDIR>>/debian/bss//etc/logrotate.d/bss
+install -m 644 -D lib/systemd/system/bss-root-boot.timer      /<<PKGBUILDDIR>>/debian/bss//lib/systemd/system/bss-root-boot.timer
+install -m 644 -D lib/systemd/system/bss-root-boot.service    /<<PKGBUILDDIR>>/debian/bss//lib/systemd/system/bss-root-boot.service
+install -m 644 -D lib/systemd/system/bss-root-process.timer   /<<PKGBUILDDIR>>/debian/bss//lib/systemd/system/bss-root-process.timer
+install -m 644 -D lib/systemd/system/bss-root-process.service /<<PKGBUILDDIR>>/debian/bss//lib/systemd/system/bss-root-process.service
+install -m 644 -D lib/systemd/system/bss-root-hour.timer      /<<PKGBUILDDIR>>/debian/bss//lib/systemd/system/bss-root-hour.timer
+install -m 644 -D lib/systemd/system/bss-root-hour.service    /<<PKGBUILDDIR>>/debian/bss//lib/systemd/system/bss-root-hour.service
+install -m 644 -D usr/share/bash-completion/completions/bss   /<<PKGBUILDDIR>>/debian/bss//usr/share/bash-completion/completions/bss
+install -m 644 -D usr/share/man/man1/bss.1                    /<<PKGBUILDDIR>>/debian/bss//usr/share/man/man1/bss.1
+install -m 644 -D README.md                                   /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/README
+install -m 644 -D examples/user/bss-home-boot.timer           /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/examples/user/bss-home-boot.timer
+install -m 644 -D examples/user/bss-home-boot.service         /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/examples/user/bss-home-boot.service
+install -m 644 -D examples/user/bss-home-process.timer        /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/examples/user/bss-home-process.timer
+install -m 644 -D examples/user/bss-home-process.service      /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/examples/user/bss-home-process.service
+install -m 644 -D examples/user/bss-home-hour.timer           /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/examples/user/bss-home-hour.timer
+install -m 644 -D examples/user/bss-home-hour.service         /<<PKGBUILDDIR>>/debian/bss//usr/share/doc/bss/examples/user/bss-home-hour.service
+make[1]: Leaving directory '/<<PKGBUILDDIR>>'
+   dh_installdocs
+   dh_installchangelogs
+   dh_installman
+   dh_installsystemd
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_dwz -a
+   dh_strip -a
+   dh_makeshlibs -a
+   dh_shlibdeps -a
+   dh_installdeb
+   dh_gencontrol
+dpkg-gencontrol: warning: Depends field of package bss: substitution variable ${shlibs:Depends} used, but is not defined
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'bss' in '../bss_0.1.0-3_amd64.deb'.
+ dpkg-genbuildinfo --build=binary
+ dpkg-genchanges --build=binary >../bss_0.1.0-3_amd64.changes
+dpkg-genchanges: info: binary-only upload (no source code included)
+ dpkg-source --after-build .
+dpkg-source: info: using options from bss-0.1.0/debian/source/options: --single-debian-patch --auto-commit
+dpkg-buildpackage: info: binary-only upload (no source included)
+--------------------------------------------------------------------------------
+Build finished at 2021-04-08T13:25:49Z
+
+Finished
+--------
+
+I: Built successfully
+
++------------------------------------------------------------------------------+
+| Changes                                                                      |
++------------------------------------------------------------------------------+
+
+
+bss_0.1.0-3_amd64.changes:
+--------------------------
+
+Format: 1.8
+Date: Thu, 08 Apr 2021 22:23:44 +0900
+Source: bss
+Binary: bss
+Architecture: amd64
+Version: 0.1.0-3
+Distribution: unstable
+Urgency: medium
+Maintainer: Osamu Aoki <osamu@debian.org>
+Changed-By: Osamu Aoki <osamu@debian.org>
+Description:
+ bss        - Btrfs Subvolume Snapshot Utility
+Changes:
+ bss (0.1.0-3) UNRELEASED; urgency=medium
+ .
+   * Fix permission of .bss.d/ for "bss t".
+Checksums-Sha1:
+ ef3d69199607daf1477d69b51e3c974f68caf36a 4504 bss_0.1.0-3_amd64.buildinfo
+ d238cba1d7c0cfb2ce949778553ff01e8c64cbb6 24788 bss_0.1.0-3_amd64.deb
+Checksums-Sha256:
+ 29aa464ea8e11a92221f2ad58e99648c361057338dcba51ebc314082edff2b63 4504 bss_0.1.0-3_amd64.buildinfo
+ 5135e6ef62da26c420afac3191d70f93074f88b1a2edecacc83dfdf5010973f1 24788 bss_0.1.0-3_amd64.deb
+Files:
+ 6e90dac6eee0bc6c3e42cdf3f9f52e9d 4504 utils optional bss_0.1.0-3_amd64.buildinfo
+ c40b8c1417eda70c82029d8388781b29 24788 utils optional bss_0.1.0-3_amd64.deb
+/<<BUILDDIR>>/bss_0.1.0-3_amd64.changes.new could not be renamed to /<<BUILDDIR>>/bss_0.1.0-3_amd64.changes: Illegal seek
+Distribution field may be wrong!!!
++------------------------------------------------------------------------------+
+| Buildinfo                                                                    |
++------------------------------------------------------------------------------+
+
+Format: 1.0
+Source: bss
+Binary: bss
+Architecture: amd64
+Version: 0.1.0-3
+Checksums-Md5:
+ c40b8c1417eda70c82029d8388781b29 24788 bss_0.1.0-3_amd64.deb
+Checksums-Sha1:
+ d238cba1d7c0cfb2ce949778553ff01e8c64cbb6 24788 bss_0.1.0-3_amd64.deb
+Checksums-Sha256:
+ 5135e6ef62da26c420afac3191d70f93074f88b1a2edecacc83dfdf5010973f1 24788 bss_0.1.0-3_amd64.deb
+Build-Origin: Debian
+Build-Architecture: amd64
+Build-Date: Thu, 08 Apr 2021 13:25:49 +0000
+Build-Path: /<<PKGBUILDDIR>>
+Installed-Build-Depends:
+ autoconf (= 2.69-14),
+ automake (= 1:1.16.3-2),
+ autopoint (= 0.21-4),
+ autotools-dev (= 20180224.1+nmu1),
+ base-files (= 11),
+ base-passwd (= 3.5.49),
+ bash (= 5.1-2+b1),
+ binutils (= 2.35.2-2),
+ binutils-common (= 2.35.2-2),
+ binutils-x86-64-linux-gnu (= 2.35.2-2),
+ bsdextrautils (= 2.36.1-7),
+ bsdutils (= 1:2.36.1-7),
+ build-essential (= 12.9),
+ bzip2 (= 1.0.8-4),
+ coreutils (= 8.32-4+b1),
+ cpp (= 4:10.2.1-1),
+ cpp-10 (= 10.2.1-6),
+ dash (= 0.5.11+git20210120+802ebd4-1),
+ debconf (= 1.5.76),
+ debhelper (= 13.3.4),
+ debianutils (= 4.11.2),
+ dh-autoreconf (= 20),
+ dh-strip-nondeterminism (= 1.11.0-1),
+ diffutils (= 1:3.7-5),
+ dpkg (= 1.20.7.1),
+ dpkg-dev (= 1.20.7.1),
+ dwz (= 0.14-1),
+ file (= 1:5.39-3),
+ findutils (= 4.8.0-1),
+ g++ (= 4:10.2.1-1),
+ g++-10 (= 10.2.1-6),
+ gcc (= 4:10.2.1-1),
+ gcc-10 (= 10.2.1-6),
+ gcc-10-base (= 10.2.1-6),
+ gettext (= 0.21-4),
+ gettext-base (= 0.21-4),
+ grep (= 3.6-1),
+ groff-base (= 1.22.4-6),
+ gzip (= 1.10-4),
+ hostname (= 3.23),
+ init-system-helpers (= 1.60),
+ intltool-debian (= 0.35.0+20060710.5),
+ libacl1 (= 2.2.53-10),
+ libarchive-zip-perl (= 1.68-1),
+ libasan6 (= 10.2.1-6),
+ libatomic1 (= 10.2.1-6),
+ libattr1 (= 1:2.4.48-6),
+ libaudit-common (= 1:3.0-2),
+ libaudit1 (= 1:3.0-2),
+ libbinutils (= 2.35.2-2),
+ libblkid1 (= 2.36.1-7),
+ libbz2-1.0 (= 1.0.8-4),
+ libc-bin (= 2.31-11),
+ libc-dev-bin (= 2.31-11),
+ libc6 (= 2.31-11),
+ libc6-dev (= 2.31-11),
+ libcap-ng0 (= 0.7.9-2.2+b1),
+ libcc1-0 (= 10.2.1-6),
+ libcom-err2 (= 1.46.2-1),
+ libcrypt-dev (= 1:4.4.18-2),
+ libcrypt1 (= 1:4.4.18-2),
+ libctf-nobfd0 (= 2.35.2-2),
+ libctf0 (= 2.35.2-2),
+ libdb5.3 (= 5.3.28+dfsg1-0.8),
+ libdebconfclient0 (= 0.257),
+ libdebhelper-perl (= 13.3.4),
+ libdpkg-perl (= 1.20.7.1),
+ libelf1 (= 0.183-3),
+ libfile-stripnondeterminism-perl (= 1.11.0-1),
+ libgcc-10-dev (= 10.2.1-6),
+ libgcc-s1 (= 10.2.1-6),
+ libgcrypt20 (= 1.8.7-3),
+ libgdbm-compat4 (= 1.19-2),
+ libgdbm6 (= 1.19-2),
+ libgmp10 (= 2:6.2.1+dfsg-1),
+ libgomp1 (= 10.2.1-6),
+ libgpg-error0 (= 1.38-2),
+ libgssapi-krb5-2 (= 1.18.3-4),
+ libicu67 (= 67.1-6),
+ libisl23 (= 0.23-1),
+ libitm1 (= 10.2.1-6),
+ libk5crypto3 (= 1.18.3-4),
+ libkeyutils1 (= 1.6.1-2),
+ libkrb5-3 (= 1.18.3-4),
+ libkrb5support0 (= 1.18.3-4),
+ liblsan0 (= 10.2.1-6),
+ liblz4-1 (= 1.9.3-1),
+ liblzma5 (= 5.2.5-2),
+ libmagic-mgc (= 1:5.39-3),
+ libmagic1 (= 1:5.39-3),
+ libmount1 (= 2.36.1-7),
+ libmpc3 (= 1.2.0-1),
+ libmpfr6 (= 4.1.0-3),
+ libnsl-dev (= 1.3.0-2),
+ libnsl2 (= 1.3.0-2),
+ libpam-modules (= 1.4.0-7),
+ libpam-modules-bin (= 1.4.0-7),
+ libpam-runtime (= 1.4.0-7),
+ libpam0g (= 1.4.0-7),
+ libpcre2-8-0 (= 10.36-2),
+ libpcre3 (= 2:8.39-13),
+ libperl5.32 (= 5.32.1-3),
+ libpipeline1 (= 1.5.3-1),
+ libquadmath0 (= 10.2.1-6),
+ libseccomp2 (= 2.5.1-1),
+ libselinux1 (= 3.1-3),
+ libsigsegv2 (= 2.13-1),
+ libsmartcols1 (= 2.36.1-7),
+ libssl1.1 (= 1.1.1k-1),
+ libstdc++-10-dev (= 10.2.1-6),
+ libstdc++6 (= 10.2.1-6),
+ libsub-override-perl (= 0.09-2),
+ libsystemd0 (= 247.3-3),
+ libtinfo6 (= 6.2+20201114-2),
+ libtirpc-common (= 1.3.1-1),
+ libtirpc-dev (= 1.3.1-1),
+ libtirpc3 (= 1.3.1-1),
+ libtool (= 2.4.6-15),
+ libtsan0 (= 10.2.1-6),
+ libubsan1 (= 10.2.1-6),
+ libuchardet0 (= 0.0.7-1),
+ libudev1 (= 247.3-3),
+ libunistring2 (= 0.9.10-4),
+ libuuid1 (= 2.36.1-7),
+ libxml2 (= 2.9.10+dfsg-6.3+b1),
+ libzstd1 (= 1.4.8+dfsg-2.1),
+ linux-libc-dev (= 5.10.26-1),
+ login (= 1:4.8.1-1),
+ lsb-base (= 11.1.0),
+ m4 (= 1.4.18-5),
+ make (= 4.3-4),
+ man-db (= 2.9.4-2),
+ mawk (= 1.3.4.20200120-2),
+ ncurses-base (= 6.2+20201114-2),
+ ncurses-bin (= 6.2+20201114-2),
+ patch (= 2.7.6-7),
+ perl (= 5.32.1-3),
+ perl-base (= 5.32.1-3),
+ perl-modules-5.32 (= 5.32.1-3),
+ po-debconf (= 1.0.21+nmu1),
+ sed (= 4.7-1),
+ sensible-utils (= 0.0.14),
+ sysvinit-utils (= 2.96-6),
+ tar (= 1.34+dfsg-1),
+ util-linux (= 2.36.1-7),
+ xz-utils (= 5.2.5-2),
+ zlib1g (= 1:1.2.11.dfsg-2)
+Environment:
+ DEB_BUILD_OPTIONS="parallel=5"
+ LANG="en_US.UTF-8"
+ LC_ALL="C.UTF-8"
+ LC_COLLATE="C.UTF-8"
+ LD_LIBRARY_PATH="/usr/lib/libeatmydata"
+ SOURCE_DATE_EPOCH="1617888224"
+
+
++------------------------------------------------------------------------------+
+| Package contents                                                             |
++------------------------------------------------------------------------------+
+
+
+bss_0.1.0-3_amd64.deb
+---------------------
+
+ new Debian package, version 2.0.
+ size 24788 bytes: control archive=2228 bytes.
+      47 bytes,     2 lines      conffiles            
+    1331 bytes,    32 lines      control              
+    1424 bytes,    19 lines      md5sums              
+    3235 bytes,    66 lines   *  postinst             #!/bin/sh
+     809 bytes,    21 lines   *  postrm               #!/bin/sh
+     349 bytes,     7 lines   *  prerm                #!/bin/sh
+ Package: bss
+ Version: 0.1.0-3
+ Architecture: amd64
+ Maintainer: Osamu Aoki <osamu@debian.org>
+ Installed-Size: 105
+ Depends: btrfs-progs, systemd
+ Recommends: sudo
+ Section: utils
+ Priority: optional
+ Multi-Arch: foreign
+ Homepage: https://github.com/osamuaoki/bss
+ Description: Btrfs Subvolume Snapshot Utility
+  "bss" is basically a "btrfs subvolume ..." command wrapper to create and age
+  historical snapshots with the intuitive snapshot subvolume name and flexible
+  data aging capabilities.
+  .
+    * check for required free blocks (minimum FMIN %).
+    * keep initial few (NMIN) snapshots unconditionally.
+    * limit the maximum number of snapshots to NMAX.
+    * keep initial snapshots unconditionally for initial time (TMIN).
+    * grow time intervals exponentially with the specified ratio (STEP %) up to
+      some specified age (TMAX).
+    * filter content files of snapshots after the mid point (TMID) of history
+      using the script ".bss.fltr" at the BASE directory.
+  .
+  This can be used to snapshot the root filesystem on btrfs.
+    * No requirement to make the root filesystem as subvol=@.
+    * Automatic boot time snapshots via systemd.
+    * Automatic hourly time snapshots via systemd.
+    * Automatic pre and post package installation snapshots via APT operations
+      on Debian/Ubuntu/... system.
+    * Automatic aging via systemd.
+
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./etc/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./etc/apt/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./etc/apt/apt.conf.d/
+-rw-r--r-- root/root       167 2021-04-08 13:23 ./etc/apt/apt.conf.d/80bss
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./etc/logrotate.d/
+-rw-r--r-- root/root       130 2021-04-08 13:23 ./etc/logrotate.d/bss
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./lib/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./lib/systemd/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./lib/systemd/system/
+-rw-r--r-- root/root       312 2021-04-08 13:23 ./lib/systemd/system/bss-root-boot.service
+-rw-r--r-- root/root       145 2021-04-08 13:23 ./lib/systemd/system/bss-root-boot.timer
+-rw-r--r-- root/root       317 2021-04-08 13:23 ./lib/systemd/system/bss-root-hour.service
+-rw-r--r-- root/root       155 2021-04-08 13:23 ./lib/systemd/system/bss-root-hour.timer
+-rw-r--r-- root/root       301 2021-04-08 13:23 ./lib/systemd/system/bss-root-process.service
+-rw-r--r-- root/root       168 2021-04-08 13:23 ./lib/systemd/system/bss-root-process.timer
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/bin/
+-rwxr-xr-x root/root     51945 2021-04-08 13:23 ./usr/bin/bss
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/bash-completion/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/bash-completion/completions/
+-rw-r--r-- root/root      1002 2021-04-08 13:23 ./usr/share/bash-completion/completions/bss
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/doc/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/doc/bss/
+-rw-r--r-- root/root       983 2021-04-05 01:19 ./usr/share/doc/bss/README.Debian
+-rw-r--r-- root/root      5372 2021-04-08 13:23 ./usr/share/doc/bss/README.gz
+-rw-r--r-- root/root       254 2021-04-08 13:23 ./usr/share/doc/bss/changelog.Debian.gz
+-rw-r--r-- root/root       617 2021-04-05 01:09 ./usr/share/doc/bss/copyright
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/doc/bss/examples/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/
+-rw-r--r-- root/root       341 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/bss-home-boot.service
+-rw-r--r-- root/root       155 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/bss-home-boot.timer
+-rw-r--r-- root/root       346 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/bss-home-hour.service
+-rw-r--r-- root/root       165 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/bss-home-hour.timer
+-rw-r--r-- root/root       331 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/bss-home-process.service
+-rw-r--r-- root/root       178 2021-04-08 13:23 ./usr/share/doc/bss/examples/user/bss-home-process.timer
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/man/
+drwxr-xr-x root/root         0 2021-04-08 13:23 ./usr/share/man/man1/
+-rw-r--r-- root/root      3052 2021-04-08 13:23 ./usr/share/man/man1/bss.1.gz
+
+
+lintian
+-------
+
+
+Setup apt archive
+-----------------
+
+Merged Build-Depends: lintian
+Filtered Build-Depends: lintian
+dpkg-deb: building package 'sbuild-build-depends-lintian-dummy' in '/<<RESOLVERDIR>>/apt_archive/sbuild-build-depends-lintian-dummy.deb'.
+Ign:1 copy:/<<RESOLVERDIR>>/apt_archive ./ InRelease
+Get:2 copy:/<<RESOLVERDIR>>/apt_archive ./ Release [963 B]
+Ign:3 copy:/<<RESOLVERDIR>>/apt_archive ./ Release.gpg
+Get:4 copy:/<<RESOLVERDIR>>/apt_archive ./ Sources [495 B]
+Get:5 copy:/<<RESOLVERDIR>>/apt_archive ./ Packages [575 B]
+Fetched 2033 B in 0s (0 B/s)
+Reading package lists...
+Reading package lists...
+
+Install lintian build dependencies (apt-based resolver)
+-------------------------------------------------------
+
+Installing build dependencies
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  diffstat libaliased-perl libapt-pkg-perl libb-hooks-endofscope-perl
+  libb-hooks-op-check-perl libcapture-tiny-perl libclass-data-inheritable-perl
+  libclass-method-modifiers-perl libclass-xsaccessor-perl libclone-perl
+  libconfig-tiny-perl libcpanel-json-xs-perl libdata-dpath-perl
+  libdata-messagepack-perl libdata-optlist-perl libdata-validate-domain-perl
+  libdevel-callchecker-perl libdevel-size-perl libdevel-stacktrace-perl
+  libdynaloader-functions-perl libemail-address-xs-perl
+  libexception-class-perl libexporter-tiny-perl libfile-basedir-perl
+  libfile-find-rule-perl libfont-ttf-perl libhtml-html5-entities-perl
+  libimport-into-perl libio-string-perl libipc-run3-perl
+  libipc-system-simple-perl libiterator-perl libiterator-util-perl
+  libjson-maybexs-perl liblist-compare-perl liblist-moreutils-perl
+  liblist-moreutils-xs-perl liblist-utilsby-perl liblzo2-2 libmarkdown2
+  libmodule-implementation-perl libmodule-runtime-perl libmoo-perl
+  libmoox-aliases-perl libmouse-perl libnamespace-clean-perl
+  libnet-domain-tld-perl libnumber-compare-perl libpackage-stash-perl
+  libparams-classify-perl libparams-util-perl libpath-tiny-perl
+  libperlio-gzip-perl libproc-processtable-perl librole-tiny-perl
+  libsereal-decoder-perl libsereal-encoder-perl libstrictures-perl
+  libsub-exporter-perl libsub-exporter-progressive-perl libsub-identify-perl
+  libsub-install-perl libsub-name-perl libsub-quote-perl libtext-glob-perl
+  libtext-levenshteinxs-perl libtext-markdown-discount-perl
+  libtext-xslate-perl libtime-duration-perl libtime-moment-perl
+  libtimedate-perl libtry-tiny-perl libtype-tiny-perl libunicode-utf8-perl
+  liburi-perl libvariable-magic-perl libxml-libxml-perl
+  libxml-namespacesupport-perl libxml-sax-base-perl libxml-sax-perl
+  libyaml-0-2 libyaml-libyaml-perl lintian lzip lzop patchutils t1utils ucf
+  unzip
+Suggested packages:
+  libxml-parser-perl libscalar-number-perl libbareword-filehandles-perl
+  libindirect-perl libmultidimensional-perl libdevel-lexalias-perl libwww-perl
+  binutils-multiarch libtext-template-perl zip
+Recommended packages:
+  libpackage-stash-xs-perl libref-util-perl libtype-tiny-xs-perl libwww-perl
+  libxml-sax-expat-perl
+The following NEW packages will be installed:
+  diffstat libaliased-perl libapt-pkg-perl libb-hooks-endofscope-perl
+  libb-hooks-op-check-perl libcapture-tiny-perl libclass-data-inheritable-perl
+  libclass-method-modifiers-perl libclass-xsaccessor-perl libclone-perl
+  libconfig-tiny-perl libcpanel-json-xs-perl libdata-dpath-perl
+  libdata-messagepack-perl libdata-optlist-perl libdata-validate-domain-perl
+  libdevel-callchecker-perl libdevel-size-perl libdevel-stacktrace-perl
+  libdynaloader-functions-perl libemail-address-xs-perl
+  libexception-class-perl libexporter-tiny-perl libfile-basedir-perl
+  libfile-find-rule-perl libfont-ttf-perl libhtml-html5-entities-perl
+  libimport-into-perl libio-string-perl libipc-run3-perl
+  libipc-system-simple-perl libiterator-perl libiterator-util-perl
+  libjson-maybexs-perl liblist-compare-perl liblist-moreutils-perl
+  liblist-moreutils-xs-perl liblist-utilsby-perl liblzo2-2 libmarkdown2
+  libmodule-implementation-perl libmodule-runtime-perl libmoo-perl
+  libmoox-aliases-perl libmouse-perl libnamespace-clean-perl
+  libnet-domain-tld-perl libnumber-compare-perl libpackage-stash-perl
+  libparams-classify-perl libparams-util-perl libpath-tiny-perl
+  libperlio-gzip-perl libproc-processtable-perl librole-tiny-perl
+  libsereal-decoder-perl libsereal-encoder-perl libstrictures-perl
+  libsub-exporter-perl libsub-exporter-progressive-perl libsub-identify-perl
+  libsub-install-perl libsub-name-perl libsub-quote-perl libtext-glob-perl
+  libtext-levenshteinxs-perl libtext-markdown-discount-perl
+  libtext-xslate-perl libtime-duration-perl libtime-moment-perl
+  libtimedate-perl libtry-tiny-perl libtype-tiny-perl libunicode-utf8-perl
+  liburi-perl libvariable-magic-perl libxml-libxml-perl
+  libxml-namespacesupport-perl libxml-sax-base-perl libxml-sax-perl
+  libyaml-0-2 libyaml-libyaml-perl lintian lzip lzop patchutils
+  sbuild-build-depends-lintian-dummy t1utils ucf unzip
+0 upgraded, 90 newly installed, 0 to remove and 0 not upgraded.
+Need to get 5580 kB of archives.
+After this operation, 18.7 MB of additional disk space will be used.
+Get:1 copy:/<<RESOLVERDIR>>/apt_archive ./ sbuild-build-depends-lintian-dummy 0.invalid.0 [844 B]
+Get:2 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 ucf all 3.0043 [74.0 kB]
+Get:3 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 diffstat amd64 1.64-1 [36.6 kB]
+Get:4 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libaliased-perl all 0.34-1.1 [14.1 kB]
+Get:5 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libapt-pkg-perl amd64 0.1.40 [72.2 kB]
+Get:6 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libb-hooks-op-check-perl amd64 0.22-1+b3 [11.3 kB]
+Get:7 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdynaloader-functions-perl all 0.003-1.1 [12.7 kB]
+Get:8 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdevel-callchecker-perl amd64 0.008-1+b2 [15.9 kB]
+Get:9 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libparams-classify-perl amd64 0.015-1+b3 [25.7 kB]
+Get:10 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmodule-runtime-perl all 0.016-1 [19.4 kB]
+Get:11 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtry-tiny-perl all 0.30-1 [23.3 kB]
+Get:12 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmodule-implementation-perl all 0.09-1.1 [12.4 kB]
+Get:13 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-exporter-progressive-perl all 0.001013-1 [7588 B]
+Get:14 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libvariable-magic-perl amd64 0.62-1+b3 [45.7 kB]
+Get:15 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libb-hooks-endofscope-perl all 0.24-1.1 [18.9 kB]
+Get:16 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libcapture-tiny-perl all 0.48-1 [26.0 kB]
+Get:17 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libclass-data-inheritable-perl all 0.08-3 [8588 B]
+Get:18 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libclass-method-modifiers-perl all 2.13-1 [19.2 kB]
+Get:19 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libclass-xsaccessor-perl amd64 1.19-3+b7 [38.1 kB]
+Get:20 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libclone-perl amd64 0.45-1+b1 [15.4 kB]
+Get:21 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libconfig-tiny-perl all 2.26-1 [16.5 kB]
+Get:22 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libcpanel-json-xs-perl amd64 4.25-1+b1 [129 kB]
+Get:23 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdevel-stacktrace-perl all 2.0400-1 [28.6 kB]
+Get:24 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libexception-class-perl all 1.44-1 [32.3 kB]
+Get:25 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libiterator-perl all 0.03+ds1-1.1 [18.4 kB]
+Get:26 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libiterator-util-perl all 0.02+ds1-1.1 [13.7 kB]
+Get:27 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libexporter-tiny-perl all 1.002002-1 [37.8 kB]
+Get:28 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 liblist-moreutils-xs-perl amd64 0.430-2 [40.9 kB]
+Get:29 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 liblist-moreutils-perl all 0.430-2 [46.9 kB]
+Get:30 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libparams-util-perl amd64 1.102-1+b1 [25.6 kB]
+Get:31 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-install-perl all 0.928-1.1 [10.8 kB]
+Get:32 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdata-optlist-perl all 0.110-1.1 [10.8 kB]
+Get:33 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-exporter-perl all 0.987-1 [47.2 kB]
+Get:34 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdata-dpath-perl all 0.58-1 [43.5 kB]
+Get:35 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdata-messagepack-perl amd64 1.00-4+b1 [38.8 kB]
+Get:36 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libnet-domain-tld-perl all 1.75-1.1 [33.5 kB]
+Get:37 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdata-validate-domain-perl all 0.10-1.1 [11.1 kB]
+Get:38 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libdevel-size-perl amd64 0.83-1+b2 [26.1 kB]
+Get:39 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libemail-address-xs-perl amd64 1.04-1+b3 [28.0 kB]
+Get:40 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libipc-system-simple-perl all 1.30-1 [28.2 kB]
+Get:41 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libfile-basedir-perl all 0.08-1 [17.7 kB]
+Get:42 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libnumber-compare-perl all 0.03-1.1 [6956 B]
+Get:43 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtext-glob-perl all 0.11-1 [8888 B]
+Get:44 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libfile-find-rule-perl all 0.34-1 [30.6 kB]
+Get:45 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libio-string-perl all 1.08-3.1 [11.8 kB]
+Get:46 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libfont-ttf-perl all 1.06-1.1 [318 kB]
+Get:47 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libhtml-html5-entities-perl all 0.004-1.1 [21.3 kB]
+Get:48 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libimport-into-perl all 1.002005-1 [11.6 kB]
+Get:49 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libipc-run3-perl all 0.048-2 [34.2 kB]
+Get:50 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libjson-maybexs-perl all 1.004003-1 [13.1 kB]
+Get:51 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 liblist-compare-perl all 0.55-1 [66.9 kB]
+Get:52 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 liblist-utilsby-perl all 0.11-1 [15.4 kB]
+Get:53 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 liblzo2-2 amd64 2.10-2 [56.9 kB]
+Get:54 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmarkdown2 amd64 2.2.6-1 [36.8 kB]
+Get:55 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 librole-tiny-perl all 2.002004-1 [21.4 kB]
+Get:56 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libstrictures-perl all 2.000006-1 [18.6 kB]
+Get:57 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-quote-perl all 2.006006-1 [21.0 kB]
+Get:58 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmoo-perl all 2.004004-1 [59.9 kB]
+Get:59 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmoox-aliases-perl all 0.001006-1.1 [10.8 kB]
+Get:60 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libmouse-perl amd64 2.5.10-1+b1 [172 kB]
+Get:61 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libpackage-stash-perl all 0.39-1 [21.9 kB]
+Get:62 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-identify-perl amd64 0.14-1+b3 [12.0 kB]
+Get:63 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsub-name-perl amd64 0.26-1+b1 [13.8 kB]
+Get:64 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libnamespace-clean-perl all 0.27-1 [17.3 kB]
+Get:65 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libpath-tiny-perl all 0.118-1 [53.5 kB]
+Get:66 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libperlio-gzip-perl amd64 0.19-1+b7 [17.4 kB]
+Get:67 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libproc-processtable-perl amd64 0.59-2+b1 [45.9 kB]
+Get:68 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsereal-decoder-perl amd64 4.018+ds-1+b1 [99.3 kB]
+Get:69 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libsereal-encoder-perl amd64 4.018+ds-1+b1 [103 kB]
+Get:70 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtext-levenshteinxs-perl amd64 0.03-4+b8 [8724 B]
+Get:71 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtext-markdown-discount-perl amd64 0.12-1+b1 [13.0 kB]
+Get:72 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtext-xslate-perl amd64 3.5.8-1+b1 [197 kB]
+Get:73 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtime-duration-perl all 1.21-1 [13.7 kB]
+Get:74 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtime-moment-perl amd64 0.44-1+b3 [75.8 kB]
+Get:75 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtimedate-perl all 2.3300-2 [39.3 kB]
+Get:76 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libtype-tiny-perl all 1.012001-2 [351 kB]
+Get:77 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libunicode-utf8-perl amd64 0.62-1+b2 [20.3 kB]
+Get:78 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 liburi-perl all 5.08-1 [90.6 kB]
+Get:79 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libxml-namespacesupport-perl all 1.12-1.1 [14.9 kB]
+Get:80 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libxml-sax-base-perl all 1.09-1.1 [20.7 kB]
+Get:81 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libxml-sax-perl all 1.02+dfsg-1 [59.0 kB]
+Get:82 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libxml-libxml-perl amd64 2.0134+dfsg-2+b1 [337 kB]
+Get:83 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libyaml-0-2 amd64 0.2.2-1 [49.6 kB]
+Get:84 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 libyaml-libyaml-perl amd64 0.82+repack-1+b1 [35.8 kB]
+Get:85 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 lzip amd64 1.22-3 [88.5 kB]
+Get:86 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 lzop amd64 1.04-2 [84.2 kB]
+Get:87 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 patchutils amd64 0.4.2-1 [77.5 kB]
+Get:88 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 t1utils amd64 1.41-4 [62.1 kB]
+Get:89 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 unzip amd64 6.0-26 [171 kB]
+Get:90 http://127.0.0.1:3142/deb.debian.org/debian unstable/main amd64 lintian all 2.104.0 [1265 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 5580 kB in 0s (62.8 MB/s)
+Selecting previously unselected package ucf.
+(Reading database ... 14611 files and directories currently installed.)
+Preparing to unpack .../00-ucf_3.0043_all.deb ...
+Moving old data out of the way
+Unpacking ucf (3.0043) ...
+Selecting previously unselected package diffstat.
+Preparing to unpack .../01-diffstat_1.64-1_amd64.deb ...
+Unpacking diffstat (1.64-1) ...
+Selecting previously unselected package libaliased-perl.
+Preparing to unpack .../02-libaliased-perl_0.34-1.1_all.deb ...
+Unpacking libaliased-perl (0.34-1.1) ...
+Selecting previously unselected package libapt-pkg-perl.
+Preparing to unpack .../03-libapt-pkg-perl_0.1.40_amd64.deb ...
+Unpacking libapt-pkg-perl (0.1.40) ...
+Selecting previously unselected package libb-hooks-op-check-perl.
+Preparing to unpack .../04-libb-hooks-op-check-perl_0.22-1+b3_amd64.deb ...
+Unpacking libb-hooks-op-check-perl (0.22-1+b3) ...
+Selecting previously unselected package libdynaloader-functions-perl.
+Preparing to unpack .../05-libdynaloader-functions-perl_0.003-1.1_all.deb ...
+Unpacking libdynaloader-functions-perl (0.003-1.1) ...
+Selecting previously unselected package libdevel-callchecker-perl.
+Preparing to unpack .../06-libdevel-callchecker-perl_0.008-1+b2_amd64.deb ...
+Unpacking libdevel-callchecker-perl (0.008-1+b2) ...
+Selecting previously unselected package libparams-classify-perl.
+Preparing to unpack .../07-libparams-classify-perl_0.015-1+b3_amd64.deb ...
+Unpacking libparams-classify-perl (0.015-1+b3) ...
+Selecting previously unselected package libmodule-runtime-perl.
+Preparing to unpack .../08-libmodule-runtime-perl_0.016-1_all.deb ...
+Unpacking libmodule-runtime-perl (0.016-1) ...
+Selecting previously unselected package libtry-tiny-perl.
+Preparing to unpack .../09-libtry-tiny-perl_0.30-1_all.deb ...
+Unpacking libtry-tiny-perl (0.30-1) ...
+Selecting previously unselected package libmodule-implementation-perl.
+Preparing to unpack .../10-libmodule-implementation-perl_0.09-1.1_all.deb ...
+Unpacking libmodule-implementation-perl (0.09-1.1) ...
+Selecting previously unselected package libsub-exporter-progressive-perl.
+Preparing to unpack .../11-libsub-exporter-progressive-perl_0.001013-1_all.deb ...
+Unpacking libsub-exporter-progressive-perl (0.001013-1) ...
+Selecting previously unselected package libvariable-magic-perl.
+Preparing to unpack .../12-libvariable-magic-perl_0.62-1+b3_amd64.deb ...
+Unpacking libvariable-magic-perl (0.62-1+b3) ...
+Selecting previously unselected package libb-hooks-endofscope-perl.
+Preparing to unpack .../13-libb-hooks-endofscope-perl_0.24-1.1_all.deb ...
+Unpacking libb-hooks-endofscope-perl (0.24-1.1) ...
+Selecting previously unselected package libcapture-tiny-perl.
+Preparing to unpack .../14-libcapture-tiny-perl_0.48-1_all.deb ...
+Unpacking libcapture-tiny-perl (0.48-1) ...
+Selecting previously unselected package libclass-data-inheritable-perl.
+Preparing to unpack .../15-libclass-data-inheritable-perl_0.08-3_all.deb ...
+Unpacking libclass-data-inheritable-perl (0.08-3) ...
+Selecting previously unselected package libclass-method-modifiers-perl.
+Preparing to unpack .../16-libclass-method-modifiers-perl_2.13-1_all.deb ...
+Unpacking libclass-method-modifiers-perl (2.13-1) ...
+Selecting previously unselected package libclass-xsaccessor-perl.
+Preparing to unpack .../17-libclass-xsaccessor-perl_1.19-3+b7_amd64.deb ...
+Unpacking libclass-xsaccessor-perl (1.19-3+b7) ...
+Selecting previously unselected package libclone-perl.
+Preparing to unpack .../18-libclone-perl_0.45-1+b1_amd64.deb ...
+Unpacking libclone-perl (0.45-1+b1) ...
+Selecting previously unselected package libconfig-tiny-perl.
+Preparing to unpack .../19-libconfig-tiny-perl_2.26-1_all.deb ...
+Unpacking libconfig-tiny-perl (2.26-1) ...
+Selecting previously unselected package libcpanel-json-xs-perl.
+Preparing to unpack .../20-libcpanel-json-xs-perl_4.25-1+b1_amd64.deb ...
+Unpacking libcpanel-json-xs-perl (4.25-1+b1) ...
+Selecting previously unselected package libdevel-stacktrace-perl.
+Preparing to unpack .../21-libdevel-stacktrace-perl_2.0400-1_all.deb ...
+Unpacking libdevel-stacktrace-perl (2.0400-1) ...
+Selecting previously unselected package libexception-class-perl.
+Preparing to unpack .../22-libexception-class-perl_1.44-1_all.deb ...
+Unpacking libexception-class-perl (1.44-1) ...
+Selecting previously unselected package libiterator-perl.
+Preparing to unpack .../23-libiterator-perl_0.03+ds1-1.1_all.deb ...
+Unpacking libiterator-perl (0.03+ds1-1.1) ...
+Selecting previously unselected package libiterator-util-perl.
+Preparing to unpack .../24-libiterator-util-perl_0.02+ds1-1.1_all.deb ...
+Unpacking libiterator-util-perl (0.02+ds1-1.1) ...
+Selecting previously unselected package libexporter-tiny-perl.
+Preparing to unpack .../25-libexporter-tiny-perl_1.002002-1_all.deb ...
+Unpacking libexporter-tiny-perl (1.002002-1) ...
+Selecting previously unselected package liblist-moreutils-xs-perl.
+Preparing to unpack .../26-liblist-moreutils-xs-perl_0.430-2_amd64.deb ...
+Unpacking liblist-moreutils-xs-perl (0.430-2) ...
+Selecting previously unselected package liblist-moreutils-perl.
+Preparing to unpack .../27-liblist-moreutils-perl_0.430-2_all.deb ...
+Unpacking liblist-moreutils-perl (0.430-2) ...
+Selecting previously unselected package libparams-util-perl.
+Preparing to unpack .../28-libparams-util-perl_1.102-1+b1_amd64.deb ...
+Unpacking libparams-util-perl (1.102-1+b1) ...
+Selecting previously unselected package libsub-install-perl.
+Preparing to unpack .../29-libsub-install-perl_0.928-1.1_all.deb ...
+Unpacking libsub-install-perl (0.928-1.1) ...
+Selecting previously unselected package libdata-optlist-perl.
+Preparing to unpack .../30-libdata-optlist-perl_0.110-1.1_all.deb ...
+Unpacking libdata-optlist-perl (0.110-1.1) ...
+Selecting previously unselected package libsub-exporter-perl.
+Preparing to unpack .../31-libsub-exporter-perl_0.987-1_all.deb ...
+Unpacking libsub-exporter-perl (0.987-1) ...
+Selecting previously unselected package libdata-dpath-perl.
+Preparing to unpack .../32-libdata-dpath-perl_0.58-1_all.deb ...
+Unpacking libdata-dpath-perl (0.58-1) ...
+Selecting previously unselected package libdata-messagepack-perl.
+Preparing to unpack .../33-libdata-messagepack-perl_1.00-4+b1_amd64.deb ...
+Unpacking libdata-messagepack-perl (1.00-4+b1) ...
+Selecting previously unselected package libnet-domain-tld-perl.
+Preparing to unpack .../34-libnet-domain-tld-perl_1.75-1.1_all.deb ...
+Unpacking libnet-domain-tld-perl (1.75-1.1) ...
+Selecting previously unselected package libdata-validate-domain-perl.
+Preparing to unpack .../35-libdata-validate-domain-perl_0.10-1.1_all.deb ...
+Unpacking libdata-validate-domain-perl (0.10-1.1) ...
+Selecting previously unselected package libdevel-size-perl.
+Preparing to unpack .../36-libdevel-size-perl_0.83-1+b2_amd64.deb ...
+Unpacking libdevel-size-perl (0.83-1+b2) ...
+Selecting previously unselected package libemail-address-xs-perl.
+Preparing to unpack .../37-libemail-address-xs-perl_1.04-1+b3_amd64.deb ...
+Unpacking libemail-address-xs-perl (1.04-1+b3) ...
+Selecting previously unselected package libipc-system-simple-perl.
+Preparing to unpack .../38-libipc-system-simple-perl_1.30-1_all.deb ...
+Unpacking libipc-system-simple-perl (1.30-1) ...
+Selecting previously unselected package libfile-basedir-perl.
+Preparing to unpack .../39-libfile-basedir-perl_0.08-1_all.deb ...
+Unpacking libfile-basedir-perl (0.08-1) ...
+Selecting previously unselected package libnumber-compare-perl.
+Preparing to unpack .../40-libnumber-compare-perl_0.03-1.1_all.deb ...
+Unpacking libnumber-compare-perl (0.03-1.1) ...
+Selecting previously unselected package libtext-glob-perl.
+Preparing to unpack .../41-libtext-glob-perl_0.11-1_all.deb ...
+Unpacking libtext-glob-perl (0.11-1) ...
+Selecting previously unselected package libfile-find-rule-perl.
+Preparing to unpack .../42-libfile-find-rule-perl_0.34-1_all.deb ...
+Unpacking libfile-find-rule-perl (0.34-1) ...
+Selecting previously unselected package libio-string-perl.
+Preparing to unpack .../43-libio-string-perl_1.08-3.1_all.deb ...
+Unpacking libio-string-perl (1.08-3.1) ...
+Selecting previously unselected package libfont-ttf-perl.
+Preparing to unpack .../44-libfont-ttf-perl_1.06-1.1_all.deb ...
+Unpacking libfont-ttf-perl (1.06-1.1) ...
+Selecting previously unselected package libhtml-html5-entities-perl.
+Preparing to unpack .../45-libhtml-html5-entities-perl_0.004-1.1_all.deb ...
+Unpacking libhtml-html5-entities-perl (0.004-1.1) ...
+Selecting previously unselected package libimport-into-perl.
+Preparing to unpack .../46-libimport-into-perl_1.002005-1_all.deb ...
+Unpacking libimport-into-perl (1.002005-1) ...
+Selecting previously unselected package libipc-run3-perl.
+Preparing to unpack .../47-libipc-run3-perl_0.048-2_all.deb ...
+Unpacking libipc-run3-perl (0.048-2) ...
+Selecting previously unselected package libjson-maybexs-perl.
+Preparing to unpack .../48-libjson-maybexs-perl_1.004003-1_all.deb ...
+Unpacking libjson-maybexs-perl (1.004003-1) ...
+Selecting previously unselected package liblist-compare-perl.
+Preparing to unpack .../49-liblist-compare-perl_0.55-1_all.deb ...
+Unpacking liblist-compare-perl (0.55-1) ...
+Selecting previously unselected package liblist-utilsby-perl.
+Preparing to unpack .../50-liblist-utilsby-perl_0.11-1_all.deb ...
+Unpacking liblist-utilsby-perl (0.11-1) ...
+Selecting previously unselected package liblzo2-2:amd64.
+Preparing to unpack .../51-liblzo2-2_2.10-2_amd64.deb ...
+Unpacking liblzo2-2:amd64 (2.10-2) ...
+Selecting previously unselected package libmarkdown2:amd64.
+Preparing to unpack .../52-libmarkdown2_2.2.6-1_amd64.deb ...
+Unpacking libmarkdown2:amd64 (2.2.6-1) ...
+Selecting previously unselected package librole-tiny-perl.
+Preparing to unpack .../53-librole-tiny-perl_2.002004-1_all.deb ...
+Unpacking librole-tiny-perl (2.002004-1) ...
+Selecting previously unselected package libstrictures-perl.
+Preparing to unpack .../54-libstrictures-perl_2.000006-1_all.deb ...
+Unpacking libstrictures-perl (2.000006-1) ...
+Selecting previously unselected package libsub-quote-perl.
+Preparing to unpack .../55-libsub-quote-perl_2.006006-1_all.deb ...
+Unpacking libsub-quote-perl (2.006006-1) ...
+Selecting previously unselected package libmoo-perl.
+Preparing to unpack .../56-libmoo-perl_2.004004-1_all.deb ...
+Unpacking libmoo-perl (2.004004-1) ...
+Selecting previously unselected package libmoox-aliases-perl.
+Preparing to unpack .../57-libmoox-aliases-perl_0.001006-1.1_all.deb ...
+Unpacking libmoox-aliases-perl (0.001006-1.1) ...
+Selecting previously unselected package libmouse-perl.
+Preparing to unpack .../58-libmouse-perl_2.5.10-1+b1_amd64.deb ...
+Unpacking libmouse-perl (2.5.10-1+b1) ...
+Selecting previously unselected package libpackage-stash-perl.
+Preparing to unpack .../59-libpackage-stash-perl_0.39-1_all.deb ...
+Unpacking libpackage-stash-perl (0.39-1) ...
+Selecting previously unselected package libsub-identify-perl.
+Preparing to unpack .../60-libsub-identify-perl_0.14-1+b3_amd64.deb ...
+Unpacking libsub-identify-perl (0.14-1+b3) ...
+Selecting previously unselected package libsub-name-perl.
+Preparing to unpack .../61-libsub-name-perl_0.26-1+b1_amd64.deb ...
+Unpacking libsub-name-perl (0.26-1+b1) ...
+Selecting previously unselected package libnamespace-clean-perl.
+Preparing to unpack .../62-libnamespace-clean-perl_0.27-1_all.deb ...
+Unpacking libnamespace-clean-perl (0.27-1) ...
+Selecting previously unselected package libpath-tiny-perl.
+Preparing to unpack .../63-libpath-tiny-perl_0.118-1_all.deb ...
+Unpacking libpath-tiny-perl (0.118-1) ...
+Selecting previously unselected package libperlio-gzip-perl.
+Preparing to unpack .../64-libperlio-gzip-perl_0.19-1+b7_amd64.deb ...
+Unpacking libperlio-gzip-perl (0.19-1+b7) ...
+Selecting previously unselected package libproc-processtable-perl.
+Preparing to unpack .../65-libproc-processtable-perl_0.59-2+b1_amd64.deb ...
+Unpacking libproc-processtable-perl (0.59-2+b1) ...
+Selecting previously unselected package libsereal-decoder-perl.
+Preparing to unpack .../66-libsereal-decoder-perl_4.018+ds-1+b1_amd64.deb ...
+Unpacking libsereal-decoder-perl (4.018+ds-1+b1) ...
+Selecting previously unselected package libsereal-encoder-perl.
+Preparing to unpack .../67-libsereal-encoder-perl_4.018+ds-1+b1_amd64.deb ...
+Unpacking libsereal-encoder-perl (4.018+ds-1+b1) ...
+Selecting previously unselected package libtext-levenshteinxs-perl.
+Preparing to unpack .../68-libtext-levenshteinxs-perl_0.03-4+b8_amd64.deb ...
+Unpacking libtext-levenshteinxs-perl (0.03-4+b8) ...
+Selecting previously unselected package libtext-markdown-discount-perl:amd64.
+Preparing to unpack .../69-libtext-markdown-discount-perl_0.12-1+b1_amd64.deb ...
+Unpacking libtext-markdown-discount-perl:amd64 (0.12-1+b1) ...
+Selecting previously unselected package libtext-xslate-perl.
+Preparing to unpack .../70-libtext-xslate-perl_3.5.8-1+b1_amd64.deb ...
+Unpacking libtext-xslate-perl (3.5.8-1+b1) ...
+Selecting previously unselected package libtime-duration-perl.
+Preparing to unpack .../71-libtime-duration-perl_1.21-1_all.deb ...
+Unpacking libtime-duration-perl (1.21-1) ...
+Selecting previously unselected package libtime-moment-perl.
+Preparing to unpack .../72-libtime-moment-perl_0.44-1+b3_amd64.deb ...
+Unpacking libtime-moment-perl (0.44-1+b3) ...
+Selecting previously unselected package libtimedate-perl.
+Preparing to unpack .../73-libtimedate-perl_2.3300-2_all.deb ...
+Unpacking libtimedate-perl (2.3300-2) ...
+Selecting previously unselected package libtype-tiny-perl.
+Preparing to unpack .../74-libtype-tiny-perl_1.012001-2_all.deb ...
+Unpacking libtype-tiny-perl (1.012001-2) ...
+Selecting previously unselected package libunicode-utf8-perl.
+Preparing to unpack .../75-libunicode-utf8-perl_0.62-1+b2_amd64.deb ...
+Unpacking libunicode-utf8-perl (0.62-1+b2) ...
+Selecting previously unselected package liburi-perl.
+Preparing to unpack .../76-liburi-perl_5.08-1_all.deb ...
+Unpacking liburi-perl (5.08-1) ...
+Selecting previously unselected package libxml-namespacesupport-perl.
+Preparing to unpack .../77-libxml-namespacesupport-perl_1.12-1.1_all.deb ...
+Unpacking libxml-namespacesupport-perl (1.12-1.1) ...
+Selecting previously unselected package libxml-sax-base-perl.
+Preparing to unpack .../78-libxml-sax-base-perl_1.09-1.1_all.deb ...
+Unpacking libxml-sax-base-perl (1.09-1.1) ...
+Selecting previously unselected package libxml-sax-perl.
+Preparing to unpack .../79-libxml-sax-perl_1.02+dfsg-1_all.deb ...
+Unpacking libxml-sax-perl (1.02+dfsg-1) ...
+Selecting previously unselected package libxml-libxml-perl.
+Preparing to unpack .../80-libxml-libxml-perl_2.0134+dfsg-2+b1_amd64.deb ...
+Unpacking libxml-libxml-perl (2.0134+dfsg-2+b1) ...
+Selecting previously unselected package libyaml-0-2:amd64.
+Preparing to unpack .../81-libyaml-0-2_0.2.2-1_amd64.deb ...
+Unpacking libyaml-0-2:amd64 (0.2.2-1) ...
+Selecting previously unselected package libyaml-libyaml-perl.
+Preparing to unpack .../82-libyaml-libyaml-perl_0.82+repack-1+b1_amd64.deb ...
+Unpacking libyaml-libyaml-perl (0.82+repack-1+b1) ...
+Selecting previously unselected package lzip.
+Preparing to unpack .../83-lzip_1.22-3_amd64.deb ...
+Unpacking lzip (1.22-3) ...
+Selecting previously unselected package lzop.
+Preparing to unpack .../84-lzop_1.04-2_amd64.deb ...
+Unpacking lzop (1.04-2) ...
+Selecting previously unselected package patchutils.
+Preparing to unpack .../85-patchutils_0.4.2-1_amd64.deb ...
+Unpacking patchutils (0.4.2-1) ...
+Selecting previously unselected package t1utils.
+Preparing to unpack .../86-t1utils_1.41-4_amd64.deb ...
+Unpacking t1utils (1.41-4) ...
+Selecting previously unselected package unzip.
+Preparing to unpack .../87-unzip_6.0-26_amd64.deb ...
+Unpacking unzip (6.0-26) ...
+Selecting previously unselected package lintian.
+Preparing to unpack .../88-lintian_2.104.0_all.deb ...
+Unpacking lintian (2.104.0) ...
+Selecting previously unselected package sbuild-build-depends-lintian-dummy.
+Preparing to unpack .../89-sbuild-build-depends-lintian-dummy_0.invalid.0_amd64.deb ...
+Unpacking sbuild-build-depends-lintian-dummy (0.invalid.0) ...
+Setting up libapt-pkg-perl (0.1.40) ...
+Setting up libunicode-utf8-perl (0.62-1+b2) ...
+Setting up libmouse-perl (2.5.10-1+b1) ...
+Setting up libdata-messagepack-perl (1.00-4+b1) ...
+Setting up libdynaloader-functions-perl (0.003-1.1) ...
+Setting up libtext-glob-perl (0.11-1) ...
+Setting up libclass-method-modifiers-perl (2.13-1) ...
+Setting up liblist-compare-perl (0.55-1) ...
+Setting up libclone-perl (0.45-1+b1) ...
+Setting up libyaml-0-2:amd64 (0.2.2-1) ...
+Setting up libsub-identify-perl (0.14-1+b3) ...
+Setting up libcpanel-json-xs-perl (4.25-1+b1) ...
+Setting up libdevel-size-perl (0.83-1+b2) ...
+Setting up unzip (6.0-26) ...
+Setting up libyaml-libyaml-perl (0.82+repack-1+b1) ...
+Setting up libtry-tiny-perl (0.30-1) ...
+Setting up libxml-namespacesupport-perl (1.12-1.1) ...
+Setting up liblzo2-2:amd64 (2.10-2) ...
+Setting up libtime-moment-perl (0.44-1+b3) ...
+Setting up libconfig-tiny-perl (2.26-1) ...
+Setting up libsereal-encoder-perl (4.018+ds-1+b1) ...
+Setting up liblist-utilsby-perl (0.11-1) ...
+Setting up libsub-install-perl (0.928-1.1) ...
+Setting up libnumber-compare-perl (0.03-1.1) ...
+Setting up patchutils (0.4.2-1) ...
+Setting up libjson-maybexs-perl (1.004003-1) ...
+Setting up libxml-sax-base-perl (1.09-1.1) ...
+Setting up libio-string-perl (1.08-3.1) ...
+Setting up libclass-data-inheritable-perl (0.08-3) ...
+Setting up libfile-find-rule-perl (0.34-1) ...
+Setting up libipc-system-simple-perl (1.30-1) ...
+Setting up libnet-domain-tld-perl (1.75-1.1) ...
+Setting up lzip (1.22-3) ...
+Setting up t1utils (1.41-4) ...
+Setting up diffstat (1.64-1) ...
+Setting up libvariable-magic-perl (0.62-1+b3) ...
+Setting up libb-hooks-op-check-perl (0.22-1+b3) ...
+Setting up liblist-moreutils-xs-perl (0.430-2) ...
+Setting up ucf (3.0043) ...
+Setting up libparams-util-perl (1.102-1+b1) ...
+Setting up libtime-duration-perl (1.21-1) ...
+Setting up libtext-xslate-perl (3.5.8-1+b1) ...
+Setting up libsub-exporter-progressive-perl (0.001013-1) ...
+Setting up libcapture-tiny-perl (0.48-1) ...
+Setting up libtimedate-perl (2.3300-2) ...
+Setting up libsub-name-perl (0.26-1+b1) ...
+Setting up libdata-validate-domain-perl (0.10-1.1) ...
+Setting up libproc-processtable-perl (0.59-2+b1) ...
+Setting up libpath-tiny-perl (0.118-1) ...
+Setting up lzop (1.04-2) ...
+Setting up librole-tiny-perl (2.002004-1) ...
+Setting up libipc-run3-perl (0.048-2) ...
+Setting up libaliased-perl (0.34-1.1) ...
+Setting up libstrictures-perl (2.000006-1) ...
+Setting up libsub-quote-perl (2.006006-1) ...
+Setting up libdevel-stacktrace-perl (2.0400-1) ...
+Setting up libclass-xsaccessor-perl (1.19-3+b7) ...
+Setting up libexporter-tiny-perl (1.002002-1) ...
+Setting up libfont-ttf-perl (1.06-1.1) ...
+Setting up libtext-levenshteinxs-perl (0.03-4+b8) ...
+Setting up libperlio-gzip-perl (0.19-1+b7) ...
+Setting up libhtml-html5-entities-perl (0.004-1.1) ...
+Setting up libsereal-decoder-perl (4.018+ds-1+b1) ...
+Setting up libmarkdown2:amd64 (2.2.6-1) ...
+Setting up liburi-perl (5.08-1) ...
+Setting up libemail-address-xs-perl (1.04-1+b3) ...
+Setting up libfile-basedir-perl (0.08-1) ...
+Setting up liblist-moreutils-perl (0.430-2) ...
+Setting up libtype-tiny-perl (1.012001-2) ...
+Setting up libtext-markdown-discount-perl:amd64 (0.12-1+b1) ...
+Setting up libexception-class-perl (1.44-1) ...
+Setting up libdevel-callchecker-perl (0.008-1+b2) ...
+Setting up libxml-sax-perl (1.02+dfsg-1) ...
+update-perl-sax-parsers: Registering Perl SAX parser XML::SAX::PurePerl with priority 10...
+update-perl-sax-parsers: Updating overall Perl SAX parser modules info file...
+
+Creating config file /etc/perl/XML/SAX/ParserDetails.ini with new version
+Setting up libdata-optlist-perl (0.110-1.1) ...
+Setting up libxml-libxml-perl (2.0134+dfsg-2+b1) ...
+update-perl-sax-parsers: Registering Perl SAX parser XML::LibXML::SAX::Parser with priority 50...
+update-perl-sax-parsers: Registering Perl SAX parser XML::LibXML::SAX with priority 50...
+update-perl-sax-parsers: Updating overall Perl SAX parser modules info file...
+Replacing config file /etc/perl/XML/SAX/ParserDetails.ini with new version
+Setting up libsub-exporter-perl (0.987-1) ...
+Setting up libiterator-perl (0.03+ds1-1.1) ...
+Setting up libiterator-util-perl (0.02+ds1-1.1) ...
+Setting up libparams-classify-perl (0.015-1+b3) ...
+Setting up libmodule-runtime-perl (0.016-1) ...
+Setting up libdata-dpath-perl (0.58-1) ...
+Setting up libmodule-implementation-perl (0.09-1.1) ...
+Setting up libpackage-stash-perl (0.39-1) ...
+Setting up libimport-into-perl (1.002005-1) ...
+Setting up libmoo-perl (2.004004-1) ...
+Setting up libmoox-aliases-perl (0.001006-1.1) ...
+Setting up libb-hooks-endofscope-perl (0.24-1.1) ...
+Setting up libnamespace-clean-perl (0.27-1) ...
+Setting up lintian (2.104.0) ...
+Setting up sbuild-build-depends-lintian-dummy (0.invalid.0) ...
+Processing triggers for man-db (2.9.4-2) ...
+Not building database; man-db/auto-update is not 'true'.
+Processing triggers for libc-bin (2.31-11) ...
+Running lintian...
+E: bss changes: unreleased-changes
+N:
+E: unreleased-changes
+N:
+N:   The distribution in the Changes field copied from debian/changelog
+N:   indicates that this package was not intended to be released yet.
+N:   
+N:   Refer to Bug#542747 for details.
+N:   
+N:   Severity: error
+N:   
+N:   Check: fields/distribution
+N:
+W: bss: changelog-distribution-does-not-match-changes-file (unreleased != unstable)
+N:
+W: changelog-distribution-does-not-match-changes-file
+N:
+N:   The target distribution in the most recent entry in this package's
+N:   debian/changelog file does not match the target in the generated
+N:   .changes file.
+N:   
+N:   This may indicate a mistake in setting the distribution, an accidental
+N:   upload to unstable of a package intended for experimental, or a
+N:   mistake in invoking sbuild(1).
+N:   
+N:   Refer to Bug#906155 and the sbuild(1) manual page for details.
+N:   
+N:   Severity: warning
+N:   
+N:   Check: debian/changelog
+N:
+
+I: Lintian run was successful.
+
++------------------------------------------------------------------------------+
+| Post Build                                                                   |
++------------------------------------------------------------------------------+
+
+
++------------------------------------------------------------------------------+
+| Cleanup                                                                      |
++------------------------------------------------------------------------------+
+
+Purging /<<BUILDDIR>>
+Not cleaning session: cloned chroot in use
+
++------------------------------------------------------------------------------+
+| Summary                                                                      |
++------------------------------------------------------------------------------+
+
+Build Architecture: amd64
+Build Type: binary
+Build-Space: 552
+Build-Time: 2
+Distribution: unstable
+Host Architecture: amd64
+Install-Time: 4
+Job: /home/osamu/src/public/bss/bss_0.1.0-3.dsc
+Lintian: warn
+Machine Architecture: amd64
+Package: bss
+Package-Time: 11
+Source-Version: 0.1.0-3
+Space: 552
+Status: successful
+Version: 0.1.0-3
+--------------------------------------------------------------------------------
+Finished at 2021-04-08T13:25:49Z
+Build needed 00:00:11, 552k disk space

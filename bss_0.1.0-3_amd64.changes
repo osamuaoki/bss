@@ -1,0 +1,45 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Thu, 08 Apr 2021 22:23:44 +0900
+Source: bss
+Binary: bss
+Architecture: amd64
+Version: 0.1.0-3
+Distribution: unstable
+Urgency: medium
+Maintainer: Osamu Aoki <osamu@debian.org>
+Changed-By: Osamu Aoki <osamu@debian.org>
+Description:
+ bss        - Btrfs Subvolume Snapshot Utility
+Changes:
+ bss (0.1.0-3) UNRELEASED; urgency=medium
+ .
+   * Fix permission of .bss.d/ for "bss t".
+Checksums-Sha1:
+ 31cfe9fe8a67d66aa68b6280755628a554db9a17 5387 bss_0.1.0-3_amd64.buildinfo
+ d238cba1d7c0cfb2ce949778553ff01e8c64cbb6 24788 bss_0.1.0-3_amd64.deb
+Checksums-Sha256:
+ f7801fdb5e01eecd1b65112c8540ae9b5b19be655861d51abea770042976c9e0 5387 bss_0.1.0-3_amd64.buildinfo
+ 5135e6ef62da26c420afac3191d70f93074f88b1a2edecacc83dfdf5010973f1 24788 bss_0.1.0-3_amd64.deb
+Files:
+ 5265eb3b309c0a70672cabd8fda894ab 5387 utils optional bss_0.1.0-3_amd64.buildinfo
+ c40b8c1417eda70c82029d8388781b29 24788 utils optional bss_0.1.0-3_amd64.deb
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEMTNyTWIHiBV56V1iHhNWiB3Y15EFAmBvBMgACgkQHhNWiB3Y
+15EUKA/+M657icgZCNXDcozQykL+3a+lVYi2gwH81b7Hjt5Ufb0GA28Y8mtOspXC
+58iwwHLONiovhlPreowsPYrMcJJpJaaeu2pPe/lahLxo1/r4cvCZRTbFWHNc+7MC
+ebHxdSOfr9acRd3INlpqFVlrPeNIwoG9LQNW8bUkpALM02y7WJGL9AuBgPrBbKIj
+Mpd8BhXarmbZfjfXHN3k/CsRmpYEMp0fuxLT7l0D/VMy9UvpdhG7ipi2bNdihwJk
+NWJlx9972EPlHtaIdkWpqS5UpHzctjTz1lieP0TUFlbOyQx+Km/C0MOmjQh+1OqB
+M7DHEQH/x6Y7B0bHGHfAUzps/+B9SROGZt3tBOWBgPFBDD+Ab+D6ypn18A0Mev/j
+/brfcz6Dq/AvpB5B2LOrzTen2GojOxEI+FSawKRQXo+ohVKc50iCjEqinlkjAU8e
+NxdjXkNErs3IzOFC8r+fKixdK/PaNNaGWSR1HZuZcLcNJAngVvxxppOBR1+KcmFC
+TZk8EeVTAaGaq+V5HS7nwzl+20EFv6iC/txU/XuuB+0wKLIBh+R0ee2e7hXrn6ty
+oJZ1el+ULYFHk0C6pDYXwY8QGln26GADygVzakOSzxwXdv5ug4wTb5BXexJAuT5t
+eLXqR6Zs7OjxWU1imY71yAq/29FseeOX3bUmC6YXe2XC5ExDnh8=
+=pWaB
+-----END PGP SIGNATURE-----
