@@ -55,7 +55,8 @@ OPTIONS:
   -t,--type TYPE  use TYPE instead of the default "single" for the snapshot
                   type.  The automatic snapshot uses "pre" (before APT), "post"
                   (after APT), "boot" (every system boot), and "hour" (every
-                  hour).
+                  hour).  If "keep" is specified, the snapshot with it will be
+                  kept foever under the normal aging process.
   -c,--conf RC    use "RC.$EXT_CONF" and "RC.$EXT_FLTR" instead of their
                   default "$BSS_CONF" and "$BSS_FLTR"
   -f,--force      force to reapply filter
@@ -513,6 +514,19 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -lt "$BSS_TMIN" ]; then
       __echo 2 "+++ TAGE=$S_TAGE < TMIN=$S_TMIN (keep: unconditional, before TMIN)"
+      echo "+++_$BSS_SV"
+    #########################################################################
+    # Keep
+    # Classify: TYPE = keep
+    #########################################################################
+    elif [ "$BSS_TYPE" = "keep" ]; then
+      __echo 2 "+++ TAGE=$S_TAGE, TYPE = keep (keep: unconditional)"
+      if [ "$BSS_TAGE" -ge "$BSS_TMAX" ]; then
+        BSS_TLAST="$BSS_TAGE"
+      else
+        BSS_TLAST="$BSS_TAGE"
+        BSS_TSTEP=$((BSS_TLAST*BSS_STEP/100))
+      fi
       echo "+++_$BSS_SV"
     #########################################################################
     # Drop
