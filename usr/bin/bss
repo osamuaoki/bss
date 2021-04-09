@@ -1179,15 +1179,16 @@ else
   BTRFS_BASE0=$($SUDO realpath ".")
 fi
 # sanity check
-if [ "$($SUDO stat -f -c %T "$BTRFS_BASE0")" != "btrfs" ]; then
+FS="$($SUDO stat -f -c %T "$BTRFS_BASE0")"
+if [ "$FS" != "btrfs" ]; then
   if [ "$BSS_TYPE" = "boot" ] || \
      [ "$BSS_TYPE" = "hour" ] || \
      [ "$BSS_TYPE" = "pre"  ] || \
      [ "$BSS_TYPE" = "post" ] ; then
-    __echo 3 "$BSS exits normally since target isn't on btrfs: $BTRFS_BASE0 for TYPE=$BSS_TYPE (automatic)"
+    __echo 3 "$BSS exits normally since target is on $FS and not on btrfs: $BTRFS_BASE0 for TYPE=$BSS_TYPE (automatic)"
     exit 0
   else
-    __echo 0 "$BSS exits as error since target isn't on btrfs: $BTRFS_BASE0 for TYPE=$BSS_TYPE"
+    __echo 0 "$BSS exits normally since target is on $FS and not on btrfs: $BTRFS_BASE0 for TYPE=$BSS_TYPE"
     exit 1
   fi
 fi
