@@ -1,0 +1,12 @@
+# activate by: systemctl --user enable myip.timer
+[Unit]
+Description=Check external IP address
+Documentation=man:myip(1)
+
+[Timer]
+# 90 sec min is enough for connecting to new Wifi service
+OnStartupSec=90
+
+[Install]
+WantedBy=timers.target
+

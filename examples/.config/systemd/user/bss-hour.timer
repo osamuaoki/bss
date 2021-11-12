@@ -1,0 +1,12 @@
+# activate by: systemctl --user enable bss-hour.timer
+[Unit]
+Description=Run bss commands hourly
+Documentation=man:bss(1)
+
+[Timer]
+OnStartupSec=30
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target
+

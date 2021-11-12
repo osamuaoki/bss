@@ -1,0 +1,12 @@
+# activate by: systemctl --user enable bss-day.timer
+[Unit]
+Description=Run bss commands daily
+Documentation=man:bss(1)
+
+[Timer]
+OnBootSec=120
+OnUnitActiveSec=24h
+
+[Install]
+WantedBy=timers.target
+

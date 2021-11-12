@@ -1,0 +1,40 @@
+Source: bss
+Section: utils
+Priority: optional
+Maintainer: Osamu Aoki <osamu@debian.org>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.0
+Homepage: https://github.com/osamuaoki/bss
+
+Package: bss
+Architecture: any
+Multi-Arch: foreign
+Depends: btrfs-progs,
+         e2fsprogs,
+         libsecret-tools,
+         rsync,
+         sudo,
+         systemd,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Description: Btrfs Subvolume Snapshot Utility
+ "bss" is basically a "btrfs subvolume ..." command wrapper to create and age
+ historical snapshots with the intuitive snapshot subvolume name and flexible
+ data aging capabilities.
+ .
+   * check for required free blocks (minimum FMIN %).
+   * keep initial few (NMIN) snapshots unconditionally.
+   * limit the maximum number of snapshots to NMAX.
+   * keep initial snapshots unconditionally for initial time (TMIN).
+   * grow time intervals exponentially with the specified ratio (STEP %) up to
+     some specified age (TMAX).
+   * filter content files of snapshots after the mid point (TMID) of history
+     using the script ".bss.fltr" at the BASE directory.
+ .
+ This can be used to snapshot the root filesystem on btrfs.
+   * No requirement to make the root filesystem as subvol=@.
+   * Examples for:
+     * Automatic pre and post package installation snapshots of / via APT
+       operations on Debian/Ubuntu system.
+     * Systemd timer to snapshot on boot and hourly
+     * Systemd timer to age snapshots on boot and daily.

@@ -1,0 +1,194 @@
+--- bss.1.orig	2022-01-18 20:40:53.389418879 +0900
++++ bss.1	2022-01-18 20:43:18.991238028 +0900
+@@ -26,30 +26,40 @@
+ between them from the older ones to newer ones and makes them more sparse for
+ the older ones by removing some of them using parameters in ".bss.conf" in the
+ ".bss.d/" directory.  This involves following actions:
+-.IP
+-* Secure minimum required free blocks (minimum FMIN %).
+-* Keep initial few (NMIN) snapshots unconditionally.
+-* Limit the maximum number of snapshots to NMAX.
+-.IP
+-* NMAX=0 is the special case and means no limit for number of snapshots.
+-.IP
+-* Before TMIN, keep snapshots unconditionally.
+-* Age snapshots with basically exponentially growing intervals with the
+-.IP
++.IP "\(bu" 4
++Secure minimum required free blocks (minimum FMIN %).
++.IP "\(bu" 4
++Keep initial few (NMIN) snapshots unconditionally.
++.IP "\(bu" 4
++Limit the maximum number of snapshots to NMAX.
++.RS
++.IP "\(bu" 4
++NMAX=0 is the special case and means no limit for number of snapshots.
++.RE
++.IP "\(bu" 4
++Before TMIN, keep snapshots unconditionally.
++.IP "\(bu" 4
++Age snapshots with basically exponentially growing intervals with the
+ specified ratio (STEP 2%\-90%).
+-.IP
+-* After TMID, age snapshots more aggressively.
+-.IP
+-* Special handlings to keep some high priority snapshots stop.
+-* If TMID_ACTION=filter, content files of snapshots are filtered with the
+-.IP
++.IP "\(bu" 4
++After TMID, age snapshots more aggressively.
++.RS
++.IP "\(bu" 4
++Special handlings to keep some high priority snapshots stop.
++.IP "\(bu" 4
++If TMID_ACTION=filter, content files of snapshots are filtered with the
+ script ".bss.fltr" at the ".bss.d/" directory.
+-.IP
+-* After TMAX, stop aging snapshots.
+-.IP
+-* TMAX=0 is the special case and means no limit for aging.
+-* If TMAX_ACTION=drop, drop subvolume after TMAX.
+-* If TMAX_ACTION=keep, keep subvolume after TMAX.
++.RE
++.IP "\(bu" 4
++After TMAX, stop aging snapshots.
++.RS
++.IP "\(bu" 4
++TMAX=0 is the special case and means no limit for aging.
++.IP "\(bu" 4
++If TMAX_ACTION=drop, drop subvolume after TMAX.
++.IP "\(bu" 4
++If TMAX_ACTION=keep, keep subvolume after TMAX.
++.RE
+ .PP
+ .SH OPTIONS
+ .TP
+@@ -93,37 +103,55 @@
+ trace on (trace shell code for debug)
+ .PP
+ .SH SUBCOMMAND
+-.IP
+-snapshot: make a readonly snapshot in ".bss.d/" as
+ .TP
++snapshot
++make a readonly snapshot in ".bss.d/" as
+ <ISO_8601_date>.<TYPE>
+ (The default type is "single")
+-.IP
+-overview: overview of all snapshots (wrapper for age)
+-process:  process snapshots according to their aging status
+-copy:     copy to (remote) destination using rsync
+-jobs:     list all systemd timer schedule jobs for bss
+-list:     list all snapshots
+-age:      assess aging status of all snapshots
+-base:     print the BASE directory for "bss"
+-filter:   create a filtered snapshot from the specified snapshot in
+-.IP
++.TP
++overview
++overview of all snapshots (wrapper for age)
++.TP
++process
++process snapshots according to their aging status
++.TP
++copy
++copy to (remote) destination using rsync
++.TP
++jobs
++list all systemd timer schedule jobs for bss
++.TP
++list
++list all snapshots
++.TP
++age
++assess aging status of all snapshots
++.TP
++base
++print the BASE directory for "bss"
++.TP
++filter
++create a filtered snapshot from the specified snapshot in
+ ".bss.d/" as <specified_subvol_name>_filter
+ .TP
+-revert:
++revert
+ revert contents of the BASE directory from the specified snapshot
+ in ".bss.d/" while making snapshots <ISO_8601_date>.last and
+ <ISO_8601_date>.<specified_subvol_date>_revert
+ (This is alpha stage untested feature.)
+ .TP
+-zap:
++zap
+ zap (=delete) particular snapshot(s) specified by ARG(s)
+ "zap" is required to be typed in full text.
+-.IP
+-template: make template files in the ".bss.d/" directory:
+-.IP
++.TP
++template
++make template files in the ".bss.d/" directory:
++.RS
++.IP "\(bu" 4
+ ".bss.conf" (aging rule)
++.IP "\(bu" 4
+ ".bss.fltr" (filtering rule)
++.RE
+ .PP
+ Subcommands may be shortened to a single character.
+ .PP
+@@ -142,17 +170,14 @@
+ .PP
+ For "bss zap", the first argument is normally ".".  The following argument
+ is the action target specifier which can be:
+-.TP
+-* new:
+-zap the newest snapshots
+-.TP
+-* old:
+-zap the oldest snapshots
+-.TP
+-* half:
+-zap the older half of snapshots
+-.IP
+-* <subvolume>???: zap specified snapshot subvolume(s) (path without ".bss.d/")
++.IP "\(bu" 4
++new: zap the newest snapshots
++.IP "\(bu" 4
++old: zap the oldest snapshots
++.IP "\(bu" 4
++half: zap the older half of snapshots
++.IP "\(bu" 4
++<subvolume>???: zap specified snapshot subvolume(s) (path without ".bss.d/")
+ .PP
+ Unless you have specific reasons to use "bss zap", you should consider to use
+ "bss process" to prune outdated snapshots.
+@@ -164,17 +189,18 @@
+ examples for systemd scripts to enable automatic daily "process" operation.
+ .PP
+ For some snapshots, different TYPE values may be used instead of TYPE='single'.
+-.TP
+-* TYPE='pre':
+-automatic "snapshot" operation just before APT update
+-.TP
+-* TYPE='post': automatic "snapshot" operation just after
+-APT update
+-.IP
+-* TYPE='copy': automatic "snapshot" operation just before "bss copy"
+-* TYPE='hour': automatic "snapshot" operation on boot and every hour
+-* TYPE='last': automatic "snapshot" operation just before "bss revert"
+-* TYPE='???_revert': automatic "snapshot" operation just after "bss revert"
++.IP "\(bu" 4
++TYPE='pre': automatic "snapshot" operation just before APT update
++.IP "\(bu" 4
++TYPE='post': automatic "snapshot" operation just after APT update
++.IP "\(bu" 4
++TYPE='copy': automatic "snapshot" operation just before "bss copy"
++.IP "\(bu" 4
++TYPE='hour': automatic "snapshot" operation on boot and every hour
++.IP "\(bu" 4
++TYPE='last': automatic "snapshot" operation just before "bss revert"
++.IP "\(bu" 4
++TYPE='???_revert': automatic "snapshot" operation just after "bss revert"
+ .PP
+ This "bss" calculates age related time values in the second and prints them in
+ the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).

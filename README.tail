@@ -1,0 +1,172 @@
+<!---
+vim:se tw=78 ai si sts=4 sw=4 et:
+-->
+## Note on "revert" operation
+
+This is rather untested experimental feature with limited capabilities.  Use
+with care!
+
+## Note on the code design
+
+This "bss" is designed with following consideration:
+
+* Make package simple and small but powerful and configurable.
+  * Use plain POSIX-shell
+  * Configurable aging timing.
+  * Configurable file filtering.
+  * Prevention safeguard for the filling up of btrfs.
+  * Capability to limit number of snapshots by number or age.
+  * Logging to syslog is available (-l).
+  * Easy monitoring of its internal actions (-v and -vv).
+  * Snapshots have identifiable names (more like `timeshift`)
+  * Offer CLI (more like `snapper`).
+  * Accept shortened subcommands.
+  * Use UT (+00:00) for code simplicity
+  * Use STDOUT for data and STDERR for internal state for consistency.
+* Support snapshot of any target btrfs data.
+  * No requirement to make the root filesystem as `subvol=@`.
+  * Automatic snapshots via systemd timer examples.
+  * Automatic pre and post package installation snapshots examples
+    via APT operations on Debian/Ubuntu/... system.
+  * Automatic aging via systemd examples.
+  * Manual snapshot by `bss snap <PATH>`.
+  * Manual process data according to their age by `bss process <PATH>`.
+
+## Note on installation
+
+### For Debain/Ubuntu system (latest)
+
+```
+ $ git clone https://github.com/osamuaoki/bss.git
+ $ cd bss
+ $ debuild
+ $ cd ..
+ $ sudo dpkg -i bss_1.0.0_amd64.deb
+```
+
+### For other system
+
+```
+ $ git clone https://github.com/osamuaoki/bss.git
+ $ cd bss
+ $ sudo make install
+```
+
+## Getting started
+
+### Basics
+
+* Install bss Debian package
+* Move the current working directory to a btrfs managed by "bss"
+* Get help with `bss h`.
+* Manually create a snapshot with `bss s` or just by `bss`
+* Manually process snapshots with `bss p`
+* Check existing snapshots with `bss l`.
+* Check aging status of existing snapshots with `bss o`.
+* Check automatic jobs with `bss j`.
+* Manipulate non-current directory by providing PATH after subcommands.
+
+Use of `-v` option gives verbose information.
+
+### Customization of aging behavior
+
+* Create template configuration and filter by `bss t`
+  * Adjust configuration by editing ".bss.d/.bss.conf"
+  * Adjust filter by editing ".bss.d/.bss.conf"
+
+### Customization of automatic snapshots
+
+Automatic snapshot supports can be set up from the user account using files in
+`~/.config/systemd/.config/systemd/user/`. There are some example files under
+`/usr/share/doc/bss/examples/`:
+
+```
+ $ mkdir -p ~/.config/systemd/user/
+ $ cd /usr/share/doc/bss/examples/.config/systemd/user/
+ $ cp * ~/.config/systemd/user/
+ $ systemctl --user enable bss-hour.timer bss-day.timer
+ $ cd /usr/share/doc/bss/examples/.config/autostart/
+ $ mkdir -p ~/.config/autostart/
+ $ cp * ~/.config/autostart/
+ $ mkdir -p ~/bin
+ $ cd /usr/share/doc/bss/examples/bin/
+ $ cp * ~/bin/
+```
+After doing all these, please reboot the system.
+
+Use `journalcrl -a -b -t bss` to see its log.
+
+(/usr/share/doc/bss/examples/etc/ has APT automatic snapshot example which I
+don't use now)
+
+## Tips
+
+### Removing many subvolumes by bss
+
+If quota is enabled, removing many subvolumes by bss may cause issues.
+
+### Excluding files from the "`snapshot`" operation
+
+If you wish to exclude files under a particular directory, simply creating a
+pertinent subvolume containing those files in place of the directory allows to
+exclude them to be a part of the "`snapshot`" operation.
+
+### Database file and CoW issue
+
+Please consider to set 'no copy on write' (C) attribute recursively on the
+directory prior to placing files such as the database file in it.  For
+example:
+
+```
+ $ sudo chattr -R +C /var/lib/mysql
+```
+
+I suppose that you need to stop database program before making snapshot/backup
+of the filesystem containing it.
+
+Maybe the same goes with the actively used disk image file.
+
+### Migration of the root filesystem to `subvol=@` on Btrfs.
+
+See [Btrfs migration](https://wiki.debian.org/Btrfs%20migration)
+
+### Backup with rsync (USB or remote)
+
+The snapshot mechanism of btrfs offers efficient historical storage but is
+never meant to replace full capabilities of the backup mechanism.  For disk
+failures, you should rely on data on different storage devices.  The easiest
+backup for the consumer grade system is full backup to USB connected SSD.
+
+Although the combination of `btrfs send` with the incremental mode (options
+`-p` and `-c`) and `btrfs receive` provides the fast and efficient backup, it
+needs to be used carefully.  So for the robustness of backup for a careless
+person (i.e., myself), I integrated `rsync` approach to this script as "bss
+copy".
+
+"bss copy" makes readonly snapshot and run "rsync -aHxSv --delete ..."
+(H: hardlink, x: one filesystem, S: sparse file ) on it to the specified
+destination.
+
+```
+ $ bss copy / /media/usb_ssd/root
+ $ bss copy ~ /media/usb_ssd/userdata
+```
+
+The backup data may use btrfs on USB connected SSD and you can use `bss` to
+manage its history.  In this case, `bss` related files in the ".bss.d/"
+directory are protected via `rsync` filter rules so aging on USB connected SSD
+can be managed independently.
+
+The destination can be a remote host for bss.  I use rsync.net service now.
+bss automatically activates compression for rsync to save the network
+bandwidth.
+
+For other cloud storage service, use of `rclone` instead of `rsync` is a
+possibility. (patch welcome)
+
+## `secret-folder` command
+
+In order to address data security concern of the use of a remote server
+administered NOT by oneself, a helper command to create and work with
+encrypted disk image is provided as `secret-folder`.
+

@@ -1,0 +1,16 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: bss
+Upstream-Contact: Osamu Aoki <osamu@debian.org>
+Source: <https://github.com/osamuaoki/bss>
+
+Files:     *
+Copyright: 2021 Osamu Aoki <osamu@debian.org>
+License:   GPL-2.0+
+ License GPLv2+: GNU GPL version 2 or later
+ <https://gnu.org/licenses/gpl\-2.0.html>.
+ .
+ This is free software: you are free to change and redistribute it.  There is
+ NO WARRANTY, to the extent permitted by law.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ Version 2 can be found in `/usr/share/common-licenses/GPL-2'.

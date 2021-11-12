@@ -1,0 +1,5 @@
+bss (1.0.0) unstable; urgency=low
+
+  * Initial release to github (bss + secret-folder).
+
+ -- Osamu Aoki <osamu@debian.org>  Tue, 18 Jan 2022 12:54:48 +0900

@@ -1,0 +1,28 @@
+[Unit]
+Description=Run bss commands daily
+Documentation=man:bss(1)
+# journalctl -a -b -t bss
+
+[Service]
+Type=oneshot
+# ensure to mount LUKS encrypted disk image and wait for 120s and update
+ExecStart=secret-folder update systemd
+# process snapshot of ~/ (== %h)
+ExecStart=bss process --logger %h
+# do the same for other subvolumes
+ExecStart=bss process --logger %h/github
+ExecStart=bss process --logger %h/salsa
+ExecStart=bss process --logger %h/Documents
+ExecStart=sync
+ExecStart=bss copy --logger %h/rsync
+ExecStart=bss process --logger %h/rsync
+IOSchedulingClass=idle
+CPUSchedulingPolicy=idle
+StandardInput=null
+# No logging (use systemd logging)
+StandardOutput=null
+StandardError=null
+#StandardOutput=append:%h/.cache/systemd-bss.log
+#StandardError=append:%h/.cache/systemd-bss.log
+
+

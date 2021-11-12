@@ -1,0 +1,16 @@
+[Unit]
+Description=Check external IP address
+Documentation=man:myip(1)
+# journalctl -a -b -t myip
+
+[Service]
+Type=oneshot
+# ifconfig.co can be other IP servicing similar functionality.
+# See https://serverfault.com/questions/1007184/how-to-check-ipv6-address-via-command-line
+ExecStart=systemd-cat -p 5 -t "myip" sh -c 'echo "External IP: IPv4=$(curl -4 https://ifconfig.co 2>/dev/null)"'
+ExecStart=systemd-cat -p 5 -t "myip" sh -c 'echo "External IP: IPv6=$(curl -6 https://ifconfig.co 2>/dev/null)"'
+IOSchedulingClass=idle
+CPUSchedulingPolicy=idle
+StandardInput=null
+StandardOutput=null
+StandardError=null
