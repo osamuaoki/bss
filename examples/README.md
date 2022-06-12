@@ -14,7 +14,7 @@ Files under ".config/systemd/" are meant to be installed to
 following situation.
 
 Let's consider data files and configuration in the home directory.  Migrating
-them to btrfs is trivial and allow us to make casual snapshots.  We can easily
+them to btrfs is trivial and allows us to make casual snapshots.  We can easily
 accumulate too many snapshots.  Pruning old snapshots is tedious task.  Also
 snapshots only help easy roll back of overwritten and erased data but don't
 protect us from disk failure.  For recovering from disk failure, we need to
@@ -34,7 +34,7 @@ Let's consider to have following path in independent btrfs subvolumes:
 
 `bss snapshot` can make snapshots in the `.bss.d/` .
 
-`bss copy` can make network backups and USB backups.  The destination s set by
+`bss copy` can make network backups and USB backups.  The destination is set by
 the "BSS_COPY_DEST" value in the`.bss.d/.bss.conf` file.
 
 For secure backups, use `secret-folder` command to create and update encrypted
@@ -47,10 +47,17 @@ When updating `~/rsync/secret.img`, its content is mounted to `~/secret/` .
 (normally it is not kept as mounted unless you start `secret-folder` followed
 by `keep`.
 
+Please note `secret-folder` uses the passphrase stored in GNOME `secret-tool`
+with `attribute` to be `LUKS` and  `value` to be the full expanded path
+corresponding to `~/rsync/secret.img`.  (Use GNOME seahose for GUI management.)
+
 For network backups, you need to have access to a remote server accepting ssh
 and `rsync` connection.  I currently use rsync.net service. (For other cloud
-services, this code need updated to support `rclone` command.  This is TODO and
-patch welcomed.)
+services, please consider to update this code to support `rclone` command.
+This is my TODO and such patch is welcomed.)
+
+Another TODO is an example to support USB connected storage for backups upon
+connecting them to the PC using a udev hook script.
 
 Since `~/github/` and `~/salsa/` contain publicly mirrored contents, I don't
 bother to make their remote/USB copies.
@@ -90,7 +97,8 @@ You can inspect contents in the downloaded `secret.img` as:
 ```
 
 (Here, secret.img must be placed in the original location with the original
-name to use the passphrase stored in GNOME `secret-tool`.)
+name to use the passphrase stored in GNOME `secret-tool` and you may be able to
+check it using GNOME seahorse.)
 
 Alternatively, you can inspect contents in downloaded `secret.img` as:
 
@@ -126,6 +134,9 @@ Files under `etc/` are meant to be installed to `/etc/` for making snapshot of
 the root filesystem upon APT operation.  Since recent Debian testing is very
 stable, I stop using the APT snapshot capabilities.  So these under `etc/` are
 FYI examples without recent usage.
+
+If you have any update problem, you should suspect your proxy setting or mirror
+site.  For proxy issues, just remove all cashed contents.
 
 I simply have dual bootable Linux system to minimize damages of broken system
 files.  (There are some supports to roll back system files in `bss`, but
