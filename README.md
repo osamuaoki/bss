@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.0.0)
+# Btrfs Subvolume Snapshot Utility (version: 1.0.1)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -284,7 +284,7 @@ of the filesystem containing it.
 
 Maybe the same goes with the actively used disk image file.
 
-### Migration of the root filesystem to `subvol=@` on Btrfs.
+### Migration of the root filesystem to `subvol=@rootfs` on Btrfs.
 
 See [Btrfs migration](https://wiki.debian.org/Btrfs%20migration)
 
