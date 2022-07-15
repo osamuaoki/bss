@@ -7,7 +7,7 @@
 # Copyright 2022 (C) Osamu Aoki <osamu@debian.org>
 # License: GPL 2+
 ##############################################################################
-BSS_VERSION="1.0.0"
+BSS_VERSION="1.0.1"
 
 __help () {
 cat << END_OF_HELP

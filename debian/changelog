@@ -1,3 +1,9 @@
+bss (1.0.1) unstable; urgency=medium
+
+  * Typo fix.
+
+ -- Osamu Aoki <osamu@debian.org>  Sat, 16 Jul 2022 00:08:10 +0900
+
 bss (1.0.0) unstable; urgency=low
 
   * Initial release to github (bss + secret-folder).
