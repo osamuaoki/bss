@@ -5,6 +5,7 @@ Documentation=man:bss(1)
 
 [Service]
 Type=oneshot
+Nice=15
 # make snapshot of user's home directory ~/ (in one FS)
 ExecStart=bss snapshot --logger --type=hour %h
 # do the same for other subvolumes

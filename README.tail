@@ -1,14 +1,14 @@
 <!---
 vim:se tw=78 ai si sts=4 sw=4 et:
 -->
-## Note on "revert" operation
+## Note on `revert` operation
 
 This is rather untested experimental feature with limited capabilities.  Use
 with care!
 
 ## Note on the code design
 
-This "bss" is designed with following consideration:
+This `bss` is designed with following consideration:
 
 * Make package simple and small but powerful and configurable.
   * Use plain POSIX-shell
@@ -57,7 +57,7 @@ This "bss" is designed with following consideration:
 ### Basics
 
 * Install bss Debian package
-* Move the current working directory to a btrfs managed by "bss"
+* Move the current working directory to a btrfs managed by `bss`
 * Get help with `bss h`.
 * Manually create a snapshot with `bss s` or just by `bss`
 * Manually process snapshots with `bss p`
@@ -71,10 +71,10 @@ Use of `-v` option gives verbose information.
 ### Customization of aging behavior
 
 * Create template configuration and filter by `bss t`
-  * Adjust configuration by editing ".bss.d/.bss.conf"
-  * Adjust filter by editing ".bss.d/.bss.conf"
+  * Adjust configuration by editing `.bss.d/.bss.conf`
+  * Adjust filter by editing `.bss.d/.bss.conf`
 
-### Customization of automatic snapshots
+### Customization of automatic snapshots of user data
 
 Automatic snapshot supports can be set up from the user account using files in
 `~/.config/systemd/.config/systemd/user/`. There are some example files under
@@ -96,8 +96,18 @@ After doing all these, please reboot the system.
 
 Use `journalcrl -a -b -t bss` to see its log.
 
-(/usr/share/doc/bss/examples/etc/ has APT automatic snapshot example which I
-don't use now)
+### Customization of automatic snapshots of system data
+
+Automatic snapshot of system data in `/` can be enabled using examples in
+`/usr/share/doc/bss/examples/etc/apt/apt.conf.d/80bss`.  For these to be
+useful, you need to mount the root of the btrfs partion containing `/`
+somewhere like `/btrfs/main` and create `@rootfs-snapshots` directory next to
+`@rootfs` holding `/`.  Then, in `/.bss.d/.bss.conf` specify,
+`BSS_SNAP_DEST="/btrfs/main/@rootfs-snapshots`.
+
+If something goes wrong with the system, make snapshot of `/` and remove
+`@rootfs` subvolume and make read-write copy subvolume `@rootfs` from one of
+the older snapshot in `/btrfs/main/@rootfs-snapshots`.
 
 ## Tips
 
@@ -105,11 +115,11 @@ don't use now)
 
 If quota is enabled, removing many subvolumes by bss may cause issues.
 
-### Excluding files from the "`snapshot`" operation
+### Excluding files from the `snapshot` operation
 
 If you wish to exclude files under a particular directory, simply creating a
 pertinent subvolume containing those files in place of the directory allows to
-exclude them to be a part of the "`snapshot`" operation.
+exclude them to be a part of the `snapshot` operation.
 
 ### Database file and CoW issue
 
@@ -126,9 +136,16 @@ of the filesystem containing it.
 
 Maybe the same goes with the actively used disk image file.
 
-### Migration of the root filesystem to `subvol=@` on Btrfs.
+### Migration of the root filesystem to `subvol=@rootfs` on Btrfs.
 
 See [Btrfs migration](https://wiki.debian.org/Btrfs%20migration)
+
+### Snapshots to an absolute path
+
+For the filesystem containing the system data, such as `@rootfs`, it is easier
+to perform recovery operation if its snapshots reside in an absolute path
+outside of the original filesystem.  `BSS_SNAP_DEST` variable in
+`.bss.d/.bss.conf` can be used to enable it.
 
 ### Backup with rsync (USB or remote)
 
@@ -140,10 +157,10 @@ backup for the consumer grade system is full backup to USB connected SSD.
 Although the combination of `btrfs send` with the incremental mode (options
 `-p` and `-c`) and `btrfs receive` provides the fast and efficient backup, it
 needs to be used carefully.  So for the robustness of backup for a careless
-person (i.e., myself), I integrated `rsync` approach to this script as "bss
-copy".
+person (i.e., myself), I integrated `rsync` approach to this script as `bss
+copy`.
 
-"bss copy" makes readonly snapshot and run "rsync -aHxSv --delete ..."
+`bss copy` makes readonly snapshot and run `rsync -aHxSv --delete ...`
 (H: hardlink, x: one filesystem, S: sparse file ) on it to the specified
 destination.
 
@@ -153,7 +170,7 @@ destination.
 ```
 
 The backup data may use btrfs on USB connected SSD and you can use `bss` to
-manage its history.  In this case, `bss` related files in the ".bss.d/"
+manage its history.  In this case, `bss` related files in the `.bss.d/`
 directory are protected via `rsync` filter rules so aging on USB connected SSD
 can be managed independently.
 

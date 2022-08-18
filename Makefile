@@ -2,6 +2,9 @@ DESTDIR =
 prefix = /
 #prefix = /usr/local
 
+
+# For finishing 
+
 all:
 	: Do nothing
 
@@ -13,11 +16,18 @@ install:
 	install -m 644 -D README.md                                   $(DESTDIR)$(prefix)/usr/share/doc/bss/README
 	cp             -a examples/                                   $(DESTDIR)$(prefix)/usr/share/doc/bss/examples/
 
+#### Run this to clean up source tree
 clean:
 	-rm bss.help2man bss.1 bss.1.orig bss.1.old bss.1.rej
 
 distclean: clean
 
+#### Since there is no guarantee how help2man output is consistently formatted and
+#### it may cause patch to choke, this not-so-robust part of code is outside of
+#### normal build since this is just for synchronizing documentation with the
+#### script.
+
+# This is used during package build, too.
 test:
 	sh -n usr/bin/bss
 	# check version
@@ -32,18 +42,17 @@ test:
 		fi ; \
 	fi
 
-#### Since there is no guarantee how help2man output is consistently formatted and
-#### it may cause patch to choke, this not-so-robust part of code is outside of
-#### normal build since this is just for synchronizing documentation with the
-#### script.
-prep: test
-	-rm README.md bss.1
-	$(MAKE) README.md
-	$(MAKE) bss.1
+# Run this during development
+dev: test usr/share/man/man1/bss.1 README.md
+
+usr/share/man/man1/bss.1: bss.1
 	cp -f bss.1 usr/share/man/man1/bss.1
+
+### Run this before commiting.
+prep: usr/share/man/man1/bss.1 README.md
 	$(MAKE) clean
 
-README.md:
+README.md: .FORCE
 	echo "<!-- This is auto-generated file.  Edit usr/bin/bss or README.tail and run 'make README.md' -->" > $@
 	echo "# Btrfs Subvolume Snapshot Utility (version: $$(usr/bin/bss --version|sed -n -e 's/bss (\(.*\))$$/\1/p' ))" > $@
 	echo >>$@
@@ -57,7 +66,10 @@ README.md:
 	cat README.tail >>$@
 	usr/bin/secret-folder help >>$@
 
-bss.1:
+.FORCE:
+
+bss.1: .FORCE
+	if ! help2man -v ; then echo "install 'help2man' package" ; fi
 	help2man usr/bin/bss >bss.help2man
 	sed -E -e 's/^([A-Z]*):$$/.SH \1/' \
 	       -e 's/bss \\- manual page for bss/bss \\- btrfs subvolume snapshot utility/' \

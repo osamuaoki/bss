@@ -1,3 +1,9 @@
+bss (1.1.0) unstable; urgency=medium
+
+  * support snapshot to an offset path.
+
+ -- Osamu Aoki <osamu@debian.org>  Fri, 19 Aug 2022 00:23:37 +0900
+
 bss (1.0.1) unstable; urgency=medium
 
   * Typo fix.

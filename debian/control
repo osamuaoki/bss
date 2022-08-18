@@ -7,7 +7,7 @@ Standards-Version: 4.6.0
 Homepage: https://github.com/osamuaoki/bss
 
 Package: bss
-Architecture: any
+Architecture: all
 Multi-Arch: foreign
 Depends: btrfs-progs,
          e2fsprogs,
@@ -32,7 +32,7 @@ Description: Btrfs Subvolume Snapshot Utility
      using the script ".bss.fltr" at the BASE directory.
  .
  This can be used to snapshot the root filesystem on btrfs.
-   * No requirement to make the root filesystem as subvol=@.
+   * No requirement to make the root filesystem as subvol=@ or @rootfs.
    * Examples for:
      * Automatic pre and post package installation snapshots of / via APT
        operations on Debian/Ubuntu system.

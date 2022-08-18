@@ -5,6 +5,7 @@ Documentation=man:bss(1)
 
 [Service]
 Type=oneshot
+Nice=15
 # ensure to mount LUKS encrypted disk image and wait for 120s and update
 ExecStart=secret-folder update systemd
 # process snapshot of ~/ (== %h)
