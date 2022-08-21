@@ -7,7 +7,7 @@
 # Copyright 2022 (C) Osamu Aoki <osamu@debian.org>
 # License: GPL 2+
 ##############################################################################
-BSS_VERSION="1.1.0"
+BSS_VERSION="1.2.0"
 
 __help () {
 cat << END_OF_HELP
@@ -20,7 +20,7 @@ flexible data aging capabilities.
 "$BSS" operates on the btrfs subvolume pointed by the first optional argument
 PATH.  PATH can point to anywhere within this source btrfs subvolume.  The
 default value for PATH is the current directory (".").  The internal variable
-"\$BTRFS_BASE" is the BASE directory of this source btrfs subvolume.
+"\$FS_BASE" is the BASE directory of this source btrfs subvolume.
 
 "$BSS snapshot [PATH]" starts "snapshot" operation to create a btrfs readonly
 snapshot of the source btrfs subvolume using "btrfs subvolume snapshot -r ...".
@@ -108,10 +108,10 @@ For some SUBCOMMANDs, an enxtra optional argument after the explicit PATH may
 be specified to identify the specific snapshot subvolume.
 
 For "$BSS copy", this is a combination of "$BSS snapshot" to create a snapshot
-of BTRFS_BASE to SOURCE_PATH and a wrapper for "$RSYNC" command with its first
+of FS_BASE to SOURCE_PATH and a wrapper for "$RSYNC" command with its first
 argument SOURCE_PATH and the second argument DESTINATION_PATH.  This command is
 smart enough to skip the "$BSS_DIR/" directory to allow independent management
-of data using "$BSS" on both BTRFS_BASE and DESTINATION_PATH. If
+of data using "$BSS" on both FS_BASE and DESTINATION_PATH. If
 DESTINATION_PATH is a local path such as /srv/backup, then "$RSYNC $RSYNC_OPTA"
 is used to save the CPU load.  If DESTINATION_PATH is a remote path such as
 "[USER@]HOST:DESTINATION_PATH", then "$RSYNC $RSYNC_OPTR" is used to save the
@@ -343,9 +343,9 @@ __load_config () {
   if [ ! -d "$BSS_DIR_BASE" ]; then
     if [ -z "$NOOP" ]; then
       $SUDO mkdir -p "$BSS_DIR_BASE" >/dev/null
-      __echo 3 "Set owner to $BTRFS_BASE_UID:$BTRFS_BASE_GID for $BSS_DIR_BASE"
+      __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_DIR_BASE"
       # match owner with the parent directory
-      $NOOP $SUDO chown "$BTRFS_BASE_UID":"$BTRFS_BASE_GID" "$BSS_DIR_BASE"
+      $NOOP $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
     else
       __echo 0 "$BSS is not configured yet but --noop or -n option was used."
       __echo 0 "  * Use '$BSS template' and edit generated template files first."
@@ -357,7 +357,7 @@ __load_config () {
   if [ -r "$BSS_CONF_BASE" ]; then
     # shellcheck disable=SC1090
     . "$BSS_CONF_BASE"
-    __echo 4 "Sourced $BSS_CONF for BASE=$BTRFS_BASE"
+    __echo 4 "Sourced $BSS_CONF for BASE=$FS_BASE"
   fi
   # normalize and sanity check parameters (ensure gaps TMIN TMID TMAX etc.)
   if [ "$BSS_NMIN" -lt "1" ]; then
@@ -407,10 +407,10 @@ __load_config () {
     BSS_TMAX_ACTION="keep"
   fi
   if [ "$BSS_TMID_ACTION" != "filter" ] && [ -r "$BSS_FLTR_BASE" ]; then
-    __echo 1 "TMID_ACTION=no_filter but unused filter $BSS_FLTR exists for BASE=$BTRFS_BASE"
+    __echo 1 "TMID_ACTION=no_filter but unused filter $BSS_FLTR exists for BASE=$FS_BASE"
   fi
   if [ "$BSS_TMID_ACTION" = "filter" ] && [ ! -r "$BSS_FLTR_BASE" ]; then
-    __echo 1 "Force TMID_ACTION=no_filter since $BSS_FLTR is missing for BASE=$BTRFS_BASE"
+    __echo 1 "Force TMID_ACTION=no_filter since $BSS_FLTR is missing for BASE=$FS_BASE"
     BSS_TMID_ACTION="no_filter"
   fi
   # Human readable string
@@ -434,7 +434,8 @@ __load_config () {
     # snapshot non-visible from the original FS
     BSS_SNAP_DEST_BASE="$BSS_SNAP_DEST"
   fi
-  __echo 3 "snapshot source: BASE=$BTRFS_BASE"
+  __echo 3 "filesystem source: FS=$FS_TYPE"
+  __echo 3 "snapshot source: BASE=$FS_BASE"
   __echo 3 "snapshot destination: BSS_SNAP_DEST_BASE=$BSS_SNAP_DEST_BASE"
   __echo 3 "NMAX = '$BSS_NMAX' = $S_NMAX (maximum number of SV to keep)"
   __echo 3 "NMIN = '$BSS_NMIN' = $S_NMIN (minimum number of SV to keep)"
@@ -453,20 +454,20 @@ __load_config () {
 ##############################################################################
 __snapshot () {
   # disk size sanity check without quota consideration
-  BSS_STAT_TOTAL=$(stat -f -c %b "$BTRFS_BASE")
+  BSS_STAT_TOTAL=$(stat -f -c %b "$FS_BASE")
   # Even on 4k block system, disk with 200 blocks is less than 1MB
   if [ "$BSS_STAT_TOTAL" -le 200 ]; then
     __echo 0 "Total disk size: $BSS_STAT_TOTAL blocks (too small, minimum required 200)"
-    __echo 0 "Skip snapshot: BASE=$BTRFS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
+    __echo 0 "Skip snapshot: BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
     exit 1
   fi
   BSS_STAT_UNIT=$((BSS_STAT_TOTAL/100))
-  BSS_STAT_FREE=$(stat -f -c %f "$BTRFS_BASE")
+  BSS_STAT_FREE=$(stat -f -c %f "$FS_BASE")
   BSS_FREE_UNIT=$((BSS_STAT_FREE/BSS_STAT_UNIT))
   BSS_FMIN_PRE=$(($BSS_FMIN+20))
   if [ "$BSS_FREE_UNIT" -le "$BSS_FMIN" ]; then
     __echo 0 "Free disk space: $BSS_FREE_UNIT%  (too small, minimum required FMIN=$BSS_FMIN%)"
-    __echo 0 "Skip snapshot: BASE=$BTRFS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
+    __echo 0 "Skip snapshot: BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
     exit 1
   elif [ "$BSS_FREE_UNIT" -lt "$BSS_FMIN_PRE" ]; then
     __echo 2 "Free disk space: $BSS_FREE_UNIT%  (enough, minimum required FMIN=$BSS_FMIN%)"
@@ -479,18 +480,18 @@ __snapshot () {
     NOW_TSTR=$(date -u --iso=second)
   done
   if [ -z "$BSS_SNAP_DEST" ]; then
-    __echo 2 "Make snapshot (user mode): BASE=$BTRFS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
+    __echo 2 "Make snapshot (user mode): BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
     # normal mode
     # shellcheck disable=SC2086
-    $NOOP $LOGGER $BSV snapshot -r "$BTRFS_BASE" "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}"
+    $NOOP $LOGGER $BSV snapshot -r "$FS_BASE" "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}"
   else
-    __echo 2 "Make snapshot (system mode): BASE=$BTRFS_BASE DEST=$BSS_SNAP_DEST_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
+    __echo 2 "Make snapshot (system mode): BASE=$FS_BASE DEST=$BSS_SNAP_DEST_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
     # system mode
     # shellcheck disable=SC2086
-    $NOOP $LOGGER $BSV snapshot "$BTRFS_BASE" "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}"
-    if [ "$($BSV list -o "$BTRFS_BASE" | wc -l)" != 0 ]; then
+    $NOOP $LOGGER $BSV snapshot "$FS_BASE" "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}"
+    if [ "$($BSV list -o "$FS_BASE" | wc -l)" != 0 ]; then
       __echo 1 "snapshot source contains nested subvolumes as follows.  Data in them are not in the snapshot taken."
-      $LOGGER $BSV list -o "$BTRFS_BASE"
+      $LOGGER $BSV list -o "$FS_BASE"
     fi
   fi
 }
@@ -501,14 +502,14 @@ __list () {
   # $1      .* (egrep pattern)
   # $2      "-r" for reverse, "" for normal
   # echo    snapshot time stamps
-  __echo 4 "List snapshots for BASE=$BTRFS_BASE matching TYPE_REGEX='${1}' (${2})"
+  __echo 4 "List snapshots for BASE=$FS_BASE matching TYPE_REGEX='${1}' (${2})"
   if [ -d "$BSS_SNAP_DEST_BASE" ]; then
     cd "$BSS_SNAP_DEST_BASE" >/dev/null
     # shellcheck disable=SC2086
     { ls -1d ${2} -- * 2>/dev/null || true ; }| \
       grep -E "^$RE_ISO\.${1}\$" || true
   else
-    __echo 0 "No 'list' since snapshot directory $BSS_SNAP_DEST_BASE is missing for BASE=$BTRFS_BASE"
+    __echo 0 "No 'list' since snapshot directory $BSS_SNAP_DEST_BASE is missing for BASE=$FS_BASE"
     exit 1
   fi
 }
@@ -516,7 +517,7 @@ __list () {
 ##############################################################################
 __age() {
   # echo    snapshot time stamps with + or - prepended
-  __echo 4 "Assess aging status of snapshots for BASE=$BTRFS_BASE"
+  __echo 4 "Assess aging status of snapshots for BASE=$FS_BASE"
   BSS_TLAST="-1" # Initial value place holder
   BSS_TSTEP=$((BSS_TMAX*BSS_STEP/100))
   # search in direction: old -> new
@@ -735,7 +736,7 @@ __age() {
 
 ##############################################################################
 __process () {
-  __echo 2 "Process snapshots: BASE=$BTRFS_BASE TIME=$NOW_TSTR"
+  __echo 2 "Process snapshots: BASE=$FS_BASE TIME=$NOW_TSTR"
   BASE_BSS_LOGGER_LEVEL="$BSS_LOGGER_LEVEL"
   if [ "$BSS_LOGGER_LEVEL" -le "3" ]; then
     __echo 2 "Assess aging status of snapshots internally: (silenced except for debug)"
@@ -755,21 +756,21 @@ __process () {
     BSS_TAGE=$((NOW_TEPO-BSS_TEPO))  # age of SV in seconds
     S_TAGE="$(age_string $BSS_TAGE)"
     if [ -z "${XBSS_SV%%---_*}" ]; then
-      __echo 2 "Delete snapshot: BASE=$BTRFS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 2 "Delete snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
     elif [ -z "${XBSS_SV%%+++_*}" ]; then
-      __echo 3 "Keep snapshot: BASE=$BTRFS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
+      __echo 3 "Keep snapshot: BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_EXTRA" != "filter" ]; then
-      __echo 2 "Filter snapshot: BASE=$BTRFS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
+      __echo 2 "Filter snapshot: BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
       __filter "$BSS_SV"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_FORCE" = "FORCE" ]; then
-      __echo 2 "Filter snapshot again: BASE=$BTRFS_BASE SV=$BSS_SV -> ${BSS_SV} AGE=$S_TAGE"
+      __echo 2 "Filter snapshot again: BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV} AGE=$S_TAGE"
       __filter "$BSS_SV"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_EXTRA" = "filter" ]; then
-      __echo 3 "Keep snapshot (filtered): BASE=$BTRFS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 3 "Keep snapshot (filtered): BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
     else
-      __echo 1 "???? snapshot: BASE=$BTRFS_BASE SV=$BSS_SV AGE=$S_TAGE (XXX this should never be reached XXX)"
+      __echo 1 "???? snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE (XXX this should never be reached XXX)"
     fi
   done
 }
@@ -792,16 +793,16 @@ __filter () {
   BSS_SV0="${BSS_SV%_filter}"
   # sanity check first
   if [ ! -r "$BSS_FLTR_BASE" ]; then
-    __echo 1 "Do nothing since $BSS_FLTR is missing for BASE=$BTRFS_BASE"
+    __echo 1 "Do nothing since $BSS_FLTR is missing for BASE=$FS_BASE"
     exit 0
   elif [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw" ]; then
-    __echo 0 "Pre-existing ${BSS_SV0}_rw blocks filter BASE=$BTRFS_BASE SV=$BSS_SV"
+    __echo 0 "Pre-existing ${BSS_SV0}_rw blocks filter BASE=$FS_BASE SV=$BSS_SV"
     exit 1
   elif [ "$BSS_FORCE" != "FORCE" ] && [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_filter" ]; then
-    __echo 0 "Pre-existing ${BSS_SV0}_filter blocks filter BASE=$BTRFS_BASE SV=$BSS_SV"
+    __echo 0 "Pre-existing ${BSS_SV0}_filter blocks filter BASE=$FS_BASE SV=$BSS_SV"
     exit 1
   else
-    __echo 4 "Filter snapshot of BASE=$BTRFS_BASE SV=$BSS_SV with $BSS_FLTR"
+    __echo 4 "Filter snapshot of BASE=$FS_BASE SV=$BSS_SV with $BSS_FLTR"
     # shellcheck disable=SC2086
     $NOOP $LOGGER $BSV snapshot "$BSS_SNAP_DEST_BASE/$BSS_SV/" "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw"
     # filter snapshot subvolume contents
@@ -814,7 +815,7 @@ __filter () {
         # shellcheck disable=SC2086
         $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       else
-        __echo 0 "Use '--force' to filter BASE=$BTRFS_BASE SV=$BSS_SV"
+        __echo 0 "Use '--force' to filter BASE=$FS_BASE SV=$BSS_SV"
         exit 1
       fi
     fi
@@ -835,8 +836,8 @@ __revert () {
   # $1      revert to this SV
   BSS_SV="${1}"
   # sanity check
-  if [ "$BTRFS_BASE" = "/" ]; then
-    __echo 0 "No revert allowed: BASE=$BTRFS_BASE, reboot from a different root filesystem."
+  if [ "$FS_BASE" = "/" ]; then
+    __echo 0 "No revert allowed: BASE=$FS_BASE, reboot from a different root filesystem."
     exit 1
   fi
   if [ -z "$BSS_SNAP_DEST" ]; then
@@ -846,21 +847,21 @@ __revert () {
   # make last snapshot
   BSS_TYPE="last"
   __snapshot
-  $NOOP $LOGGER $BSV delete "$BTRFS_BASE"
-  $NOOP $LOGGER $BSV snapshot "$BSS_SNAP_DEST_BASE/$BSS_SV" "$BTRFS_BASE"
+  $NOOP $LOGGER $BSV delete "$FS_BASE"
+  $NOOP $LOGGER $BSV snapshot "$BSS_SNAP_DEST_BASE/$BSS_SV" "$FS_BASE"
   __echo 0 "XXXXX FIXME XXXXX copy subvolumes under $BSS_SV"
 }
 
 ##############################################################################
 __zap () {
   if [ "$BSS_ZAP_ACTIVE" != "true" ]; then
-      __echo 0 "No zap operation since $BSS_CONF at BASE=$BTRFS_BASE has BSS_ZAP_ACTIVE='$BSS_ZAP_ACTIVE'"
+      __echo 0 "No zap operation since $BSS_CONF at BASE=$FS_BASE has BSS_ZAP_ACTIVE='$BSS_ZAP_ACTIVE'"
       exit 1
   fi
-  __echo 4 "Zap snapshots: BASE=$BTRFS_BASE"
+  __echo 4 "Zap snapshots: BASE=$FS_BASE"
   case "$1" in
     half) # half
-      __echo 2 "Zap snapshots into half: BASE=$BTRFS_BASE"
+      __echo 2 "Zap snapshots into half: BASE=$FS_BASE"
       # search in reverse direction: old -> new
       BSS_LIST="$(__list '.*' -r)"
       BSS_N="$(echo "$BSS_LIST" | wc -w)"
@@ -873,35 +874,35 @@ __zap () {
       for BSS_SV in $BSS_LIST ; do
         BSS_I=$((BSS_I-1))
         if [ "$BSS_I" -gt "$BSS_NH" ]; then
-          __echo 2 "Delete snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+          __echo 2 "Delete snapshot: BASE=$FS_BASE SV=$BSS_SV"
           # shellcheck disable=SC2086
           $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
         else
-          __echo 3 "Keep snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+          __echo 3 "Keep snapshot: BASE=$FS_BASE SV=$BSS_SV"
         fi
       done
       ;;
     new*) # newest
       BSS_SV="$(__list '.*' '-r' | head -n 1)"
-      __echo 2 "Delete newest snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+      __echo 2 "Delete newest snapshot: BASE=$FS_BASE SV=$BSS_SV"
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       ;;
     old*) # oldest
       BSS_SV="$(__list '.*' | head -n 1)"
-      __echo 2 "Delete oldest snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+      __echo 2 "Delete oldest snapshot: BASE=$FS_BASE SV=$BSS_SV"
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       ;;
     *) # labels (local only now)
-      __echo 3 "Delete listed snapshots: BASE=$BTRFS_BASE"
+      __echo 3 "Delete listed snapshots: BASE=$FS_BASE"
       for BSS_SV in "${@}"; do
         if [ -e "$BSS_SNAP_DEST_BASE/$BSS_SV" ]; then
-          __echo 2 "Delete snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+          __echo 2 "Delete snapshot: BASE=$FS_BASE SV=$BSS_SV"
           # shellcheck disable=SC2086
           $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
         else
-          __echo 1 "Missing snapshot to zap: BASE=$BTRFS_BASE SV=$BSS_SV"
+          __echo 1 "Missing snapshot to zap: BASE=$FS_BASE SV=$BSS_SV"
         fi
       done
       ;;
@@ -930,7 +931,7 @@ __rsync () {
     . "$BSS_SNAP_DEST_BASE/$BSS_COPY_PRE"
   fi
   # relaxed rule to allow missing tailing /
-  __echo 2 "Make copy: BASE=$BTRFS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
+  __echo 2 "Make copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
   # Use readonly snapshot as the rsync source
   # Note on rsync options -a == -rlptgoD
   # H: hardlink
@@ -951,7 +952,7 @@ __rsync () {
       "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}/" \
       "$BSS_COPY_DEST/"
   # Since this could be slow long process, record ending
-  __echo 2 "... Successfully made copy: BASE=$BTRFS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
+  __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
   if [ -x "$BSS_SNAP_DEST_BASE/$BSS_COPY_POST" ]; then
     __echo 2 "Run $BSS_COPY_POST after copy"
     # shellcheck disable=SC1090
@@ -965,7 +966,7 @@ __template () {
     if [ -z "$NOOP" ]; then
       $SUDO mkdir -p "$BSS_DIR_BASE" >/dev/null
       # match owner with the parent directory
-      $NOOP $SUDO chown "$BTRFS_BASE_UID":"$BTRFS_BASE_GID" "$BSS_DIR_BASE"
+      $NOOP $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
     else
       __echo 0 "'$BSS template' must not be used with --noop nor -n option."
       exit 1
@@ -980,23 +981,23 @@ __template () {
   ### CONFIGURATION ###
   #
   if [ -e "$BSS_CONF_BASE" ]; then
-    __echo 1 "Configuration file already exists: $BSS_CONF for BASE=$BTRFS_BASE, keep it as is."
-    __echo 2 "Loading existing $BSS_CONF for BASE=$BTRFS_BASE."
+    __echo 1 "Configuration file already exists: $BSS_CONF for BASE=$FS_BASE, keep it as is."
+    __echo 2 "Loading existing $BSS_CONF for BASE=$FS_BASE."
     __config
   else
-    if [ "$BTRFS_BASE" = "/" ]; then
+    if [ "$FS_BASE" = "/" ]; then
       BSS_TMID_ACTION="filter"
-      __echo 2 "Suggest BSS_TMID_ACTION=\"filter\" in template since BASE=$BTRFS_BASE (full system)"
+      __echo 2 "Suggest BSS_TMID_ACTION=\"filter\" in template since BASE=$FS_BASE (full system)"
     else
       BSS_TMID_ACTION="no_filter"
     fi
-    __echo 2 "Make configuration $BSS_CONF_BASE for BASE=$BTRFS_BASE UID=$BTRFS_BASE_UID GID=$BTRFS_BASE_GID"
+    __echo 2 "Make configuration $BSS_CONF_BASE for BASE=$FS_BASE UID=$FS_BASE_UID GID=$FS_BASE_GID"
     $SUDO tee "$BSS_CONF_BASE" >/dev/null << END_OF_TEMPLATE
 # $BSS configuration (btrfs)
 
 # This configuration file as generated by the "template" command.
 #
-# BASE=$BTRFS_BASE UID=$BTRFS_BASE_UID GID=$BTRFS_BASE_GID
+# BASE=$FS_BASE UID=$FS_BASE_UID GID=$FS_BASE_GID
 #
 
 ### Active DATA AGING PARAMETERS
@@ -1078,23 +1079,23 @@ BSS_SNAP_DEST=""
 # Many internal variables are prefixed with 'BSS_' to be unique to "$BSS" but
 # the dialog messages may just use the rest of variable name to be concise.
 END_OF_TEMPLATE
-    __echo 3 "Set owner to $BTRFS_BASE_UID:$BTRFS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
+    __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
   # shellcheck disable=SC2086
-    $NOOP $SUDO chown $BTRFS_BASE_UID:$BTRFS_BASE_GID "$BSS_CONF_BASE"
+    $NOOP $SUDO chown $FS_BASE_UID:$FS_BASE_GID "$BSS_CONF_BASE"
   fi
   #
   ### FILTER ###
   #
   if [ -e "$BSS_FLTR_BASE" ] ; then
-    __echo 1 "Filter file already exists: $BSS_FLTR for BASE=$BTRFS_BASE, keep it as is."
+    __echo 1 "Filter file already exists: $BSS_FLTR for BASE=$FS_BASE, keep it as is."
   else
-    __echo 2 "Creating template: $BSS_FLTR for BASE=$BTRFS_BASE."
-    if [ "$BTRFS_BASE" = "/" ]; then
-      __echo 2 "Make filter $BSS_FLTR_BASE for BASE=$BTRFS_BASE UID=$BTRFS_BASE_UID GID=$BTRFS_BASE_GID"
+    __echo 2 "Creating template: $BSS_FLTR for BASE=$FS_BASE."
+    if [ "$FS_BASE" = "/" ]; then
+      __echo 2 "Make filter $BSS_FLTR_BASE for BASE=$FS_BASE UID=$FS_BASE_UID GID=$FS_BASE_GID"
       $SUDO tee "$BSS_FLTR_BASE" >/dev/null << END_OF_TEMPLATE
 # $BSS filter (better to use relative path)
 #
-# BASE=$BTRFS_BASE UID=$BTRFS_BASE_UID GID=$BTRFS_BASE_GID
+# BASE=$FS_BASE UID=$FS_BASE_UID GID=$FS_BASE_GID
 #
 # Running filter drains CPU and SSD resources but it may save SSD usage size
 # significantly.  If you are not interested in reducing SSD usage size by this
@@ -1121,11 +1122,11 @@ find boot -type f -name 'vmlinu*' -exec rm -rf '{}' \;
 
 END_OF_TEMPLATE
     else
-      __echo 2 "Make filter $BSS_FLTR_BASE for BASE=$BTRFS_BASE UID=$BTRFS_BASE_UID GID=$BTRFS_BASE_GID"
+      __echo 2 "Make filter $BSS_FLTR_BASE for BASE=$FS_BASE UID=$FS_BASE_UID GID=$FS_BASE_GID"
       $SUDO tee "$BSS_FLTR_BASE" >/dev/null << END_OF_TEMPLATE
 # $BSS filter (better to use relative path)
 #
-# BASE=$BTRFS_BASE UID=$BTRFS_BASE_UID GID=$BTRFS_BASE_GID
+# BASE=$FS_BASE UID=$FS_BASE_UID GID=$FS_BASE_GID
 #
 # Running filter drains CPU and SSD resources but it may save SSD usage size
 # significantly.  If you are not interested in reducing SSD usage size by this
@@ -1136,7 +1137,7 @@ END_OF_TEMPLATE
 # "$BSS_CONF" to use this filter.  Otherwise remove this file and set
 # BSS_TMID_ACTION="no_filter" in "$BSS_CONF".
 #
-###### Example for <user> subvolume at BTRFS_BASE=/home/<user>
+###### Example for <user> subvolume at FS_BASE=/home/<user>
 
 ### Trace filter execution
 #set -x
@@ -1155,9 +1156,9 @@ END_OF_TEMPLATE
 
 END_OF_TEMPLATE
     fi
-    __echo 3 "Set owner to $BTRFS_BASE_UID:$BTRFS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
+    __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
   # shellcheck disable=SC2086
-    $NOOP $SUDO chown $BTRFS_BASE_UID:$BTRFS_BASE_GID "$BSS_FLTR_BASE"
+    $NOOP $SUDO chown $FS_BASE_UID:$FS_BASE_GID "$BSS_FLTR_BASE"
   fi
   if [ "$BSS_TMID_ACTION" != "filter" ]; then
     __echo 2 "Please reconcile settings."
@@ -1252,47 +1253,68 @@ else
   LOGGER=""
 fi
 ##############################################################################
-# find the BASE path of btrfs: BTRFS_BASE
+# find the BASE path of btrfs: FS_BASE
 ##############################################################################
 if [ -z "$1" ]; then
   BSS_COMMAND="snapshot"
-  # BTRFS_BASE0: current path
-  BTRFS_BASE0=$($SUDO realpath ".")
+  # FS_BASE0: current path
+  FS_BASE0=$($SUDO realpath ".")
 else
   BSS_COMMAND="$1"
   shift
   if [ -z "$1" ]; then
-    BTRFS_BASE0=$($SUDO realpath ".")
+    FS_BASE0=$($SUDO realpath ".")
   else
-    BTRFS_BASE0=$($SUDO realpath "${1}")
+    FS_BASE0=$($SUDO realpath "${1}")
     shift
   fi
 fi
-# sanity check
-FS="$($SUDO stat -f -c %T "$BTRFS_BASE0")"
-if [ "$FS" != "btrfs" ]; then
-  __echo 0 "$BSS exits normally since source is on $FS and not on btrfs: $BTRFS_BASE0 for TYPE=$BSS_TYPE"
+# FS dependent
+FS="$($SUDO stat -f -c %T "$FS_BASE0")"
+FS_BASE="$FS_BASE0"
+if [ "$FS" == "btrfs" ]; then
+  FS_TYPE="btrfs"
+  while true; do
+    # A subvolume has always inode number 256
+    if [ "$($SUDO stat -c %i "$FS_BASE")" = "256" ]; then
+      break
+    fi
+    # sanity check
+    if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "btrfs" ] || \
+       [ "$FS_BASE" = "/" ]; then
+      __echo 0 "No inode=256 on btrfs found from: $FS_BASE0"
+      exit 1
+    fi
+    FS_BASE=$($SUDO realpath "$FS_BASE/..")
+    __echo 4 "Check btrfs: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
+  done
+elif [ "$FS" == "ext2/ext3" ]; then
+  FS_TYPE="ext2/ext3"
+  while true; do
+    # root of ext2/3/4 FS has always inode number 2
+    if [ "$($SUDO stat -c %i "$FS_BASE")" = "2" ]; then
+      break
+    fi
+    # sanity check
+    if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "btrfs" ] || \
+       [ "$FS_BASE" = "/" ]; then
+      __echo 0 "No inode=2 on ext2/3/4 found from: $FS_BASE0"
+      exit 1
+    fi
+    FS_BASE=$($SUDO realpath "$FS_BASE/..")
+    __echo 4 "Check ext2/3/4: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
+  done
+elif [ "$FS" == "msdos" ]; then
+  __echo 0 "$BSS exits normally since source is on $FS and not yet supported but will soon be ...: $FS_BASE0 for TYPE=$BSS_TYPE"
+  exit 1
+else
+  __echo 0 "$BSS exits normally since source is on $FS and not yet supported: $FS_BASE0 for TYPE=$BSS_TYPE"
   exit 1
 fi
-BTRFS_BASE="$BTRFS_BASE0"
-while true; do
-  # A subvolume has always inode number 256
-  if [ "$($SUDO stat -c %i "$BTRFS_BASE")" = "256" ]; then
-    break
-  fi
-  # sanity check
-  if [ "$($SUDO stat -f -c %T "$BTRFS_BASE")" != "btrfs" ] || \
-     [ "$BTRFS_BASE" = "/" ]; then
-    __echo 0 "No inode=256 on btrfs found from: $BTRFS_BASE0"
-    exit 1
-  fi
-  BTRFS_BASE=$($SUDO realpath "$BTRFS_BASE/..")
-  __echo 4 "Check btrfs: BASE=$BTRFS_BASE inode=$($SUDO stat -c %i "$BTRFS_BASE")"
-done
-# BTRFS_BASE: root of btrfs subvolume
-BTRFS_BASE_UID=$($SUDO stat -c %u "$BTRFS_BASE")
-BTRFS_BASE_GID=$($SUDO stat -c %g "$BTRFS_BASE")
-BSS_DIR_BASE="${BTRFS_BASE%/}/$BSS_DIR"
+# FS_BASE: root of btrfs subvolume
+FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
+FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
+BSS_DIR_BASE="${FS_BASE%/}/$BSS_DIR"
 BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
 BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
 
@@ -1303,7 +1325,7 @@ __echo 4 "BSS_FLTR         = '$BSS_FLTR'"
 __echo 4 "BSS_TYPE         = '$BSS_TYPE'"
 __echo 4 "BSS_LOGGER       = '$BSS_LOGGER'"
 __echo 4 "BSS_LOGGER_LEVEL = '$BSS_LOGGER_LEVEL'"
-__echo 3 "Run '$BSS $BSS_COMMAND'       on BASE=$BTRFS_BASE (inode=256) $BTRFS_BASE_UID:$BTRFS_BASE_GID"
+__echo 3 "Run '$BSS $BSS_COMMAND'       on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
 __echo 3 "    configuration at    $BSS_CONF_BASE"
 __echo 3 "    filter        at    $BSS_FLTR_BASE"
 #############################################################################
@@ -1337,7 +1359,7 @@ case "$BSS_COMMAND" in
     __jobs
     ;;
   b*) # base
-    echo "$BTRFS_BASE"
+    echo "$FS_BASE"
     __load_config
     ;;
   p*) # process
