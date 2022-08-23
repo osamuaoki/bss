@@ -1,6 +1,6 @@
---- bss.1.orig	2022-08-20 17:56:23.772444185 +0900
-+++ bss.1	2022-08-20 18:07:03.098874342 +0900
-@@ -32,30 +32,40 @@
+--- bss.1.orig	2022-08-23 11:45:28.464169482 +0900
++++ bss.1	2022-08-23 11:51:35.288658997 +0900
+@@ -33,30 +33,40 @@
  between them from the older ones to newer ones and makes them more sparse for
  the older ones by removing some of them using parameters in ".bss.conf" in the
  ".bss.d/" directory.  This involves following actions:
@@ -63,28 +63,26 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -99,24 +109,38 @@
+@@ -100,49 +110,54 @@
  trace on (trace shell code for debug)
  .PP
  .SH SUBCOMMAND
 -.IP
 -snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
  .TP
-+snapshot
-+make a readonly snapshot normally in the relative path ".bss.d/"
- as <ISO_8601_date>.<TYPE>
- (The default type is "single")
+-as <ISO_8601_date>.<TYPE>
+-(The default type is "single")
 -.IP
 -overview: overview of all snapshots (wrapper for age)
 -process:  process snapshots according to their aging status
--copy:     copy to (remote) destination using rsync
--jobs:     list all systemd timer schedule jobs for bss
--list:     list all snapshots
--age:      assess aging status of all snapshots
--base:     print the BASE directory for "bss"
--filter:   create a filtered snapshot from the specified snapshot in
+-copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
 -.IP
-+.TP
+-destination (2nd argument) using rsync
++snapshot
++make a readonly snapshot normally in the relative path ".bss.d/"
++as <ISO_8601_date>.<TYPE> (The default type is "single")
+ .TP
+-jobs:
 +overview
 +overview of all snapshots (wrapper for age)
 +.TP
@@ -92,32 +90,40 @@
 +process snapshots according to their aging status
 +.TP
 +copy
-+copy to (remote) destination using rsync
++copy subvolume at the BASE directory (1st argument) to the (remote) destination (2nd argument) using rsync
 +.TP
 +jobs
-+list all systemd timer schedule jobs for bss
-+.TP
+ list all systemd timer schedule jobs for bss
+ .TP
+-list:
 +list
-+list all snapshots
-+.TP
+ list all snapshots
+ .TP
+-age:
 +age
-+assess aging status of all snapshots
-+.TP
+ assess aging status of all snapshots
+ .TP
+-base:
 +base
-+print the BASE directory for "bss"
-+.TP
+ print the BASE directory for "bss"
+ .TP
+-filter:
+-create a filtered snapshot from the specified snapshot in
+-".bss.d/" as <specified_subvol_name>_filter
 +filter
-+create a filtered snapshot from the specified snapshot in
- ".bss.d/" as <specified_subvol_name>_filter
++create a filtered snapshot from the specified snapshot in ".bss.d/" as <specified_subvol_name>_filter
  .TP
 -revert:
 +revert
- revert makes snapshot <ISO_8601_date>.last and replace contents of
- the BASE directory with the specified snapshot
- <ISO_8601_date>.<extension> found under "BSS_SNAP_DEST" specified
-@@ -126,11 +150,15 @@
- zap:
- zap (=delete) particular snapshot(s) specified by ARG(s)
+ make snapshot <ISO_8601_date>.last and replace the subvolume at the
+ BASE directory (1st argument) with the specified snapshot
+ <ISO_8601_date>.<extension> (2nd argument) found under
+ "BSS_SNAP_DEST" specified in ".bss.conf".  This is only for the
+ system mode. (This is alpha stage untested feature.)
+ .TP
+-zap:
++zap
+ zap (=delete) particular snapshot(s) specified by the arguments
  "zap" is required to be typed in full text.
 -.IP
 -template: make template files in the ".bss.d/" directory:
@@ -134,7 +140,7 @@
  .PP
  Subcommands may be shortened to a single character.
  .PP
-@@ -151,17 +179,14 @@
+@@ -163,17 +178,14 @@
  .PP
  For "bss zap", the first argument is normally ".".  The following argument
  specifies the action which can be:
@@ -160,7 +166,7 @@
  .PP
  Unless you have specific reasons to use "bss zap", you should consider to use
  "bss process" to prune outdated snapshots.
-@@ -173,17 +198,18 @@
+@@ -188,16 +200,16 @@
  examples for systemd scripts to enable automatic daily "process" operation.
  .PP
  For some snapshots, different TYPE values may be used instead of TYPE='single'.
@@ -174,7 +180,6 @@
 -* TYPE='copy': automatic "snapshot" operation just before "bss copy"
 -* TYPE='hour': automatic "snapshot" operation on boot and every hour
 -* TYPE='last': automatic "snapshot" operation just before "bss revert"
--* TYPE='???_revert': automatic "snapshot" operation just after "bss revert"
 +.IP "\(bu" 4
 +TYPE='pre': automatic "snapshot" operation just before APT update
 +.IP "\(bu" 4
@@ -185,8 +190,6 @@
 +TYPE='hour': automatic "snapshot" operation on boot and every hour
 +.IP "\(bu" 4
 +TYPE='last': automatic "snapshot" operation just before "bss revert"
-+.IP "\(bu" 4
-+TYPE='???_revert': automatic "snapshot" operation just after "bss revert"
  .PP
  This "bss" calculates age related time values in the second and prints them in
  the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).

@@ -1,3 +1,14 @@
+bss (1.1.1) unstable; urgency=medium
+
+  * refine revert.
+  * drop post snapshot after TMIN.
+  * add destination alias capability for "bss copy".
+  * verbose message on TYPE for aging.
+  * better logging message.
+  * update template file.
+
+ -- Osamu Aoki <osamu@debian.org>  Tue, 23 Aug 2022 11:26:41 +0900
+
 bss (1.1.0) unstable; urgency=medium
 
   * support snapshot to an offset path.
