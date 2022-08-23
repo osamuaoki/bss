@@ -7,7 +7,7 @@
 # Copyright 2022 (C) Osamu Aoki <osamu@debian.org>
 # License: GPL 2+
 ##############################################################################
-BSS_VERSION="1.1.1"
+BSS_VERSION="1.1.2"
 
 EXIT_SUCCESS=0
 EXIT_ERROR=1
@@ -340,7 +340,7 @@ __load_config () {
   if [ -r "$BSS_CONF_BASE" ]; then
     __echo 3 "    configuration at    $BSS_CONF_BASE"
   else
-    __echo 3 "    configuration missing, please use '$BSS template $BTRFS_BASE'"
+    __echo 0 "    configuration missing, please use '$BSS template $BTRFS_BASE'"
     exit $EXIT_ERROR
   fi
   if [ -r "$BSS_FLTR_BASE" ]; then
