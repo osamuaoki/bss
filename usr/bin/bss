@@ -746,7 +746,7 @@ __process () {
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
     elif [ -z "${XBSS_SV%%+++_*}" ]; then
-      __echo 3 "Keep snapshot: BASE=$BTRFS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
+      __echo 3 "Keep snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_EXTRA" != "filter" ]; then
       __echo 2 "Filter snapshot: BASE=$BTRFS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
       __filter "$BSS_SV"
