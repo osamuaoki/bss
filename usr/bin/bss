@@ -9,6 +9,9 @@
 ##############################################################################
 BSS_VERSION="1.1.1"
 
+EXIT_SUCCESS=0
+EXIT_ERROR=1
+
 __help () {
 cat << END_OF_HELP
 Usage: $BSS [OPTIONS] SUBCOMMAND [PATH [[ARG]...]
@@ -241,7 +244,7 @@ else
     SUDO="sudo"
   else
     __echo 0 "Please install 'sudo' and configure it."
-    exit 1
+    exit $EXIT_ERROR
   fi
 fi
 BSV="$SUDO btrfs subvolume"
@@ -297,17 +300,17 @@ __echo () {
 # traps
 __term_exit () {
   __echo 0 "Process externally interrupted.  Terminating."
-  exit 1
+  exit $EXIT_ERROR
 }
 trap '__term_exit' HUP INT QUIT TERM
 # dash: EXIT (but no ERR)
 __err_exit () {
   __echo 0 "Internal process returned an error exit.  Terminating."
-  exit 1
+  exit $EXIT_ERROR
 }
 __exit_exit () {
   # No error exit
-  exit 0
+  exit $EXIT_SUCCESS
 }
 trap '[ $? -eq 0 ] && __exit_exit || __err_exit' EXIT
 
@@ -334,6 +337,17 @@ age_string () {
 # load parameters
 ##############################################################################
 __load_config () {
+  if [ -r "$BSS_CONF_BASE" ]; then
+    __echo 3 "    configuration at    $BSS_CONF_BASE"
+  else
+    __echo 3 "    configuration missing, please use '$BSS template $BTRFS_BASE'"
+    exit $EXIT_ERROR
+  fi
+  if [ -r "$BSS_FLTR_BASE" ]; then
+    __echo 3 "    filter        at    $BSS_FLTR_BASE"
+  else
+    __echo 3 "    filter  missing     (probably OK)."
+  fi
   __echo 2 "Ensure to run a single instance of $BSS (wait up to 30 sec)" >&2
   # fd=9 not used elsewhere in this script. (/ home, ... starts this script)
   exec 9< "$0"
@@ -354,7 +368,7 @@ __load_config () {
       __echo 0 "  * Use '$BSS template' and edit generated template files first."
       __echo 0 ""
       __help
-      exit 1
+      exit $EXIT_ERROR
     fi
   fi
   if [ -r "$BSS_CONF_BASE" ]; then
@@ -461,7 +475,7 @@ __snapshot () {
   if [ "$BSS_STAT_TOTAL" -le 200 ]; then
     __echo 0 "Total disk size: $BSS_STAT_TOTAL blocks (too small, minimum required 200)"
     __echo 0 "Skip snapshot: BASE=$BTRFS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
-    exit 1
+    exit $EXIT_ERROR
   fi
   BSS_STAT_UNIT=$((BSS_STAT_TOTAL/100))
   BSS_STAT_FREE=$(stat -f -c %f "$BTRFS_BASE")
@@ -470,7 +484,7 @@ __snapshot () {
   if [ "$BSS_FREE_UNIT" -le "$BSS_FMIN" ]; then
     __echo 0 "Free disk space: $BSS_FREE_UNIT%  (too small, minimum required FMIN=$BSS_FMIN%)"
     __echo 0 "Skip snapshot: BASE=$BTRFS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
-    exit 1
+    exit $EXIT_ERROR
   elif [ "$BSS_FREE_UNIT" -lt "$BSS_FMIN_PRE" ]; then
     __echo 2 "Free disk space: $BSS_FREE_UNIT%  (enough, minimum required FMIN=$BSS_FMIN%)"
   else
@@ -512,7 +526,7 @@ __list () {
       grep -E "^$RE_ISO\.${1}\$" || true
   else
     __echo 0 "No 'list' since snapshot directory $BSS_SNAP_DEST_BASE is missing for BASE=$BTRFS_BASE"
-    exit 1
+    exit $EXIT_ERROR
   fi
 }
 
@@ -715,7 +729,7 @@ __age() {
     #########################################################################
     else # This should never reached
       __echo 0 "??? TAGE=$S_TAGE, TDEL=$S_TDEL, I=$BSS_I, TYPE=$BSS_TYPE (XXX this should never be reached XXX)"
-      exit 0
+      exit $EXIT_SUCCESS
     fi
   done
 }
@@ -742,7 +756,7 @@ __process () {
     BSS_TAGE=$((NOW_TEPO-BSS_TEPO))  # age of SV in seconds
     S_TAGE="$(age_string $BSS_TAGE)"
     if [ -z "${XBSS_SV%%---_*}" ]; then
-      __echo 2 "Delete snapshot: BASE=$BTRFS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 2 "Del. snapshot: BASE=$BTRFS_BASE SV=$BSS_SV AGE=$S_TAGE"
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
     elif [ -z "${XBSS_SV%%+++_*}" ]; then
@@ -780,13 +794,13 @@ __filter () {
   # sanity check first
   if [ ! -r "$BSS_FLTR_BASE" ]; then
     __echo 1 "Do nothing since $BSS_FLTR is missing for BASE=$BTRFS_BASE"
-    exit 0
+    exit $EXIT_SUCCESS
   elif [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw" ]; then
     __echo 0 "Pre-existing ${BSS_SV0}_rw blocks filter BASE=$BTRFS_BASE SV=$BSS_SV"
-    exit 1
+    exit $EXIT_ERROR
   elif [ "$BSS_FORCE" != "FORCE" ] && [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_filter" ]; then
     __echo 0 "Pre-existing ${BSS_SV0}_filter blocks filter BASE=$BTRFS_BASE SV=$BSS_SV"
-    exit 1
+    exit $EXIT_ERROR
   else
     __echo 4 "Filter snapshot of BASE=$BTRFS_BASE SV=$BSS_SV with $BSS_FLTR"
     # shellcheck disable=SC2086
@@ -802,7 +816,7 @@ __filter () {
         $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       else
         __echo 0 "Use '--force' to filter BASE=$BTRFS_BASE SV=$BSS_SV"
-        exit 1
+        exit $EXIT_ERROR
       fi
     fi
     # shellcheck disable=SC2086
@@ -824,11 +838,11 @@ __revert () {
   # sanity check
   if [ "$BTRFS_BASE" = "/" ]; then
     __echo 0 "No revert allowed: BASE=$BTRFS_BASE, reboot from a different root filesystem."
-    exit 1
+    exit $EXIT_ERROR
   fi
   if [ -z "$BSS_SNAP_DEST" ]; then
     __echo 0 "No revert supported: BSS_SNAP_DEST_BASE must be defined as non-null string in $BSS_CONF."
-    exit 1
+    exit $EXIT_ERROR
   fi
   # make last snapshot
   BSS_TYPE="last"
@@ -842,7 +856,7 @@ __revert () {
 __zap () {
   if [ "$BSS_ZAP_ACTIVE" != "true" ]; then
       __echo 0 "No zap operation since $BSS_CONF at BASE=$BTRFS_BASE has BSS_ZAP_ACTIVE='$BSS_ZAP_ACTIVE'"
-      exit 1
+      exit $EXIT_ERROR
   fi
   __echo 4 "Zap snapshots: BASE=$BTRFS_BASE"
   case "$1" in
@@ -860,7 +874,7 @@ __zap () {
       for BSS_SV in $BSS_LIST ; do
         BSS_I=$((BSS_I-1))
         if [ "$BSS_I" -gt "$BSS_NH" ]; then
-          __echo 2 "Delete snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+          __echo 2 "Del. snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
           # shellcheck disable=SC2086
           $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
         else
@@ -870,21 +884,21 @@ __zap () {
       ;;
     new*) # newest
       BSS_SV="$(__list '.*' '-r' | head -n 1)"
-      __echo 2 "Delete newest snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+      __echo 2 "Del. newest snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       ;;
     old*) # oldest
       BSS_SV="$(__list '.*' | head -n 1)"
-      __echo 2 "Delete oldest snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+      __echo 2 "Del. oldest snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
       # shellcheck disable=SC2086
       $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       ;;
     *) # labels (local only now)
-      __echo 3 "Delete listed snapshots: BASE=$BTRFS_BASE"
+      __echo 3 "Del. listed snapshots: BASE=$BTRFS_BASE"
       for BSS_SV in "${@}"; do
         if [ -e "$BSS_SNAP_DEST_BASE/$BSS_SV" ]; then
-          __echo 2 "Delete snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
+          __echo 2 "Del. snapshot: BASE=$BTRFS_BASE SV=$BSS_SV"
           # shellcheck disable=SC2086
           $NOOP $LOGGER $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
         else
@@ -918,7 +932,7 @@ __rsync () {
   # sanity checks
   if [ -z "$BSS_COPY_DEST" ]; then
     __echo 0 "No copy destination given (or was /)"
-    exit 1
+    exit $EXIT_ERROR
   fi
   if [ -x "$BSS_SNAP_DEST_BASE/$BSS_COPY_PRE" ]; then
     __echo 2 "Run $BSS_COPY_PRE before copy"
@@ -964,7 +978,7 @@ __template () {
       $NOOP $SUDO chown "$BTRFS_BASE_UID":"$BTRFS_BASE_GID" "$BSS_DIR_BASE"
     else
       __echo 0 "'$BSS template' must not be used with --noop nor -n option."
-      exit 1
+      exit $EXIT_ERROR
     fi
   fi
   ############################################################################
@@ -1201,7 +1215,7 @@ while [ -n "$1" ]; do
       ;;
     --version)
       __version
-      exit 0
+      exit $EXIT_SUCCESS
       ;;
     -v|--verbose)
       BSS_LOGGER_LEVEL=$((BSS_LOGGER_LEVEL+1))
@@ -1212,7 +1226,7 @@ while [ -n "$1" ]; do
       ;;
     -h|--help)
       __help
-      exit 0
+      exit $EXIT_SUCCESS
       ;;
     -l|--logger)
       BSS_LOGGER=1
@@ -1224,7 +1238,7 @@ while [ -n "$1" ]; do
     -*)
       echo "E: Unknown option: '$1'" >&2
       __help
-      exit 1
+      exit $EXIT_ERROR
     ;;
     *)
       break
@@ -1273,7 +1287,7 @@ fi
 FS="$($SUDO stat -f -c %T "$BTRFS_BASE0")"
 if [ "$FS" != "btrfs" ]; then
   __echo 0 "$BSS exits normally since source is on $FS and not on btrfs: $BTRFS_BASE0 for TYPE=$BSS_TYPE"
-  exit 1
+  exit $EXIT_ERROR
 fi
 BTRFS_BASE="$BTRFS_BASE0"
 while true; do
@@ -1285,7 +1299,7 @@ while true; do
   if [ "$($SUDO stat -f -c %T "$BTRFS_BASE")" != "btrfs" ] || \
      [ "$BTRFS_BASE" = "/" ]; then
     __echo 0 "No inode=256 on btrfs found from: $BTRFS_BASE0"
-    exit 1
+    exit $EXIT_ERROR
   fi
   BTRFS_BASE=$($SUDO realpath "$BTRFS_BASE/..")
   __echo 4 "Check btrfs: BASE=$BTRFS_BASE inode=$($SUDO stat -c %i "$BTRFS_BASE")"
@@ -1305,8 +1319,6 @@ __echo 4 "BSS_TYPE         = '$BSS_TYPE'"
 __echo 4 "BSS_LOGGER       = '$BSS_LOGGER'"
 __echo 4 "BSS_LOGGER_LEVEL = '$BSS_LOGGER_LEVEL'"
 __echo 3 "Run '$BSS $BSS_COMMAND'       on BASE=$BTRFS_BASE (inode=256) $BTRFS_BASE_UID:$BTRFS_BASE_GID"
-__echo 3 "    configuration at    $BSS_CONF_BASE"
-__echo 3 "    filter        at    $BSS_FLTR_BASE"
 #############################################################################
 case "$BSS_COMMAND" in
   s*) #snapshot
@@ -1374,8 +1386,8 @@ case "$BSS_COMMAND" in
   *) # unknown
     __echo 0 "Unknown command: '$*'"
     __help
-    exit 1
+    exit $EXIT_ERROR
     ;;
 esac
 # Normal case
-exit 0
+exit $EXIT_SUCCESS
