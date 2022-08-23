@@ -1,8 +1,9 @@
-bss (1.1.2) UNRELEASED; urgency=medium
+bss (1.1.2) unstable; urgency=medium
 
   * error message for missing template file.
+  * ext2/ext3 support for "bss copy ...".
 
- -- Osamu Aoki <osamu@debian.org>  Tue, 23 Aug 2022 23:54:44 +0900
+ -- Osamu Aoki <osamu@debian.org>  Wed, 24 Aug 2022 02:25:55 +0900
 
 bss (1.1.1) unstable; urgency=medium
 

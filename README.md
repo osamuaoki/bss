@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.1.1)
+# Btrfs Subvolume Snapshot Utility (version: 1.1.2)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -15,7 +15,7 @@ flexible data aging capabilities.
 "bss" operates on the btrfs subvolume pointed by the first optional argument
 PATH.  PATH can point to anywhere within this source btrfs subvolume.  The
 default value for PATH is the current directory (".").  The internal variable
-"$BTRFS_BASE" is the BASE directory of this source btrfs subvolume.
+"$FS_BASE" is the BASE directory of this source btrfs subvolume.
 
 "bss snapshot [PATH]" starts "snapshot" operation to create a btrfs readonly
 snapshot of the source btrfs subvolume using "btrfs subvolume snapshot -r ...".
@@ -173,6 +173,9 @@ subvolumes to be manipulated shouldn't be accessed by other processes. You
 should manually mount using "/etc/fstab" for all subvolumes under the subvolume
 to run "revert" operation and manage them separately to keep the system
 recoverable since the snapshot operation isn't recursive.
+
+Although this "bss" focuses on btrfs, there is minimal upport for ext2/ext3
+(this includes ext4) for "bss copy ..." without using the snapshot. 
 
 Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
 <!---
