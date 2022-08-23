@@ -560,21 +560,21 @@ __age() {
     # Classify: I < NMIN
     #########################################################################
     if [ "$BSS_I" -lt "$BSS_NMIN" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE, I=$BSS_I < NMIN=$S_NMIN (keep: unconditional, before NMIN)"
+      __echo 2 "+++ TAGE=$S_TAGE, I=$BSS_I < NMIN=$S_NMIN, TYPE=$BSS_TYPE (keep: unconditional, before NMIN)"
       echo "+++_$BSS_SV"
     #########################################################################
     # Keep
     # Classify: TAGE < TMIN
     #########################################################################
     elif [ "$BSS_TAGE" -lt "$BSS_TMIN" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE < TMIN=$S_TMIN (keep: unconditional, before TMIN)"
+      __echo 2 "+++ TAGE=$S_TAGE < TMIN=$S_TMIN, TYPE=$BSS_TYPE (keep: unconditional, before TMIN)"
       echo "+++_$BSS_SV"
     #########################################################################
     # Keep
     # Classify: TYPE = keep
     #########################################################################
     elif [ "$BSS_TYPE" = "keep" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE, TYPE = keep (keep: unconditional)"
+      __echo 2 "+++ TAGE=$S_TAGE, TYPE=$BSS_TYPE (keep: unconditional by TYPE)"
       if [ "$BSS_TAGE" -ge "$BSS_TMAX" ]; then
         BSS_TLAST="$BSS_TAGE"
       else
@@ -587,7 +587,7 @@ __age() {
     # Classify: I > NMAX and NMAX > 0, i.e., except for no_limit
     #########################################################################
     elif [ "$BSS_I" -ge "$BSS_NMAX" ] && [ "$BSS_NMAX" -gt "0" ]; then
-      __echo 2 "--- TAGE=$S_TAGE, $BSS_I >= NMAX=$S_NMAX (drop: unconditional, after NMAX)"
+      __echo 2 "--- TAGE=$S_TAGE, $BSS_I >= NMAX=$S_NMAX, TYPE=$BSS_TYPE (drop: unconditional, after NMAX)"
       echo "---_$BSS_SV"
     #########################################################################
     # TMAX or older (keep step when keeping snapshot)
@@ -597,7 +597,7 @@ __age() {
     # Classify: TAGE >= TMAX and TMAX_ACTION=drop (TMAX>0 pre checked)
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX_ACTION" = "drop" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TMAX_ACTION=$BSS_TMAX_ACTION (drop: after TMAX)"
+      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TMAX_ACTION=$BSS_TMAX_ACTION, TYPE=$BSS_TYPE (drop: after TMAX)"
       echo "---_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
@@ -612,14 +612,14 @@ __age() {
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP (drop: dense, after TMAX)"
+      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMAX)"
       echo "---_$BSS_SV"
     #########################################################################
     # Keep sparse as filtered
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL => TSTEP and TMID_ACTION=filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
-      __echo 2 "### TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA (keep as filtered: sparse, keep step, after TMAX)"
+      __echo 2 "### TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA, TYPE=$BSS_TYPE (keep as filtered: sparse, keep step, after TMAX)"
       echo "###_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
@@ -627,7 +627,7 @@ __age() {
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL => TSTEP and TMID_ACTION != filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" != "filter" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL => TSTEP=$S_TSTEP TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION (keep: sparse, keep step, after TMAX)"
+      __echo 2 "+++ TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL => TSTEP=$S_TSTEP TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, TYPE=$BSS_TYPE (keep: sparse, keep step, after TMAX)"
       echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
@@ -635,7 +635,7 @@ __age() {
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP (drop: dense, keep step, after TMAX)"
+      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, keep step, after TMAX)"
       echo "---_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
@@ -653,14 +653,14 @@ __age() {
     # Classify: TAGE >= TMID and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL < TSTEP=$S_TSTEP (drop: dense, after TMID)"
+      __echo 2 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMID)"
       echo "---_$BSS_SV"
     #########################################################################
     # Keep sparse with filter
     # Classify: TAGE >= TMID and TDEL => TSTEP and TMID_ACTION=filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
-      __echo 2 "### TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA (keep as filtered: sparse, update step, after TMID)"
+      __echo 2 "### TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA, TYPE=$BSS_TYPE (keep as filtered: sparse, update step, after TMID)"
       echo "###_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST*BSS_STEP/100))
@@ -669,7 +669,7 @@ __age() {
     # Classify: TAGE >= TMID and TDEL => TSTEP and TMID_ACTION != filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" != "filter" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL => TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION (keep: sparse, keep step, after TMID)"
+      __echo 2 "+++ TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL => TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, TYPE=$BSS_TYPE (keep: sparse, keep step, after TMID)"
       echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST*BSS_STEP/100))
@@ -688,7 +688,7 @@ __age() {
     # Classify: TAGE >= TMIN and TDEL > TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL >= TSTEP=$S_TSTEP (keep: sparse, update step, after TMIN)"
+      __echo 2 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (keep: sparse, update step, after TMIN)"
       echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST*BSS_STEP/100))
@@ -706,7 +706,7 @@ __age() {
     # Classify: TAGE >= TMIN and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL < TSTEP=$S_TSTEP (drop: dense, after TMIN)"
+      __echo 2 "--- TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMIN)"
       echo "---_$BSS_SV"
     #########################################################################
     # NO WAY
@@ -714,7 +714,7 @@ __age() {
     # Classify: ???
     #########################################################################
     else # This should never reached
-      __echo 0 "??? TAGE=$S_TAGE, TDEL=$S_TDEL, I=$BSS_I (XXX this should never be reached XXX)"
+      __echo 0 "??? TAGE=$S_TAGE, TDEL=$S_TDEL, I=$BSS_I, TYPE=$BSS_TYPE (XXX this should never be reached XXX)"
       exit 0
     fi
   done
