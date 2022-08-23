@@ -182,6 +182,9 @@ should manually mount using "/etc/fstab" for all subvolumes under the subvolume
 to run "revert" operation and manage them separately to keep the system
 recoverable since the snapshot operation isn't recursive.
 
+Although this "$BSS" focuses on btrfs, there is minimal upport for ext2/ext3
+(this includes ext4) for "$BSS copy ..." without using the snapshot. 
+
 Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
 END_OF_HELP
 }
@@ -249,7 +252,17 @@ else
 fi
 BSV="$SUDO btrfs subvolume"
 RSYNC="rsync"
+# Use readonly snapshot as the rsync source
+# Note on rsync options -a == -rlptgoD
+# H: hardlink
+# x: one filesystem
+# S: sparse
+# v: verbose
+# z: compress
+
+# less cpu load
 RSYNC_OPTA="-aHxSv --delete"
+# less communication bandwidth
 RSYNC_OPTR="-aHxSzv --delete"
 
 #############################################################################
@@ -469,6 +482,10 @@ __load_config () {
 
 ##############################################################################
 __snapshot () {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "Snapshot not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   # disk size sanity check without quota consideration
   BSS_STAT_TOTAL=$(stat -f -c %b "$FS_BASE")
   # Even on 4k block system, disk with 200 blocks is less than 1MB
@@ -515,6 +532,10 @@ __snapshot () {
 ##############################################################################
 RE_ISO='[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[-+]00:00'
 __list () {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "List not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   # $1      .* (egrep pattern)
   # $2      "-r" for reverse, "" for normal
   # echo    snapshot time stamps
@@ -532,6 +553,10 @@ __list () {
 
 ##############################################################################
 __age() {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "Age not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   # echo    snapshot time stamps with + or - prepended
   __echo 4 "Assess aging status of snapshots for BASE=$FS_BASE"
   BSS_TLAST="-1" # Initial value place holder
@@ -736,6 +761,10 @@ __age() {
 
 ##############################################################################
 __process () {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "Process not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   __echo 2 "Process snapshots: BASE=$FS_BASE TIME=$NOW_TSTR"
   BASE_BSS_LOGGER_LEVEL="$BSS_LOGGER_LEVEL"
   if [ "$BSS_LOGGER_LEVEL" -le "3" ]; then
@@ -786,6 +815,10 @@ __jobs () {
 
 ##############################################################################
 __filter () {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "Filter not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   # $1      SV to be filtered
   # Execution of filter $BSS_FLTR and snapshot operation are expected to be
   # heavy on CPU and SSD usage.
@@ -833,6 +866,10 @@ __filter () {
 
 ##############################################################################
 __revert () {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "Revert not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   # $1      revert to this SV
   BSS_SV="${1}"
   # sanity check
@@ -854,6 +891,10 @@ __revert () {
 
 ##############################################################################
 __zap () {
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    __echo 0 "Zap not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    exit $EXIT_ERROR
+  fi
   if [ "$BSS_ZAP_ACTIVE" != "true" ]; then
       __echo 0 "No zap operation since $BSS_CONF at BASE=$FS_BASE has BSS_ZAP_ACTIVE='$BSS_ZAP_ACTIVE'"
       exit $EXIT_ERROR
@@ -940,28 +981,42 @@ __rsync () {
     . "$BSS_SNAP_DEST_BASE/$BSS_COPY_PRE"
   fi
   # relaxed rule to allow missing tailing /
-  __echo 2 "Make copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
-  # Use readonly snapshot as the rsync source
-  # Note on rsync options -a == -rlptgoD
-  # H: hardlink
-  # x: one filesystem
-  # S: sparse
-  # v: verbose
-  # z: compress
-  if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
-    # absolute local path
-    RSYNC_OPTS="$RSYNC_OPTA"
+  if [ "$FS_TYPE" = "btrfs" ]; then
+    __echo 2 "Make copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
+    if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
+      # absolute local path
+      RSYNC_OPTS="$RSYNC_OPTA"
+    else
+      RSYNC_OPTS="$RSYNC_OPTR"
+    fi
+    # --filter to exclude $BSS directory
+    # Hidden undocumented argument handling: $@ (after source)
+    # shellcheck disable=SC2086
+    $NOOP $LOGGER $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+        "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}/" \
+        "$BSS_COPY_DEST/"
+    # Since this could be slow long process, record ending
+    __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
+  elif [ "$FS_TYPE" = "ext2/ext3" ]; then
+    __echo 2 "Make copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/"
+    if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
+      # absolute local path
+      RSYNC_OPTS="$RSYNC_OPTA"
+    else
+      RSYNC_OPTS="$RSYNC_OPTR"
+    fi
+    # --filter to exclude $BSS directory
+    # Hidden undocumented argument handling: $@ (after source)
+    # shellcheck disable=SC2086
+    $NOOP $LOGGER $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+        "$FS_BASE/" \
+        "$BSS_COPY_DEST/"
+    # Since this could be slow long process, record ending
+    __echo 2 "... Successfully made copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/"
   else
-    RSYNC_OPTS="$RSYNC_OPTR"
+    __echo 0 "copy for unknown FS=$FS_TYPE requested."
+    exit $EXIT_ERROR
   fi
-  # --filter to exclude $BSS directory
-  # Hidden undocumented argument handling: $@ (after source)
-  # shellcheck disable=SC2086
-  $NOOP $LOGGER $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
-      "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}/" \
-      "$BSS_COPY_DEST/"
-  # Since this could be slow long process, record ending
-  __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
   if [ -x "$BSS_SNAP_DEST_BASE/$BSS_COPY_POST" ]; then
     __echo 2 "Run $BSS_COPY_POST after copy"
     # shellcheck disable=SC1090
@@ -1290,20 +1345,43 @@ if [ "$FS" != "btrfs" ]; then
   exit $EXIT_ERROR
 fi
 FS_BASE="$FS_BASE0"
-while true; do
-  # A subvolume has always inode number 256
-  if [ "$($SUDO stat -c %i "$FS_BASE")" = "256" ]; then
-    break
-  fi
-  # sanity check
-  if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "btrfs" ] || \
-     [ "$FS_BASE" = "/" ]; then
-    __echo 0 "No inode=256 on btrfs found from: $FS_BASE0"
-    exit $EXIT_ERROR
-  fi
-  FS_BASE=$($SUDO realpath "$FS_BASE/..")
-  __echo 4 "Check btrfs: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
-done
+if [ "$($SUDO stat -f -c %T "$FS_BASE")" = "btrfs" ]; then
+  FS_TYPE="btrfs"
+  while true; do
+    # A subvolume has always inode number 256
+    if [ "$($SUDO stat -c %i "$FS_BASE")" = "256" ]; then
+      break
+    fi
+    # sanity check
+    if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "btrfs" ] || \
+       [ "$FS_BASE" = "/" ]; then
+      __echo 0 "No inode=256 on btrfs found from: $FS_BASE0"
+      exit $EXIT_ERROR
+    fi
+    FS_BASE=$($SUDO realpath "$FS_BASE/..")
+    __echo 4 "Check btrfs: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
+  done
+elif [ "$($SUDO stat -f -c %T "$FS_BASE")" = "ext2/ext3" ]; then
+  FS_TYPE="ext2/ext3"
+  while true; do
+    # root inode number 2 for ext2/ext3
+    if [ "$($SUDO stat -c %i "$FS_BASE")" = "2" ]; then
+      break
+    fi
+    # sanity check
+    if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "ext2/ext3" ] || \
+       [ "$FS_BASE" = "/" ]; then
+      __echo 0 "No inode=2 on ext2/ext3 found from: $FS_BASE0"
+      exit $EXIT_ERROR
+    fi
+    FS_BASE=$($SUDO realpath "$FS_BASE/..")
+    __echo 4 "Check ext2/ext3: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
+  done
+else
+  FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE")"
+  __echo 0 "Unsupported file system $FS_TYPE found at: $FS_BASE0"
+  exit $EXIT_ERROR
+fi
 # FS_BASE: root of btrfs subvolume
 FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
 FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
@@ -1374,10 +1452,12 @@ case "$BSS_COMMAND" in
     ;;
   c*) # copy
     __load_config
-    if [ "$BSS_TYPE" = "single" ]; then
-      BSS_TYPE='copy'
+    if [ "$FS_TYPE" = "btrfs" ]; then
+      if [ "$BSS_TYPE" = "single" ]; then
+        BSS_TYPE='copy'
+      fi
+      __snapshot
     fi
-    __snapshot
     __rsync "$@"
     ;;
   h*|'') # help
