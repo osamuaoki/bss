@@ -6,17 +6,16 @@ Documentation=man:bss(1)
 [Service]
 Type=oneshot
 Nice=15
-# ensure to mount LUKS encrypted disk image and wait for 120s and update
-ExecStart=secret-folder update systemd
 # process snapshot of ~/ (== %h)
-ExecStart=bss process --logger %h
+ExecStart=bss --logger process %h
 # do the same for other subvolumes
-ExecStart=bss process --logger %h/github
-ExecStart=bss process --logger %h/salsa
-ExecStart=bss process --logger %h/Documents
+ExecStart=bss --logger process %h
+ExecStart=bss --logger process %h/github
+ExecStart=bss --logger process %h/salsa
+ExecStart=bss --logger process %h/Documents
 ExecStart=sync
-ExecStart=bss copy --logger %h/rsync
-ExecStart=bss process --logger %h/rsync
+ExecStart=bss --logger copy %h/rsync
+ExecStart=bss --logger process %h/rsync
 IOSchedulingClass=idle
 CPUSchedulingPolicy=idle
 StandardInput=null

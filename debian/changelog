@@ -1,3 +1,9 @@
+bss (1.2.0) unstable; urgency=medium
+
+  * Rewrite secret-folder as luksimg.
+
+ -- Osamu Aoki <osamu@debian.org>  Sat, 27 Aug 2022 02:55:31 +0900
+
 bss (1.1.2) unstable; urgency=medium
 
   * error message for missing template file.

@@ -1,0 +1,45 @@
+--- luksimg.1.oiginal	2022-08-25 23:56:26.728689538 +0900
++++ luksimg.1	2022-08-25 23:59:23.078951736 +0900
+@@ -13,29 +13,36 @@
+ \fB\-j\fR      use journald to record log (useful for systemd timer service)
+ .PP
+ \fB\-p\fR      ask passphrase to unlock LUKS encryption (Uunless this is set, GNOME
+-.IP
+ secret\-tool is used to obtain passphrase)
+ .PP
+ .SH COMMAND
+ .PP
+ Multiple commands may be specified to execute them in sequence.
+-.SS "new [size]:"
++.PP
++new [size]:
+ .IP
+ make a new disk image \fI\,/rsync/secret.img\/\fP formatted as ext4 filesystem
+ on LUKS encrypted volume. The size can be optionally specified, e.g.
+ as '32G'
+ .PP
+-mount:  decrypt disk image \fI\,/rsync/secret.img\/\fP to create a device\-mapper device
++mount:
+ .IP
++decrypt disk image \fI\,/rsync/secret.img\/\fP to create a device\-mapper device
+ \fI\,/dev/device\-mapper/secret\/\fP and mount it to \fI\,~/secret\/\fP
+ .PP
+-backup: backup to \fI\,~/secret/relative_path\/\fP for files and directories listed in
++backup:
+ .IP
++backup to \fI\,~/secret/relative_path\/\fP for files and directories listed in
+ ~/.secretrc as relative path; or to \fI\,~/secret/absolute_path\/\fP for ones
+ listed in it as absolute path.
+ .PP
+-umount: umount disk image and disable decrypted device\-mapper device
+-one:    Do mount \-> backup \-> umount in one action
++umount:
++.IP
++umount disk image and disable decrypted device\-mapper device
++.PP
++one:
++.IP
++Do mount \-> backup \-> umount in one action
+ .PP
+ These commands may be shortened if they aren't ambiguous.
+ .PP

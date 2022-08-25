@@ -1,0 +1,336 @@
+#!/bin/sh -e
+# vim:se sw=2 ts=2 sts=2 et ai tw=78:
+#
+# This script creates a filesystem image file in which LUKS encrypted data is
+# stored.  This is aimed to store sensitive data securely with remote host
+# service such as rsync.net using bss.
+#
+# See /usr/share/doc/bss/examples/README.md
+#
+# Ensure to be in home directory
+cd
+### VARIABLES ###
+LUKSIMG_VERSION="1.2.0"
+HOME="$(pwd)"
+LUKSIMG="${0##*/}"
+# rsync source path name for "bss copy"
+# directory name of disk image file
+DISK_IMG_DIR="${DISK_IMG_DIR:-rsync}"
+# device mapper target name
+DISK_IMG_FILE="${DISK_IMG_FILE:-secret}"
+# disk image file name with .img
+DISK_IMG_PATH="$HOME/$DISK_IMG_DIR/$DISK_IMG_FILE.img"
+# device mapper path
+DEV_MAPPER_PATH="/dev/mapper/$DISK_IMG_FILE"
+# mount path
+MNT_PATH="$HOME/$DISK_IMG_FILE"
+# config path
+CONF_PATH="$HOME/.${DISK_IMG_FILE}rc"
+# set mode
+ECHO="echo"
+TSLEEP="0"
+SECRET_TOOL="YES"
+SIZE_DISK="16G"
+
+EXIT_SUCCESS=0
+EXIT_ERROR=1
+
+### FUNCTIONS ###
+help () {
+cat << END_OF_HELP
+Usage: ${LUKSIMG} [ new [size] | [-j|-p] [mount|backup|umount|one]...]
+
+"$LUKSIMG" helps to create and update LUKS encrypted disk image.
+
+OPTION:
+
+-j      use journald to record log (useful for systemd timer service)
+
+-p      ask passphrase to unlock LUKS encryption (Uunless this is set, GNOME
+        secret-tool is used to obtain passphrase)
+
+COMMAND:
+
+Multiple commands may be specified to execute them in sequence.
+
+new [size]:
+        make a new disk image /rsync/secret.img formatted as ext4 filesystem
+        on LUKS encrypted volume. The size can be optionally specified, e.g.
+        as '32G'
+mount:  decrypt disk image /rsync/secret.img to create a device-mapper device
+        /dev/device-mapper/secret and mount it to ~/secret
+backup: backup to ~/secret/relative_path for files and directories listed in
+        ~/.secretrc as relative path; or to ~/secret/absolute_path for ones
+        listed in it as absolute path.
+umount: umount disk image and disable decrypted device-mapper device
+one:    Do mount -> backup -> umount in one action
+
+These commands may be shortened if they aren't ambiguous.
+
+ENVIRONMENT:
+
+DISK_IMG_FILE:
+        Set this to the file name (w/o extension ".img") of the disk image.
+        This is used for the associated backup configuration file name, device
+        mapper name and mount point name. (default: secret)
+DISK_IMG_DIR:
+        Set this to the directory name of the disk image. (default: rsync)
+
+See /usr/share/doc/bss/examples/README.md or
+    https://github.com/osamuaoki/bss/tree/main/examples
+
+Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
+END_OF_HELP
+}
+version () {
+cat << EOM
+$LUKSIMG ($LUKSIMG_VERSION)
+
+Copyright (C) 2022 Osamu Aoki <osamu@debian.org>
+
+License GPLv2+: GNU GPL version 2 or later
+<https://gnu.org/licenses/gpl-2.0.html>.  This is free software: you are free
+to change and redistribute it.  There is NO WARRANTY, to the extent permitted
+by law.
+
+Written by Osamu Aoki.
+EOM
+
+}
+
+new_secret () {
+  # create a new luks disk image with ext4
+  if ! secret-tool lookup LUKS "$DISK_IMG_PATH" >/dev/null ; then
+    echo "I: Setup passphrase for LUKS: $DISK_IMG_PATH" >&2
+    secret-tool store --label="LUKS $DISK_IMG_PATH" LUKS "$DISK_IMG_PATH"
+  else
+    echo "I: Passphrase for LUKS aleady stored: $DISK_IMG_PATH" >&2
+  fi
+  echo "I: create $SIZE_DISK image: $DISK_IMG_PATH" >&2
+  fallocate -l "$SIZE_DISK" "$DISK_IMG_PATH"
+  echo "I: create LUKS in $DISK_IMG_PATH" >&2
+  secret-tool lookup LUKS "$DISK_IMG_PATH" | \
+    cryptsetup luksFormat "$DISK_IMG_PATH" -
+  echo "I: open LUKS as $DEV_MAPPER_PATH" >&2
+  secret-tool lookup LUKS "$DISK_IMG_PATH" | \
+    sudo cryptsetup open "$DISK_IMG_PATH" "$DISK_IMG_FILE" --type luks
+  echo "I: create btrfs in $DEV_MAPPER_PATH" >&2
+  sudo mkfs.ext4 -L "$DISK_IMG_FILE" "$DEV_MAPPER_PATH"
+  echo "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
+  sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
+  echo "I: set $MNT_PATH to UID:GID=1000:1000" >&2
+  sudo chown "1000:1000" "$MNT_PATH"
+  {
+    echo "!!! Don't write into ~/$DISK_NAME/ manually           !!!"
+    echo "!!! This should be accessed only by $LUKSIMG !!!"
+  } > "$MNT_PATH/00__DO_NOT_WRITE_IN_MANUALLY"
+}
+
+mount_secret () {
+  if [ ! -e "$DISK_IMG_PATH" ]; then
+    $ECHO "E: disk image missing: $DISK_IMG_PATH"
+    $ECHO "I: create disk image interactively as: ${0##*/} new [size]"
+    exit $EXIT_ERROR
+  fi
+  # let's mount
+  if mount|grep -e "$MNT_PATH" >/dev/null; then
+    $ECHO "I: skip mounting:   $DEV_MAPPER_PATH on $MNT_PATH"
+    $ECHO "I: already mounted: $(mount|grep -e "$MNT_PATH"|sed 's/type.*$//')"
+  else
+    $ECHO "I: unlock LUKS disk image $DISK_IMG_PATH as $DEV_MAPPER_PATH"
+    if [ "$SECRET_TOOL" = "YES" ]; then
+      secret-tool lookup LUKS "$DISK_IMG_PATH" | \
+        sudo cryptsetup open "$DISK_IMG_PATH" "$DISK_IMG_FILE" --type luks
+    else
+      sudo cryptsetup open "$DISK_IMG_PATH" "$DISK_IMG_FILE" --type luks
+    fi
+    $ECHO "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
+    sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
+  fi
+  $ECHO "I: disk image usage (size used avail use%): $(df -h "$MNT_PATH" \
+    | grep "$MNT_PATH" \
+    | sed -e 's/\s\s*/ /g' \
+    | cut -d' ' -f 2-5)"
+}
+
+backup_secret () {
+  if [ ! -e "$MNT_PATH" ]; then
+    $ECHO "E: backup destination directory missing: $DISK_IMG_PATH"
+    exit $EXIT_ERROR
+  fi
+  $ECHO "I: back up to $MNT_PATH"
+  while read -r F ; do
+    # remove tailing / if exists
+    F="${F%/}"
+    if [ "${F}" = "${F#/}" ] ; then
+      # relative path
+      BACKUP="relative_path/"
+    else
+      # absolute path
+      BACKUP="absolute_path"
+    fi
+    D="$(dirname "$F")"
+    if [ "$D" = "." ]; then
+      D=""
+    elif [ "$D" = "/" ]; then
+      D="/"
+    elif [ "$D" = ".." ]; then
+      $ECHO "E: don't use .. as a part of relative path"
+      exit $EXIT_ERROR
+    else
+      D="$D/"
+    fi
+    # all local transfer no-need to be verbose
+    # shell wild card allowed for $F, cwd=$HOME
+    mkdir -p "$MNT_PATH/${BACKUP}$D"
+    $ECHO "rsync -axHS --delete $F $MNT_PATH/${BACKUP}$D"
+    sudo rsync -axHS --delete $F "$MNT_PATH/${BACKUP}$D"
+  done
+}
+
+unmount_secret () {
+  sync
+  # Just after mount, somehow its device is busy to prevent umount
+  # this may be due to Gnome Files etc.
+  sleep 1
+  sync
+  $ECHO "I: umount disk image at: $MNT_PATH ..."
+  # use umount w/o -l to be on safe side.
+  if sudo umount "$MNT_PATH" ; then
+    $ECHO "I: umount disk image at: $MNT_PATH done"
+  else
+    $ECHO "I: umount disk image at: $MNT_PATH done with error"
+  fi
+}
+
+close_luks () {
+  $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE ..."
+  if sudo cryptsetup close "$DISK_IMG_FILE" ; then
+    $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE done"
+  else
+    $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE done with error"
+  fi
+}
+
+
+### MAIN ###
+
+cd "$HOME"
+mkdir -p "$MNT_PATH"
+
+if [ ! -e "$CONF_PATH" ]; then
+  # if template configuration file is missing, create it
+  cat >"$CONF_PATH" <<EOF
+# Edit this to adopt to the system
+####################################
+# Files to backup
+.bash_logout
+.bashrc
+.profile
+.bash_aliases
+#.bash_fzf_completion
+#.bash_fzf_keybindings
+.bashrc
+.benrc
+#.caffrc
+#.debrc
+.devscripts
+.gbp.conf
+.gitconfig
+#.quiltrc-dpkg
+.reportbugrc
+.sbuildrc*
+#.shellcheckrc
+#.config/black
+#.config/flake8
+#.config/pylintrc
+####################################
+# directories to backup
+Documents
+bin
+.ssh
+.gnupg
+.config/autostart
+.config/systemd/user
+.local/share/keyrings
+####################################
+/etc
+/boot/grub
+EOF
+fi
+
+# new should be run alone and from console
+case "$1" in
+  n*) # new
+    shift
+    if [ -n "$1" ];then
+      SIZE_DISK="$1"
+    fi
+    new_secret
+    exit $EXIT_SUCESS
+    ;;
+esac
+# option
+while [ -n "$1" ]; do
+  case "$1" in
+    -j) # use journald via systemd-cat
+      shift
+      ECHO="systemd-cat -p 5 -t bss echo"
+      TSLEEP="120"
+      ;;
+    -p) # ask passphrase to unlock (no secret-tool)
+      shift
+      SECRET_TOOL="NO"
+      ;;
+    --help)
+      help
+      exit $EXIT_SUCCESS
+      ;;
+    --version)
+      version
+      exit $EXIT_SUCCESS
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+if [ -z "$1" ]; then
+      help
+      exit $EXIT_SUCCESS
+fi
+# command sequence
+while [ -n "$1" ]; do
+  case "$1" in
+    m*) # mount
+      shift
+      mount_secret
+      ;;
+    b*) # backup to secret folder
+      shift
+      grep -v "^#" "$CONF_PATH" | backup_secret
+      ;;
+    c*) # close luks -- not public
+      shift
+      close_luks
+      ;;
+    u*) # umount secret folder
+      shift
+      unmount_secret
+      close_luks
+      ;;
+    o*) # one go
+      shift
+      mount_secret
+      grep -v "^#" "$CONF_PATH" | backup_secret
+      unmount_secret
+      close_luks
+      ;;
+    *)
+      help
+      exit $EXIT_SUCCESS
+      ;;
+  esac
+done
+exit $EXIT_SUCCESS
+

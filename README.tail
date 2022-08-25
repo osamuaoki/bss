@@ -165,8 +165,8 @@ copy`.
 destination.
 
 ```
- $ bss copy / /media/usb_ssd/root
- $ bss copy ~ /media/usb_ssd/userdata
+ $ bss copy . /media/usb_ssd/userdata
+ $ bss copy / /media/usb_ssd/rootfs
 ```
 
 The backup data may use btrfs on USB connected SSD and you can use `bss` to
@@ -181,9 +181,9 @@ bandwidth.
 For other cloud storage service, use of `rclone` instead of `rsync` is a
 possibility. (patch welcome)
 
-## `secret-folder` command
+## `luksimg` command
 
-In order to address data security concern of the use of a remote server
-administered NOT by oneself, a helper command to create and work with
-encrypted disk image is provided as `secret-folder`.
+In order to address valid data security concern of storing data on a remote server
+administered NOT by oneself, a command `luksimg` is provided as a helper tool to
+work easily with LUKS encrypted disk image for storing sensitive data.
 

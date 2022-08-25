@@ -7,7 +7,7 @@
 # Copyright 2022 (C) Osamu Aoki <osamu@debian.org>
 # License: GPL 2+
 ##############################################################################
-BSS_VERSION="1.1.2"
+BSS_VERSION="1.2.0"
 
 EXIT_SUCCESS=0
 EXIT_ERROR=1
@@ -215,13 +215,13 @@ BSS_DIR=".bss.d"
 BSS_TYPE="single" # single, pre, post, hour, ...
 EXT_CONF="conf"
 EXT_FLTR="fltr"
-EXT_COPY_PRE="copy-pre"
-EXT_COPY_POST="copy-post"
+EXT_COPY_PRE="pre_copy_script"
+EXT_COPY_POST="post_copy_script"
 BSS_STEM=".$BSS"
 BSS_CONF="$BSS_STEM.$EXT_CONF"
 BSS_FLTR="$BSS_STEM.$EXT_FLTR"
-BSS_COPY_PRE="$BSS_STEM.$EXT_COPY_PRE"
-BSS_COPY_POST="$BSS_STEM.$EXT_COPY_POST"
+PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
+POST_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_POST"
 NOW_TSTR=$(date -u --iso=second) # time stamp string
 NOW_TEPO=$(date +%s -d"$NOW_TSTR") # unix epoch
 BSS_NMIN="3"             # minimum items to keep (initial)
@@ -958,12 +958,22 @@ __rsync () {
     shift
   fi
   # process aliases
+  BSS_COPY_MODE=0
   case $BSS_COPY_DEST in
     1) BSS_COPY_DEST="$BSS_COPY_DEST1"
+      BSS_COPY_MODE=1
+      EXT_COPY_PRE="${EXT_COPY_PRE}1"
+      EXT_COPY_POST="${EXT_COPY_POST}1"
       ;;
     2) BSS_COPY_DEST="$BSS_COPY_DEST2"
+      BSS_COPY_MODE=2
+      EXT_COPY_PRE="${EXT_COPY_PRE}2"
+      EXT_COPY_POST="${EXT_COPY_POST}2"
       ;;
     3) BSS_COPY_DEST="$BSS_COPY_DEST3"
+      BSS_COPY_MODE=3
+      EXT_COPY_PRE="${EXT_COPY_PRE}3"
+      EXT_COPY_POST="${EXT_COPY_POST}3"
       ;;
   esac
   # remove tailing /
@@ -975,10 +985,10 @@ __rsync () {
     __echo 0 "No copy destination given (or was /)"
     exit $EXIT_ERROR
   fi
-  if [ -x "$BSS_SNAP_DEST_BASE/$BSS_COPY_PRE" ]; then
-    __echo 2 "Run $BSS_COPY_PRE before copy"
+  if [ -x "$BSS_SNAP_DEST_BASE/$PRE_COPY_SCRIPT" ]; then
+    __echo 2 "Run $PRE_COPY_SCRIPT before copy"
     # shellcheck disable=SC1090
-    . "$BSS_SNAP_DEST_BASE/$BSS_COPY_PRE"
+    . "$BSS_SNAP_DEST_BASE/$PRE_COPY_SCRIPT"
   fi
   # relaxed rule to allow missing tailing /
   if [ "$FS_TYPE" = "btrfs" ]; then
@@ -1017,10 +1027,10 @@ __rsync () {
     __echo 0 "copy for unknown FS=$FS_TYPE requested."
     exit $EXIT_ERROR
   fi
-  if [ -x "$BSS_SNAP_DEST_BASE/$BSS_COPY_POST" ]; then
-    __echo 2 "Run $BSS_COPY_POST after copy"
+  if [ -x "$BSS_SNAP_DEST_BASE/$POST_COPY_SCRIPT" ]; then
+    __echo 2 "Run $POST_COPY_SCRIPT after copy"
     # shellcheck disable=SC1090
-    . "$BSS_SNAP_DEST_BASE/$BSS_COPY_POST"
+    . "$BSS_SNAP_DEST_BASE/$POST_COPY_SCRIPT"
   fi
 }
 ##############################################################################
@@ -1134,16 +1144,19 @@ BSS_COPY_DEST2=""
 # convenience for "$BSS copy".  Use this when destination is "3" ("3" works as alias).
 BSS_COPY_DEST3=""
 
-# enhancement for "$BSS snapshot".  Set this to non-zero string "<offset_path>"
-# pointing to an absolute path to activate the non-default destination for the
-# btrfs snapshot accessible only from outside of the original filesystem.
+# For normal mode, keep BSS_SNAP_DEST as null sting.
+# For system mode (an enhancement for "$BSS snapshot"), set BSS_SNAP_DEST to
+# non-zero string "<offset_path>" pointing to an absolute path to activate the
+# non-default destination for the btrfs snapshot accessible only from outside
+# of the original filesystem.
 BSS_SNAP_DEST=""
 
 ### NOTE ###
 
 # You can add a custom script to filter contents at TMID as $BSS_FLTR in this directory
-# You can add a custom script to run before copy as $BSS_COPY_PRE in this directory
-# You can add a custom script to run after copy as $BSS_COPY_PRE in this directory
+# You can add a custom script to run before copy as $PRE_COPY_SCRIPT in this directory
+# You can add a custom script to run after copy as $POST_COPY_SCRIPT in this directory
+# If BSS_COPY_DEST aliases 1,2,3 are used, script name to use should be suffixed accordingly.
 
 # Many internal variables are prefixed with 'BSS_' to be unique to "$BSS" but
 # the dialog messages may just use the rest of variable name to be concise.

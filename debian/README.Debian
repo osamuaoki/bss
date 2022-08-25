@@ -1,4 +1,4 @@
-bss for Debian
+= bss and luksimg for Debian =
 
 This package doesn't come with ready to run automatic snapshot scripts.
 You need to set up systemd timer following the upstream documentation and
@@ -39,4 +39,10 @@ File paths are:
 
 Please note that the subcommand can be shortened to a single character.
 
- -- Osamu Aoki <osamu@debian.org>  Thu, 11 Nov 2021 14:37:09 +0000
+Run luksimg new 10G to create ~/rsync/secret.img file.
+
+Update ~/.secretrc to suites one's need for secure backup
+
+Add cd ~/.config/autostart/mount_home_secret.desktop
+
+ -- Osamu Aoki <osamu@debian.org>  Fri Aug 26 05:22:38 PM UTC 2022

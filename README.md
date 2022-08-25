@@ -1,8 +1,9 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.1.2)
+# Btrfs Subvolume Snapshot Utility (version: 1.2.0)
 
 Original source repository: https://github.com/osamuaoki/bss
 
-This script is early development stage and intended for my personal usage.  UI may change.  Use with care.
+This script is early development stage and intended for my personal usage.
+UI may change.  Use with care.
 
 ## `bss` command
 
@@ -345,8 +346,8 @@ copy`.
 destination.
 
 ```
- $ bss copy / /media/usb_ssd/root
- $ bss copy ~ /media/usb_ssd/userdata
+ $ bss copy . /media/usb_ssd/userdata
+ $ bss copy / /media/usb_ssd/rootfs
 ```
 
 The backup data may use btrfs on USB connected SSD and you can use `bss` to
@@ -361,32 +362,49 @@ bandwidth.
 For other cloud storage service, use of `rclone` instead of `rsync` is a
 possibility. (patch welcome)
 
-## `secret-folder` command
+## `luksimg` command
 
-In order to address data security concern of the use of a remote server
-administered NOT by oneself, a helper command to create and work with
-encrypted disk image is provided as `secret-folder`.
+In order to address valid data security concern of storing data on a remote server
+administered NOT by oneself, a command `luksimg` is provided as a helper tool to
+work easily with LUKS encrypted disk image for storing sensitive data.
 
-Usage: secret-folder [new [size]|mount|keep|update|systemd|ask]
+Usage: luksimg [ new [size] | [-j|-p] [mount|backup|umount|one]...]
 
-"secret-folder" helps to create and update encrypted disk image.
+"luksimg" helps to create and update LUKS encrypted disk image.
+
+OPTION:
+
+-j      use journald to record log (useful for systemd timer service)
+
+-p      ask passphrase to unlock LUKS encryption (Uunless this is set, GNOME
+        secret-tool is used to obtain passphrase)
 
 COMMAND:
 
-  * new [size]: make a new disk image of specified size.
-                Optional size can be specified as '32G'.
-  * mount:      mount disk image ~/rsync/secret.img to ~/secret
-  * keep:       don't unmount when exiting secret-folder
-                (default behavior is unmount on exit)
-  * update:     mount disk image and update its content by copying files and
-                directories listed in ~/.secretrc.
-  * systemd:    run from systemd timer unit in background while recording log to
-                journald.
-  * ask:        ask passphrase to unlock LUKS encryption
-                (unless this is set, GNOME secret-tool is used to obtain
-                passphrase)
+Multiple commands may be specified to execute them in sequence.
 
-These commands may be shortened to a single character.
+new [size]:
+        make a new disk image /rsync/secret.img formatted as ext4 filesystem
+        on LUKS encrypted volume. The size can be optionally specified, e.g.
+        as '32G'
+mount:  decrypt disk image /rsync/secret.img to create a device-mapper device
+        /dev/device-mapper/secret and mount it to ~/secret
+backup: backup to ~/secret/relative_path for files and directories listed in
+        ~/.secretrc as relative path; or to ~/secret/absolute_path for ones
+        listed in it as absolute path.
+umount: umount disk image and disable decrypted device-mapper device
+one:    Do mount -> backup -> umount in one action
+
+These commands may be shortened if they aren't ambiguous.
+
+ENVIRONMENT:
+
+DISK_IMG_FILE:
+        Set this to the file name (w/o extension ".img") of the disk image.
+        This is used for the associated backup configuration file name, device
+        mapper name and mount point name. (default: secret)
+DISK_IMG_DIR:
+        Set this to the directory name of the disk image. (default: rsync)
 
 See /usr/share/doc/bss/examples/README.md or
     https://github.com/osamuaoki/bss/tree/main/examples

@@ -1,0 +1,9 @@
+.SH COPYRIGHT
+Copyright \(co 2021\-2022 Osamu Aoki <osamu@debian.org>
+.PP
+License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl\-2.0.html>.
+.PP
+This is free software: you are free to change and redistribute it.  There is NO
+WARRANTY, to the extent permitted by law.
+.SH "SEE ALSO"
+See <https://github.com/osamuaoki/bss> for the latest information.
