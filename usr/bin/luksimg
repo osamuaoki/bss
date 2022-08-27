@@ -10,8 +10,7 @@
 # Ensure to be in home directory
 cd
 ### VARIABLES ###
-LUKSIMG_VERSION="1.2.0"
-HOME="$(pwd)"
+LUKSIMG_VERSION="1.2.1"
 LUKSIMG="${0##*/}"
 # rsync source path name for "bss copy"
 # directory name of disk image file
@@ -19,13 +18,13 @@ DISK_IMG_DIR="${DISK_IMG_DIR:-rsync}"
 # device mapper target name
 DISK_IMG_FILE="${DISK_IMG_FILE:-secret}"
 # disk image file name with .img
-DISK_IMG_PATH="$HOME/$DISK_IMG_DIR/$DISK_IMG_FILE.img"
+DISK_IMG_PATH="$DISK_IMG_DIR/$DISK_IMG_FILE.img"
 # device mapper path
 DEV_MAPPER_PATH="/dev/mapper/$DISK_IMG_FILE"
 # mount path
-MNT_PATH="$HOME/$DISK_IMG_FILE"
+MNT_PATH="$DISK_IMG_FILE"
 # config path
-CONF_PATH="$HOME/.${DISK_IMG_FILE}rc"
+CONF_PATH=".${DISK_IMG_FILE}rc"
 # set mode
 ECHO="echo"
 TSLEEP="0"
@@ -121,15 +120,15 @@ new_secret () {
   echo "I: set $MNT_PATH to UID:GID=1000:1000" >&2
   sudo chown "1000:1000" "$MNT_PATH"
   {
-    echo "!!! Don't write into ~/$DISK_NAME/ manually           !!!"
-    echo "!!! This should be accessed only by $LUKSIMG !!!"
-  } > "$MNT_PATH/00__DO_NOT_WRITE_IN_MANUALLY"
+    echo "!!! Don't use this ~/$MNT_PATH/ as working directory        !!!"
+    echo "!!! $LUKSIMG copies files listed in ~/$CONF_PATH into here !!!"
+  } > "$MNT_PATH/00_DO_NOT_USE_THIS_AS_WORKING_DIRECTORY"
 }
 
 mount_secret () {
   if [ ! -e "$DISK_IMG_PATH" ]; then
     $ECHO "E: disk image missing: $DISK_IMG_PATH"
-    $ECHO "I: create disk image interactively as: ${0##*/} new [size]"
+    $ECHO "I: create disk image interactively as: $LUKSIMG new [size]"
     exit $EXIT_ERROR
   fi
   # let's mount
@@ -199,7 +198,7 @@ unmount_secret () {
   if sudo umount "$MNT_PATH" ; then
     $ECHO "I: umount disk image at: $MNT_PATH done"
   else
-    $ECHO "I: umount disk image at: $MNT_PATH done with error"
+    $ECHO "I: umount disk image at: $MNT_PATH with error"
   fi
 }
 
@@ -208,14 +207,13 @@ close_luks () {
   if sudo cryptsetup close "$DISK_IMG_FILE" ; then
     $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE done"
   else
-    $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE done with error"
+    $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE with error"
   fi
 }
 
 
 ### MAIN ###
 
-cd "$HOME"
 mkdir -p "$MNT_PATH"
 
 if [ ! -e "$CONF_PATH" ]; then
@@ -223,7 +221,7 @@ if [ ! -e "$CONF_PATH" ]; then
   cat >"$CONF_PATH" <<EOF
 # Edit this to adopt to the system
 ####################################
-# Files to backup
+# Files to backup (shell glob OK)
 .bash_logout
 .bashrc
 .profile
@@ -254,6 +252,7 @@ bin
 .config/systemd/user
 .local/share/keyrings
 ####################################
+# absolute path
 /etc
 /boot/grub
 EOF

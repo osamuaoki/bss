@@ -81,7 +81,7 @@ README.md: .FORCE
 .FORCE:
 
 bss.1: .FORCE
-	if ! help2man -v ; then echo "install 'help2man' package" ; fi
+	if ! type help2man >/dev/null ; then echo "install 'help2man' package" ; fi
 	help2man usr/bin/bss >bss.help2man
 	sed -E -e 's/^([A-Z]*):$$/.SH \1/' \
 	       -e 's/bss \\- manual page for bss/bss \\- btrfs subvolume snapshot utility/' \
@@ -106,7 +106,7 @@ bss.1: .FORCE
 	: ===============================================================================
 
 luksimg.1: .FORCE
-	if ! help2man -v ; then echo "install 'help2man' package" ; fi
+	if ! type help2man >/dev/null ; then echo "install 'help2man' package" ; fi
 	help2man usr/bin/luksimg >luksimg.help2man
 	sed -E -e 's/^([A-Z]*):$$/.SH \1/' \
 	       -e 's/luksimg \\- manual page for luksimg/luksimg \\-  LUKS encrypted disk image utility/' \

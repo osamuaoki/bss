@@ -1,3 +1,10 @@
+bss (1.2.1) unstable; urgency=medium
+
+  * Use relative path for luksimg.
+  * Activate ext2/ext3 support.
+
+ -- Osamu Aoki <osamu@debian.org>  Sun, 28 Aug 2022 00:27:45 +0900
+
 bss (1.2.0) unstable; urgency=medium
 
   * Rewrite secret-folder as luksimg.
