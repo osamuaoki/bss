@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.2.1)
+# Btrfs Subvolume Snapshot Utility (version: 1.2.2)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -106,13 +106,13 @@ For some SUBCOMMANDs, enxtra optional arguments after the explicit PATH may
 be specified.
 
 For "bss copy", this is a combination of "bss snapshot" to create a snapshot
-of the BASE directory to SOURCE_PATH and a wrapper for "rsync" command with
+of the BASE directory to SOURCE_PATH and a wrapper for "sudo rsync" command with
 its first argument SOURCE_PATH and the second argument DEST_PATH.  This command
 is smart enough to skip the ".bss.d/" directory to allow independent
 management of data using "bss" on both the BASE directory and DEST_PATH. If
-DEST_PATH is a local path such as "/srv/backup", then "rsync -aHxSv --delete" is
+DEST_PATH is a local path such as "/srv/backup", then "sudo rsync -aHxSv --delete" is
 used to save the CPU load.  If DEST_PATH is a remote path such as
-"[USER@]HOST:DEST_PATH", then "rsync -aHxSzv --delete" is used to save the network
+"[USER@]HOST:DEST_PATH", then "sudo rsync -aHxSzv --delete" is used to save the network
 load.
 
 For "bss zap", the first argument is normally ".".  The following argument

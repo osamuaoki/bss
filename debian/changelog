@@ -1,3 +1,10 @@
+bss (1.2.2) unstable; urgency=medium
+
+  * Change post, pre process timing. 
+  * Refactor around copy command
+
+ -- Osamu Aoki <osamu@debian.org>  Mon, 29 Aug 2022 11:26:06 +0900
+
 bss (1.2.1) unstable; urgency=medium
 
   * Use relative path for luksimg.

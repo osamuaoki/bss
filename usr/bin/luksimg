@@ -10,7 +10,7 @@
 # Ensure to be in home directory
 cd
 ### VARIABLES ###
-LUKSIMG_VERSION="1.2.1"
+LUKSIMG_VERSION="1.2.2"
 LUKSIMG="${0##*/}"
 # rsync source path name for "bss copy"
 # directory name of disk image file

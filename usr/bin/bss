@@ -7,7 +7,7 @@
 # Copyright 2022 (C) Osamu Aoki <osamu@debian.org>
 # License: GPL 2+
 ##############################################################################
-BSS_VERSION="1.2.1"
+BSS_VERSION="1.2.2"
 
 EXIT_SUCCESS=0
 EXIT_ERROR=1
@@ -641,9 +641,9 @@ __age() {
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Drop special TYPE
-    # Classify: TAGE >= TMAX and TMAX>0 and TYPE = post
+    # Classify: TAGE >= TMAX and TMAX>0 and TYPE = post or last
     #########################################################################
-    elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TYPE" = "post" ]; then
+    elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && { [ "$BSS_TYPE" = "post" ] || [ "$BSS_TYPE" = "last" ] ; } ; then
       __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TYPE=$BSS_TYPE (drop: special TYPE, after TMAX)"
       echo "---_$BSS_SV"
     #########################################################################
@@ -682,9 +682,9 @@ __age() {
     #########################################################################
     #########################################################################
     # Drop special TYPE
-    # Classify: TAGE >= TMID and TYPE = post
+    # Classify: TAGE >= TMID and TYPE = post or last
     #########################################################################
-    elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TYPE" = "post" ]; then
+    elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && { [ "$BSS_TYPE" = "post" ] || [ "$BSS_TYPE" = "last" ] ; }; then
       __echo 2 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TYPE=$BSS_TYPE (drop: special TYPE, after TMID)"
       echo "---_$BSS_SV"
     #########################################################################
@@ -733,9 +733,9 @@ __age() {
       BSS_TSTEP=$((BSS_TLAST*BSS_STEP/100))
     #########################################################################
     # Keep special TYPE
-    # Classify: TAGE >= TMIN and TYPE = specials
+    # Classify: TAGE >= TMIN and TYPE = last
     #########################################################################
-    elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && { [ "$BSS_TYPE" = "pre" ] || [ "$BSS_TYPE" = "last" ] ; } ; then
+    elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TYPE" = "last" ] ; then
       __echo 2 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TYPE=$BSS_TYPE (keep: special TYPE, update step, after TMIN)"
       echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
@@ -986,19 +986,25 @@ __rsync () {
     exit $EXIT_ERROR
   fi
   if [ -x "$BSS_SNAP_DEST_BASE/$PRE_COPY_SCRIPT" ]; then
-    __echo 2 "Run $PRE_COPY_SCRIPT before copy"
+    __echo 2 "Run $PRE_COPY_SCRIPT before copy for BASE=$FS_BASE FS=$FS_TYPE"
     # shellcheck disable=SC1090
     . "$BSS_SNAP_DEST_BASE/$PRE_COPY_SCRIPT"
   fi
+  if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
+    # absolute local path
+    RSYNC_OPTS="$RSYNC_OPTA"
+  else
+    RSYNC_OPTS="$RSYNC_OPTR"
+  fi
   # relaxed rule to allow missing tailing /
+  # make snapshot first
   if [ "$FS_TYPE" = "btrfs" ]; then
-    __echo 2 "Make copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
-    if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
-      # absolute local path
-      RSYNC_OPTS="$RSYNC_OPTA"
-    else
-      RSYNC_OPTS="$RSYNC_OPTR"
+    # make snapshot
+    if [ "$BSS_TYPE" = "single" ]; then
+      BSS_TYPE='copy'
     fi
+    __snapshot
+    __echo 2 "Make copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/ FS=$FS_TYPE"
     # --filter to exclude $BSS directory
     # Hidden undocumented argument handling: $@ (after source)
     # shellcheck disable=SC2086
@@ -1006,15 +1012,9 @@ __rsync () {
         "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}/" \
         "$BSS_COPY_DEST/"
     # Since this could be slow long process, record ending
-    __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/"
+    __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/ FS=$FS_TYPE"
   elif [ "$FS_TYPE" = "ext2/ext3" ]; then
-    __echo 2 "Make copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/"
-    if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
-      # absolute local path
-      RSYNC_OPTS="$RSYNC_OPTA"
-    else
-      RSYNC_OPTS="$RSYNC_OPTR"
-    fi
+    __echo 2 "Make copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/ FS=$FS_TYPE "
     # --filter to exclude $BSS directory
     # Hidden undocumented argument handling: $@ (after source)
     # shellcheck disable=SC2086
@@ -1022,13 +1022,13 @@ __rsync () {
         "$FS_BASE/" \
         "$BSS_COPY_DEST/"
     # Since this could be slow long process, record ending
-    __echo 2 "... Successfully made copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/"
+    __echo 2 "... Successfully made copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/ FS=$FS_TYPE "
   else
     __echo 0 "copy for unknown FS=$FS_TYPE requested."
     exit $EXIT_ERROR
   fi
   if [ -x "$BSS_SNAP_DEST_BASE/$POST_COPY_SCRIPT" ]; then
-    __echo 2 "Run $POST_COPY_SCRIPT after copy"
+    __echo 2 "Run $POST_COPY_SCRIPT after copy for BASE=$FS_BASE FS=$FS_TYPE"
     # shellcheck disable=SC1090
     . "$BSS_SNAP_DEST_BASE/$POST_COPY_SCRIPT"
   fi
@@ -1502,12 +1502,6 @@ case "$BSS_COMMAND" in
     ;;
   c*) # copy
     __load_config
-    if [ "$FS_TYPE" = "btrfs" ]; then
-      if [ "$BSS_TYPE" = "single" ]; then
-        BSS_TYPE='copy'
-      fi
-      __snapshot
-    fi
     __rsync "$@"
     ;;
   h*|'') # help
