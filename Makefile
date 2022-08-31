@@ -3,13 +3,14 @@ prefix = /
 #prefix = /usr/local
 
 
-# For finishing 
+# For finishing
 
 all:
 	: Do nothing
 
 install:
 	install -m 755 -D usr/bin/bss                                   $(DESTDIR)$(prefix)/usr/bin/bss
+	install -m 644 -D usr/share/bss/common.sh                       $(DESTDIR)$(prefix)/usr/share/bss/common.sh
 	install -m 644 -D usr/share/bash-completion/completions/bss     $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/bss
 	install -m 644 -D usr/share/man/man1/bss.1                      $(DESTDIR)$(prefix)/usr/share/man/man1/bss.1
 	install -m 755 -D usr/bin/luksimg                               $(DESTDIR)$(prefix)/usr/bin/luksimg
@@ -27,28 +28,25 @@ distclean: clean
 
 #### Since there is no guarantee how help2man output is consistently formatted and
 #### it may cause patch to choke, this not-so-robust part of code is outside of
-#### normal build since this is just for synchronizing documentation with the
+#### normal build since this is just for s ynchronizing documentation with the
 #### script.
 
 # This is used during package build, too.
 test:
+	# sanity check of shell code
 	sh -n usr/bin/bss
 	sh -n usr/bin/luksimg
-	# check version
+	sh -n usr/share/bss/common.sh
+	# check version consistency
 	if [ -d debian ] && [ -r debian/changelog ]; then \
 		D_VER=$$(dpkg-parsechangelog -S Version) ; \
 		U_VER=$$(sed -n -e '/^BSS_VERSION=/s/"//g' \
 			-e "/^BSS_VERSION=/s/'//g" \
-			-e '/^BSS_VERSION=/s/BSS_VERSION=//p' usr/bin/bss) ; \
+			-e '/^BSS_VERSION=/s/BSS_VERSION=//p' usr/share/bss/common.sh) ; \
+		echo "    --> Version in debian/changelog         $${D_VER%-*}" ; \
+		echo "    --> Version in usr/share/bss/common.sh  $$U_VER" ; \
 		if [ "$$U_VER" != "$${D_VER%-*}" ]; then \
-			echo "ERROR: version mismatch between debian/changelog and usr/bin/bss" ; \
-			exit 1 ; \
-		fi ; \
-		U_VER=$$(sed -n -e '/^LUKSIMG_VERSION=/s/"//g' \
-			-e "/^LUKSIMG_VERSION=/s/'//g" \
-			-e '/^LUKSIMG_VERSION=/s/LUKSIMG_VERSION=//p' usr/bin/luksimg) ; \
-		if [ "$$U_VER" != "$${D_VER%-*}" ]; then \
-			echo "ERROR: version mismatch between debian/changelog and usr/bin/luksimg" ; \
+			echo "ERROR: version mismatch between debian/changelog and usr/share/bss/common.sh" ; \
 			exit 1 ; \
 		fi ; \
 	fi

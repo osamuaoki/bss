@@ -7,18 +7,17 @@
 # Copyright 2022 (C) Osamu Aoki <osamu@debian.org>
 # License: GPL 2+
 ##############################################################################
-BSS_VERSION="1.2.2"
-
-EXIT_SUCCESS=0
-EXIT_ERROR=1
+USRBIN="$(realpath "${0%/*}/.")" # /usr/bin
+. "${USRBIN%/*}/share/bss/common.sh"
 
 __help () {
 cat << END_OF_HELP
-Usage: $BSS [OPTIONS] SUBCOMMAND [PATH [[ARG]...]
+Usage: $BSS [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
 
 "$BSS" is basically a "btrfs subvolume ..." command wrapper to create and
 process historical snapshots with the intuitive snapshot subvolume name and
-flexible data aging capabilities.
+flexible data aging capabilities.  (Some subcommands can work with ext2/3/4fs,
+too.)
 
 "$BSS" operates on the btrfs subvolume pointed by the first optional argument
 PATH.  PATH can point to anywhere within this source btrfs subvolume.  The
@@ -67,8 +66,8 @@ OPTIONS:
                   (after APT), "hour" (on boot and every hour).
                   If "keep" is specified, the snapshot with it will be
                   kept forever under the normal aging process.
-  -c,--conf RC    use "RC.$EXT_CONF" and "RC.$EXT_FLTR" instead of their
-                  default "$BSS_CONF" and "$BSS_FLTR"
+  -c,--conf RC    use "RC.$EXT_CONF", "RC.$EXT_FLTR" etc. instead of their
+                  default "$BSS_CONF", "$BSS_FLTR" etc.
   -f,--force      force to reapply filter
   -n,--noop       no file nor filesystem modification by prepending pertinent
                   internal commands with "echo __"
@@ -91,7 +90,7 @@ SUBCOMMAND:
   jobs:     list all systemd timer schedule jobs for $BSS
   list:     list all snapshots
   age:      assess aging status of all snapshots
-  base:     print the BASE directory for "$BSS"
+  backup:   backup files into this file system based on "$BSS_DIR/$BSS_LIST"
   filter:   create a filtered snapshot from the specified snapshot in
             "$BSS_DIR/" as <specified_subvol_name>_filter
   revert:   make snapshot <ISO_8601_date>.last and replace the subvolume at the
@@ -104,6 +103,7 @@ SUBCOMMAND:
   template: make template files in the "$BSS_DIR/" directory:
               "$BSS_CONF" (aging rule)
               "$BSS_FLTR" (filtering rule)
+  BASE:     print the BASE directory for "$BSS"
 
 Subcommands may be shortened to a single character.
 
@@ -133,8 +133,12 @@ specifies the action which can be:
 Unless you have specific reasons to use "$BSS zap", you should consider to use
 "$BSS process" to prune outdated snapshots.
 
-For "$BSS" revert PATH PATH_OLD", subvolume at PATH is replaced by the
+For "$BSS revert PATH PATH_OLD", subvolume at PATH is replaced by the
 subvolume at PATH_OLD.  PATH can't be set to "/".
+
+For "$BSS backup [PATH [PREFIX]]", files listed in "$BSS_DIR/$BSS_LIST" are
+copied into BASE_PATH/PREFIX.  The relative path are located from the user's
+home directory. The default for PREFIX is "backup".
 
 NOTE:
 
@@ -155,7 +159,7 @@ the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
 
 You can make a snapshot just by "$BSS" alone.
 
-You can use verbose "$BSS -v base" command to print current effective
+You can use verbose "$BSS -v BASE" command to print current effective
 configuration parameters without side effects.
 
 This "$BSS" command uses systemd journal.  You can check recent invocation with:
@@ -164,7 +168,7 @@ This "$BSS" command uses systemd journal.  You can check recent invocation with:
 
 CAVEAT:
 
-The source filesystem must be btrfs.
+The source filesystem must be btrfs for many subcommands.
 
 The non-root user who executes this command must be a member of "sudo".
 
@@ -182,8 +186,9 @@ should manually mount using "/etc/fstab" for all subvolumes under the subvolume
 to run "revert" operation and manage them separately to keep the system
 recoverable since the snapshot operation isn't recursive.
 
-Although this "$BSS" focuses on btrfs, there is minimal upport for ext2/ext3
-(this includes ext4) for "$BSS copy ..." without using the snapshot. 
+Although this "$BSS" focuses on btrfs, there is minimal support for ext2/ext3
+(this includes ext4) for "$BSS copy ...", "$BSS backup ...", and "$BSS
+template". 
 
 Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
 END_OF_HELP
@@ -208,48 +213,6 @@ EOM
 #############################################################################
 # Constants
 #############################################################################
-BSS="${0##*/}"
-BSS_LOGGER=0
-BSS_LOGGER_LEVEL="2"
-BSS_DIR=".bss.d"
-BSS_TYPE="single" # single, pre, post, hour, ...
-EXT_CONF="conf"
-EXT_FLTR="fltr"
-EXT_COPY_PRE="pre_copy_script"
-EXT_COPY_POST="post_copy_script"
-BSS_STEM=".$BSS"
-BSS_CONF="$BSS_STEM.$EXT_CONF"
-BSS_FLTR="$BSS_STEM.$EXT_FLTR"
-PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
-POST_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_POST"
-NOW_TSTR=$(date -u --iso=second) # time stamp string
-NOW_TEPO=$(date +%s -d"$NOW_TSTR") # unix epoch
-BSS_NMIN="3"             # minimum items to keep (initial)
-BSS_NMAX="0"             # maximum items to keep (0 for no_limit)
-BSS_TMAX="60*60*24*1000" # ~3YR    (time to stop aging)
-BSS_TMAX_ACTION="keep"   # keep (default) or drop
-BSS_TMID="60*60*24*2"    # 2 days (time to actually process snapshots)
-BSS_TMID_ACTION="no_filter"  # No filter (it's CPU and SSD consuming)
-BSS_TMIN="60*10"         # 10 Min. (time to start aging)
-BSS_STEP="20"            # 20 % as aging step
-BSS_FMIN="10"            # minimum required free disk % for snapshot
-BSS_COPY_DEST=""
-BSS_SNAP_DEST=""
-BSS_ZAP_ACTIVE="false"
-BSS_FORCE=""
-NOOP=""
-SETX_ON=""
-SETX_OFF=""
-if [ "$(id -u)" = "0" ]; then
-  SUDO=""
-else
-  if which sudo >/dev/null; then
-    SUDO="sudo"
-  else
-    __echo 0 "Please install 'sudo' and configure it."
-    exit $EXIT_ERROR
-  fi
-fi
 BSV="$SUDO btrfs subvolume"
 RSYNC="$SUDO rsync"
 # Use readonly snapshot as the rsync source
@@ -259,73 +222,44 @@ RSYNC="$SUDO rsync"
 # S: sparse
 # v: verbose
 # z: compress
-
 # less cpu load
-RSYNC_OPTA="-aHxSv --delete"
+RSYNC_OPTA="-aHxS --delete"
 # less communication bandwidth
-RSYNC_OPTR="-aHxSzv --delete"
-
-#############################################################################
-# System Functions (echo and trap)
-##############################################################################
-# v--- BSS_LOGGER_LEVEL
-#   v--- SYSTEMD LOGGER_LEVEL
-# 0 3 W:   Err       Print error
-# 1 4 W:   Warning   Print warning        (-q)
-# 2 5 N:   Notice    Print notice only    (normal)
-# 3 6 I:   Info      Print verbose output (-v)
-# 4 7 D:   Debug     Print Debug output   (-vv)
-__echo () {
-  $SETX_OFF
-  BSS_MSG_LEVEL="$1"
-  shift
-  if [ "$BSS_LOGGER_LEVEL" -ge "$BSS_MSG_LEVEL" ]; then
-    case $BSS_MSG_LEVEL in
-      0) echo "E: $*" >&2
-        ;;
-      1) echo "W: $*" >&2
-        ;;
-      2) echo "N: $*" >&2
-        ;;
-      3) echo "I: $*" >&2
-        ;;
-      4|5|6|7) echo "D: $*" >&2
-        ;;
-    esac
-    if [ "$BSS_LOGGER" = "1" ]; then
-      case $BSS_MSG_LEVEL in
-        0) systemd-cat -p 3 -t "bss" echo "$*"
-          ;;
-        1) systemd-cat -p 4 -t "bss" echo "$*"
-          ;;
-        2) systemd-cat -p 5 -t "bss" echo "$*"
-          ;;
-        3) systemd-cat -p 6 -t "bss" echo "$*"
-          ;;
-        4|5|6|7) systemd-cat -p 7 -t "bss" echo "$*"
-          ;;
-      esac
-    fi
-  fi
-  $SETX_ON
-}
-
-# traps
-__term_exit () {
-  __echo 0 "Process externally interrupted.  Terminating."
-  exit $EXIT_ERROR
-}
-trap '__term_exit' HUP INT QUIT TERM
-# dash: EXIT (but no ERR)
-__err_exit () {
-  __echo 0 "Internal process returned an error exit.  Terminating."
-  exit $EXIT_ERROR
-}
-__exit_exit () {
-  # No error exit
-  exit $EXIT_SUCCESS
-}
-trap '[ $? -eq 0 ] && __exit_exit || __err_exit' EXIT
+RSYNC_OPTR="-aHxSz --delete"
+#
+BSS="${0##*/}"
+PROG_NAME="$BSS"
+BSS_LOGGER=0
+BSS_LOGGER_LEVEL="2"
+BSS_DIR=".bss.d"
+BSS_TYPE="single" # single, pre, post, hour, ...
+EXT_CONF="conf"
+EXT_FLTR="fltr"
+EXT_LIST="list"
+EXT_COPY_PRE="pre_copy_script"
+EXT_COPY_POST="post_copy_script"
+BSS_STEM=".$BSS"
+NOW_TSTR=$(date -u --iso=second) # time stamp string
+NOW_TEPO=$(date +%s -d"$NOW_TSTR") # unix epoch
+BSS_NMIN="3"             # minimum items to keep (initial)
+BSS_NMAX="0"             # maximum items to keep (0 for no_limit)
+BSS_TMAX="60*60*24*1000" # ~3YR    (time to stop aging)
+BSS_TMAX_ACTION="keep"   # keep (default) or drop
+BSS_TMID="60*60*24*2"    # 2 days (time to actually process snapshots)
+BSS_TMID_ACTION="no_filter"  # No filter (it's CPU and SSD consuming)
+BSS_TMIN="3*60*60"       # 3 hours (time to start aging)
+BSS_STEP="20"            # 20 % as aging step
+BSS_FMIN="10"            # minimum required free disk % for snapshot
+BSS_COPY_DEST=""
+BSS_SNAP_DEST=""
+BSS_ZAP_ACTIVE="false"
+BSS_FORCE=""
+# Set these for __help
+BSS_CONF="$BSS_STEM.$EXT_CONF"
+BSS_FLTR="$BSS_STEM.$EXT_FLTR"
+BSS_LIST="$BSS_STEM.$EXT_LIST"
+PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
+POST_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_POST"
 
 ##############################################################################
 # @brief             convert $1 in seconds to day.hh:mm:ss string
@@ -985,16 +919,16 @@ __rsync () {
     __echo 0 "No copy destination given (or was /)"
     exit $EXIT_ERROR
   fi
-  if [ -x "$BSS_SNAP_DEST_BASE/$PRE_COPY_SCRIPT" ]; then
+  if [ -x "$BSS_PRE_COPY_SCRIPT_BASE" ]; then
     __echo 2 "Run $PRE_COPY_SCRIPT before copy for BASE=$FS_BASE FS=$FS_TYPE"
     # shellcheck disable=SC1090
-    . "$BSS_SNAP_DEST_BASE/$PRE_COPY_SCRIPT"
+    . "$BSS_PRE_COPY_SCRIPT_BASE"
   fi
   if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ]; then
     # absolute local path
-    RSYNC_OPTS="$RSYNC_OPTA"
+    RSYNC_OPTS="$RSYNC_OPTA $VERBOSE"
   else
-    RSYNC_OPTS="$RSYNC_OPTR"
+    RSYNC_OPTS="$RSYNC_OPTR $VERBOSE"
   fi
   # relaxed rule to allow missing tailing /
   # make snapshot first
@@ -1027,11 +961,35 @@ __rsync () {
     __echo 0 "copy for unknown FS=$FS_TYPE requested."
     exit $EXIT_ERROR
   fi
-  if [ -x "$BSS_SNAP_DEST_BASE/$POST_COPY_SCRIPT" ]; then
+  if [ -x "$BSS_POST_COPY_SCRIPT_BASE" ]; then
     __echo 2 "Run $POST_COPY_SCRIPT after copy for BASE=$FS_BASE FS=$FS_TYPE"
     # shellcheck disable=SC1090
-    . "$BSS_SNAP_DEST_BASE/$POST_COPY_SCRIPT"
+    . "$BSS_POST_COPY_SCRIPT_BASE"
   fi
+}
+##############################################################################
+__rsync_backup () {
+  DEST_DIR="${FS_BASE}/${1:-backup}/"
+  cd
+  __echo 2 "back up to $DEST_DIR, cwd=$(cwd)"
+  grep -v -e "^#"  "$BSS_LIST_BASE" | \
+  while read -r F ; do
+    # remove tailing / if exists
+    G="$(realpath "$F")"
+    D="$(dirname "$G")"
+    if [ ! -d "$D" ]; then
+      __echo 0 "backup missing parent directory (no shell glob, please): $D"
+      exit $EXIT_ERROR
+    fi
+    # all local transfer no-need to be verbose
+    # shell wild card allowed for $F, cwd=$HOME
+    $LOGGER $NOOP mkdir -p "$DEST_DIR/$D"
+    # --filter to exclude $BSS directory
+    # Hidden undocumented argument handling: $@ (after source)
+    # shellcheck disable=SC2086
+    $LOGGER $NOOP $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+      $F "$DEST_DIR/$D"
+  done
 }
 ##############################################################################
 __template () {
@@ -1357,12 +1315,18 @@ while [ -n "$1" ]; do
   esac
   shift
 done
-# derivative parameters
+# update parameters for -c
 BSS_CONF="$BSS_STEM.$EXT_CONF"
 BSS_FLTR="$BSS_STEM.$EXT_FLTR"
+BSS_LIST="$BSS_STEM.$EXT_LIST"
+PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
+POST_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_POST"
 $SETX_ON
+if [ "$BSS_LOGGER_LEVEL" -ge 3 ]; then
+  VERBOSE="-v"
+fi
 if [ "$BSS_LOGGER" = "1" ]; then
-  case $BSS_MSG_LEVEL in
+  case $BSS_LOGGER_LEVEL in
     0) LOGGER="systemd-cat -p 3 -t bss"
       ;;
     1) LOGGER="systemd-cat -p 4 -t bss"
@@ -1435,14 +1399,19 @@ fi
 # FS_BASE: root of btrfs subvolume
 FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
 FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
+# derivative parameters
 BSS_DIR_BASE="${FS_BASE%/}/$BSS_DIR"
 BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
 BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
+BSS_LIST_BASE="$BSS_DIR_BASE/$BSS_LIST"
+BSS_PRE_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$PRE_COPY_SCRIPT"
+BSS_POST_COPY_SCRIPT="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
 
 ##############################################################################
 __echo 4 "NOOP             = '$NOOP'"
 __echo 4 "BSS_CONF         = '$BSS_CONF'"
 __echo 4 "BSS_FLTR         = '$BSS_FLTR'"
+__echo 4 "BSS_LIST         = '$BSS_LIST'"
 __echo 4 "BSS_TYPE         = '$BSS_TYPE'"
 __echo 4 "BSS_LOGGER       = '$BSS_LOGGER'"
 __echo 4 "BSS_LOGGER_LEVEL = '$BSS_LOGGER_LEVEL'"
@@ -1477,7 +1446,7 @@ case "$BSS_COMMAND" in
   j*) # jobs
     __jobs
     ;;
-  b*) # base
+  B*) # base
     echo "$FS_BASE"
     __load_config
     ;;
@@ -1503,6 +1472,10 @@ case "$BSS_COMMAND" in
   c*) # copy
     __load_config
     __rsync "$@"
+    ;;
+  b*) # backup
+    __load_config
+    __rsync_backup "$@"
     ;;
   h*|'') # help
     __help
