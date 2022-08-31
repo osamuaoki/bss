@@ -7,85 +7,74 @@
 #
 # See /usr/share/doc/bss/examples/README.md
 #
-# Ensure to be in home directory
-cd
+# common shell code
+USRBIN="$(realpath "${0%/*}/.")" # /usr/bin
+. "${USRBIN%/*}/share/bss/common.sh"
 ### VARIABLES ###
-LUKSIMG_VERSION="1.2.2"
-LUKSIMG="${0##*/}"
-# rsync source path name for "bss copy"
-# directory name of disk image file
-DISK_IMG_DIR="${DISK_IMG_DIR:-rsync}"
-# device mapper target name
-DISK_IMG_FILE="${DISK_IMG_FILE:-secret}"
-# disk image file name with .img
-DISK_IMG_PATH="$DISK_IMG_DIR/$DISK_IMG_FILE.img"
-# device mapper path
-DEV_MAPPER_PATH="/dev/mapper/$DISK_IMG_FILE"
-# mount path
-MNT_PATH="$DISK_IMG_FILE"
-# config path
-CONF_PATH=".${DISK_IMG_FILE}rc"
+PROG_NAME="${0##*/}"
 # set mode
 ECHO="echo"
-TSLEEP="0"
 SECRET_TOOL="YES"
 SIZE_DISK="16G"
 
-EXIT_SUCCESS=0
-EXIT_ERROR=1
-
+BSS_LOGGER=0
+BSS_LOGGER_LEVEL="2"
+# rsync source path name for use by "bss copy" for untrusted remote backup
+# directory name to place encrypted disk image
+XRSYNC="rsync"
+# device mapper target name
+XSECRET="secret"
 ### FUNCTIONS ###
-help () {
+__help () {
 cat << END_OF_HELP
-Usage: ${LUKSIMG} [ new [size] | [-j|-p] [mount|backup|umount|one]...]
+Usage: ${PROG_NAME} [-r RSYNC|-s SECRET] [-l|-a] [n [size]|o|m|b|u|c|a]
 
-"$LUKSIMG" helps to create and update LUKS encrypted disk image.
+"$PROG_NAME" helps to create and update LUKS encrypted disk image.
 
 OPTION:
 
--j      use journald to record log (useful for systemd timer service)
+-r RSYNC        use '~/RSYNC/' insted of '~/rsync/' to place the
+                LUKS encrypted disk image file.
 
--p      ask passphrase to unlock LUKS encryption (Uunless this is set, GNOME
-        secret-tool is used to obtain passphrase)
+-s SECRET       use '~/rsync/SECRET.img' insted of '~/rsync/secret.img'
+                for the LUKS encrypted disk image file.
+
+-l, --logger    use journald to record log (useful for systemd timer service)
+
+-a, --ask       ask passphrase to unlock LUKS encryption (Unless this is set,
+                GNOME secret-tool is used to obtain passphrase)
 
 COMMAND:
 
 Multiple commands may be specified to execute them in sequence.
 
 new [size]:
-        make a new disk image /rsync/secret.img formatted as ext4 filesystem
-        on LUKS encrypted volume. The size can be optionally specified, e.g.
-        as '32G'
-mount:  decrypt disk image /rsync/secret.img to create a device-mapper device
-        /dev/device-mapper/secret and mount it to ~/secret
-backup: backup to ~/secret/relative_path for files and directories listed in
-        ~/.secretrc as relative path; or to ~/secret/absolute_path for ones
-        listed in it as absolute path.
-umount: umount disk image and disable decrypted device-mapper device
-one:    Do mount -> backup -> umount in one action
+        make a new sparse disk image '~/rsync/secret.img' formatted as
+        ext4 filesystem on LUKS encrypted volume. The size can be
+        optionally specified, e.g. as '32G'
+open:   decrypt the LUKS disk image '~/rsync/secret.img' to create a
+        device-mapper device '/dev/device-mapper/secret'
+mount:  mount the device-mapper device '/dev/device-mapper/secret' onto
+        '~/rsync/secret.mnt'
+backup: backup files specified in '~/.secretrc' to '~/secret.mnt/'
+umount: umount the device-mapper device '/dev/device-mapper/secret'
+        from '~/secret.mnt/'
+close:  close the device-mapper device '/dev/device-mapper/secret'
+all:    perform all actions: open -> mount -> backup -> umount -> close
 
 These commands may be shortened if they aren't ambiguous.
-
-ENVIRONMENT:
-
-DISK_IMG_FILE:
-        Set this to the file name (w/o extension ".img") of the disk image.
-        This is used for the associated backup configuration file name, device
-        mapper name and mount point name. (default: secret)
-DISK_IMG_DIR:
-        Set this to the directory name of the disk image. (default: rsync)
 
 See /usr/share/doc/bss/examples/README.md or
     https://github.com/osamuaoki/bss/tree/main/examples
 
-Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2023 Osamu Aoki <osamu@debian.org>, GPL 2+
 END_OF_HELP
 }
-version () {
+__version () {
 cat << EOM
-$LUKSIMG ($LUKSIMG_VERSION)
+$PROG_NAME ($BSS_VERSION)
 
-Copyright (C) 2022 Osamu Aoki <osamu@debian.org>
+Copyright (C) 2023 Osamu Aoki <osamu@debian.org>
 
 License GPLv2+: GNU GPL version 2 or later
 <https://gnu.org/licenses/gpl-2.0.html>.  This is free software: you are free
@@ -94,41 +83,68 @@ by law.
 
 Written by Osamu Aoki.
 EOM
-
 }
-
-new_secret () {
-  # create a new luks disk image with ext4
-  if ! secret-tool lookup LUKS "$DISK_IMG_PATH" >/dev/null ; then
-    echo "I: Setup passphrase for LUKS: $DISK_IMG_PATH" >&2
-    secret-tool store --label="LUKS $DISK_IMG_PATH" LUKS "$DISK_IMG_PATH"
+__new_disk_image () {
+  # this is always called from console
+  # create a new LUKS disk image formatted with ext4
+  if ! secret-tool lookup LUKS "$DISK_IMAGE" >/dev/null ; then
+    echo "I: Setup passphrase for LUKS: $DISK_IMAGE" >&2
+    secret-tool store --label="LUKS $DISK_IMAGE" LUKS "$DISK_IMAGE"
   else
-    echo "I: Passphrase for LUKS aleady stored: $DISK_IMG_PATH" >&2
+    echo "I: Passphrase for LUKS aleady stored: $DISK_IMAGE" >&2
   fi
-  echo "I: create $SIZE_DISK image: $DISK_IMG_PATH" >&2
-  fallocate -l "$SIZE_DISK" "$DISK_IMG_PATH"
-  echo "I: create LUKS in $DISK_IMG_PATH" >&2
-  secret-tool lookup LUKS "$DISK_IMG_PATH" | \
-    cryptsetup luksFormat "$DISK_IMG_PATH" -
+  echo "I: create $SIZE_DISK image: $DISK_IMAGE" >&2
+  fallocate -l "$SIZE_DISK" "$DISK_IMAGE"
+  echo "I: create LUKS in $DISK_IMAGE" >&2
+  secret-tool lookup LUKS "$DISK_IMAGE" | \
+    cryptsetup luksFormat "$DISK_IMAGE" -
   echo "I: open LUKS as $DEV_MAPPER_PATH" >&2
-  secret-tool lookup LUKS "$DISK_IMG_PATH" | \
-    sudo cryptsetup open "$DISK_IMG_PATH" "$DISK_IMG_FILE" --type luks
+  secret-tool lookup LUKS "$DISK_IMAGE" | \
+    sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
   echo "I: create btrfs in $DEV_MAPPER_PATH" >&2
-  sudo mkfs.ext4 -L "$DISK_IMG_FILE" "$DEV_MAPPER_PATH"
+  sudo mkfs.ext4 -L "$XSECRET" "$DEV_MAPPER_PATH"
   echo "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
   sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
   echo "I: set $MNT_PATH to UID:GID=1000:1000" >&2
   sudo chown "1000:1000" "$MNT_PATH"
   {
     echo "!!! Don't use this ~/$MNT_PATH/ as working directory        !!!"
-    echo "!!! $LUKSIMG copies files listed in ~/$CONF_PATH into here !!!"
+    echo "!!! $PROG_NAME copies files listed in ~/$CONF_PATH into here !!!"
+  } > "$MNT_PATH/00_DO_NOT_USE_THIS_AS_WORKING_DIRECTORY"
+}
+new_secret () {
+  # this is always called from console
+  # create a new luks disk image with ext4
+  if ! secret-tool lookup LUKS "$DISK_IMAGE" >/dev/null ; then
+    echo "I: Setup passphrase for LUKS: $DISK_IMAGE" >&2
+    secret-tool store --label="LUKS $DISK_IMAGE" LUKS "$DISK_IMAGE"
+  else
+    echo "I: Passphrase for LUKS aleady stored: $DISK_IMAGE" >&2
+  fi
+  echo "I: create $SIZE_DISK image: $DISK_IMAGE" >&2
+  fallocate -l "$SIZE_DISK" "$DISK_IMAGE"
+  echo "I: create LUKS in $DISK_IMAGE" >&2
+  secret-tool lookup LUKS "$DISK_IMAGE" | \
+    cryptsetup luksFormat "$DISK_IMAGE" -
+  echo "I: open LUKS as $DEV_MAPPER_PATH" >&2
+  secret-tool lookup LUKS "$DISK_IMAGE" | \
+    sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
+  echo "I: create btrfs in $DEV_MAPPER_PATH" >&2
+  sudo mkfs.ext4 -L "$XSECRET" "$DEV_MAPPER_PATH"
+  echo "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
+  sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
+  echo "I: set $MNT_PATH to UID:GID=1000:1000" >&2
+  sudo chown "1000:1000" "$MNT_PATH"
+  {
+    echo "!!! Don't use this ~/$MNT_PATH/ as working directory        !!!"
+    echo "!!! $PROG_NAME copies files listed in ~/$CONF_PATH into here !!!"
   } > "$MNT_PATH/00_DO_NOT_USE_THIS_AS_WORKING_DIRECTORY"
 }
 
 mount_secret () {
-  if [ ! -e "$DISK_IMG_PATH" ]; then
-    $ECHO "E: disk image missing: $DISK_IMG_PATH"
-    $ECHO "I: create disk image interactively as: $LUKSIMG new [size]"
+  if [ ! -e "$DISK_IMAGE" ]; then
+    $ECHO "E: disk image missing: $DISK_IMAGE"
+    $ECHO "I: create disk image interactively as: $PROG_NAME new [size]"
     exit $EXIT_ERROR
   fi
   # let's mount
@@ -136,12 +152,12 @@ mount_secret () {
     $ECHO "I: skip mounting:   $DEV_MAPPER_PATH on $MNT_PATH"
     $ECHO "I: already mounted: $(mount|grep -e "$MNT_PATH"|sed 's/type.*$//')"
   else
-    $ECHO "I: unlock LUKS disk image $DISK_IMG_PATH as $DEV_MAPPER_PATH"
+    $ECHO "I: unlock LUKS disk image $DISK_IMAGE as $DEV_MAPPER_PATH"
     if [ "$SECRET_TOOL" = "YES" ]; then
-      secret-tool lookup LUKS "$DISK_IMG_PATH" | \
-        sudo cryptsetup open "$DISK_IMG_PATH" "$DISK_IMG_FILE" --type luks
+      secret-tool lookup LUKS "$DISK_IMAGE" | \
+        sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
     else
-      sudo cryptsetup open "$DISK_IMG_PATH" "$DISK_IMG_FILE" --type luks
+      sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
     fi
     $ECHO "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
     sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
@@ -154,7 +170,7 @@ mount_secret () {
 
 backup_secret () {
   if [ ! -e "$MNT_PATH" ]; then
-    $ECHO "E: backup destination directory missing: $DISK_IMG_PATH"
+    $ECHO "E: backup destination directory missing: $MNT_PATH"
     exit $EXIT_ERROR
   fi
   $ECHO "I: back up to $MNT_PATH"
@@ -203,22 +219,18 @@ unmount_secret () {
 }
 
 close_luks () {
-  $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE ..."
-  if sudo cryptsetup close "$DISK_IMG_FILE" ; then
-    $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE done"
+  $ECHO "I: cryptsetup close disk image at $XSECRET ..."
+  if sudo cryptsetup close "$XSECRET" ; then
+    $ECHO "I: cryptsetup close disk image at $XSECRET done"
   else
-    $ECHO "I: cryptsetup close disk image at $DISK_IMG_FILE with error"
+    $ECHO "I: cryptsetup close disk image at $XSECRET with error"
   fi
 }
 
-
-### MAIN ###
-
-mkdir -p "$MNT_PATH"
-
-if [ ! -e "$CONF_PATH" ]; then
-  # if template configuration file is missing, create it
-  cat >"$CONF_PATH" <<EOF
+template_conf () {
+  if [ ! -e "$CONF_PATH" ]; then
+    # if template configuration file is missing, create it
+    cat >"$CONF_PATH" <<EOF
 # Edit this to adopt to the system
 ####################################
 # Files to backup (shell glob OK)
@@ -256,9 +268,113 @@ bin
 /etc
 /boot/grub
 EOF
+  fi
+}
+
+##############################################################################
+### MAIN ###
+##############################################################################
+# Parse Command Line
+##############################################################################
+# The quotes around "$@" are essential!
+# We need TEMP as the 'eval set --' would nuke the return value of getopt.
+TEMP=$(getopt -o 'r:s:lanqvxh' -n "${PROG_NAME}" \
+  --long 'rsync:,secret:,logger,ask:,noop,quiet,version,verbose,trace,help' -- "$@")
+# Note the quotes around "$TEMP": they are essential!
+#echo "DEBUG: ***** TEMP='$TEMP'"
+eval set -- "$TEMP"
+unset TEMP
+# OPTIONS
+while [ -n "$1" ]; do
+  case "$1" in
+    -r|--rsync)
+      shift
+      XRSYNC="${1:-rsync}"
+      shift
+      ;;
+    -s|--secret)
+      shift
+      XSECRET="${1:-secret}"
+      shift
+      ;;
+    -l|--log*)
+      BSS_LOGGER=1
+      ;;
+    -a|--ask)
+      SECRET_TOOL="NO"
+      ;;
+    -n|--noop)
+      NOOP="echo __" # ANY non ""
+      ;;
+    -q|--quiet)
+      BSS_LOGGER_LEVEL=1
+      ;;
+    --version)
+      __version
+      exit $EXIT_SUCCESS
+      ;;
+    -v|--verbose)
+      BSS_LOGGER_LEVEL=$((BSS_LOGGER_LEVEL+1))
+      ;;
+    -x|--trace)
+      SETX_ON="set -x"
+      SETX_OFF="set +x"
+      ;;
+    -h|--help)
+      __help
+      exit $EXIT_SUCCESS
+      ;;
+    '--')
+      shift
+      break
+    ;;
+    -*)
+      echo "E: Unknown option: '$1'" >&2
+      __help
+      exit $EXIT_ERROR
+    ;;
+    *)
+      # command
+      break
+    ;;
+  esac
+  shift
+done
+
+# mount point for decrypted disk image: ~/secret.mnt
+MNT_PATH="$HOME/$XSECRET.mnt"
+mkdir -p "$MNT_PATH"
+# device mapper path
+DEV_MAPPER_PATH="/dev/mapper/$XSECRET"
+# config path: ~/.secretrc
+CONF_PATH="$HOME/.${XSECRET}rc"
+template_conf
+# encrypted disk image file path: ~/rsync/secret.img
+DISK_IMAGE="$HOME/$XRSYNC/$XSECRET.img"
+# update parameters for -c
+$SETX_ON
+if [ "$BSS_LOGGER_LEVEL" -ge 3 ]; then
+  VERBOSE="-v"
+fi
+if [ "$BSS_LOGGER" = "1" ]; then
+  case $BSS_LOGGER_LEVEL in
+    0) LOGGER="systemd-cat -p 3 -t bss"
+      ;;
+    1) LOGGER="systemd-cat -p 4 -t bss"
+      ;;
+    2) LOGGER="systemd-cat -p 5 -t bss"
+      ;;
+    3) LOGGER="systemd-cat -p 6 -t bss"
+      ;;
+    4|5|6|7) LOGGER="systemd-cat -p 7 -t bss"
+      ;;
+  esac
+else
+  LOGGER=""
 fi
 
-# new should be run alone and from console
+#########################################################################################################################
+# "new" should be run alone and from console
 case "$1" in
   n*) # new
     shift
@@ -269,35 +385,15 @@ case "$1" in
     exit $EXIT_SUCESS
     ;;
 esac
-# option
-while [ -n "$1" ]; do
-  case "$1" in
-    -j) # use journald via systemd-cat
-      shift
-      ECHO="systemd-cat -p 5 -t bss echo"
-      TSLEEP="120"
-      ;;
-    -p) # ask passphrase to unlock (no secret-tool)
-      shift
-      SECRET_TOOL="NO"
-      ;;
-    --help)
-      help
-      exit $EXIT_SUCCESS
-      ;;
-    --version)
-      version
-      exit $EXIT_SUCCESS
-      ;;
-    *)
-      break
-      ;;
-  esac
-done
+
+#########################################################################################################################
+# no command -- help
 if [ -z "$1" ]; then
       help
       exit $EXIT_SUCCESS
 fi
+
+#########################################################################################################################
 # command sequence
 while [ -n "$1" ]; do
   case "$1" in
@@ -327,9 +423,9 @@ while [ -n "$1" ]; do
       ;;
     *)
       help
-      exit $EXIT_SUCCESS
+      exit $EXIT_ERROR
       ;;
   esac
 done
 exit $EXIT_SUCCESS
-
+#########################################################################################################################
