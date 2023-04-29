@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.2.2)
+# Btrfs Subvolume Snapshot Utility (version: 1.2.3)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -7,11 +7,12 @@ UI may change.  Use with care.
 
 ## `bss` command
 
-Usage: bss [OPTIONS] SUBCOMMAND [PATH [[ARG]...]
+Usage: bss [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
 
 "bss" is basically a "btrfs subvolume ..." command wrapper to create and
 process historical snapshots with the intuitive snapshot subvolume name and
-flexible data aging capabilities.
+flexible data aging capabilities.  (Some subcommands can work with ext2/3/4fs,
+too.)
 
 "bss" operates on the btrfs subvolume pointed by the first optional argument
 PATH.  PATH can point to anywhere within this source btrfs subvolume.  The
@@ -60,8 +61,8 @@ OPTIONS:
                   (after APT), "hour" (on boot and every hour).
                   If "keep" is specified, the snapshot with it will be
                   kept forever under the normal aging process.
-* -c,--conf RC:   use "RC.conf" and "RC.fltr" instead of their
-                  default ".bss.conf" and ".bss.fltr"
+* -c,--conf RC:   use "RC.conf", "RC.fltr" etc. instead of their
+                  default ".bss.conf", ".bss.fltr" etc.
 * -f,--force:     force to reapply filter
 * -n,--noop:      no file nor filesystem modification by prepending pertinent
                   internal commands with "echo __"
@@ -84,7 +85,7 @@ SUBCOMMAND:
 * jobs:     list all systemd timer schedule jobs for bss
 * list:     list all snapshots
 * age:      assess aging status of all snapshots
-* base:     print the BASE directory for "bss"
+* backup:   backup files into this file system based on ".bss.d/.bss.list"
 * filter:   create a filtered snapshot from the specified snapshot in
             ".bss.d/" as <specified_subvol_name>_filter
 * revert:   make snapshot <ISO_8601_date>.last and replace the subvolume at the
@@ -97,6 +98,7 @@ SUBCOMMAND:
 * template: make template files in the ".bss.d/" directory:
               ".bss.conf" (aging rule)
               ".bss.fltr" (filtering rule)
+* BASE:     print the BASE directory for "bss"
 
 Subcommands may be shortened to a single character.
 
@@ -110,9 +112,9 @@ of the BASE directory to SOURCE_PATH and a wrapper for "sudo rsync" command with
 its first argument SOURCE_PATH and the second argument DEST_PATH.  This command
 is smart enough to skip the ".bss.d/" directory to allow independent
 management of data using "bss" on both the BASE directory and DEST_PATH. If
-DEST_PATH is a local path such as "/srv/backup", then "sudo rsync -aHxSv --delete" is
+DEST_PATH is a local path such as "/srv/backup", then "sudo rsync -aHxS --delete" is
 used to save the CPU load.  If DEST_PATH is a remote path such as
-"[USER@]HOST:DEST_PATH", then "sudo rsync -aHxSzv --delete" is used to save the network
+"[USER@]HOST:DEST_PATH", then "sudo rsync -aHxSz --delete" is used to save the network
 load.
 
 For "bss zap", the first argument is normally ".".  The following argument
@@ -126,8 +128,12 @@ specifies the action which can be:
 Unless you have specific reasons to use "bss zap", you should consider to use
 "bss process" to prune outdated snapshots.
 
-For "bss" revert PATH PATH_OLD", subvolume at PATH is replaced by the
+For "bss revert PATH PATH_OLD", subvolume at PATH is replaced by the
 subvolume at PATH_OLD.  PATH can't be set to "/".
+
+For "bss backup [PATH [PREFIX]]", files listed in ".bss.d/.bss.list" are
+copied into BASE_PATH/PREFIX.  The relative path are located from the user's
+home directory. The default for PREFIX is "backup".
 
 NOTE:
 
@@ -148,7 +154,7 @@ the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
 
 You can make a snapshot just by "bss" alone.
 
-You can use verbose "bss -v base" command to print current effective
+You can use verbose "bss -v BASE" command to print current effective
 configuration parameters without side effects.
 
 This "bss" command uses systemd journal.  You can check recent invocation with:
@@ -157,7 +163,7 @@ This "bss" command uses systemd journal.  You can check recent invocation with:
 
 CAVEAT:
 
-The source filesystem must be btrfs.
+The source filesystem must be btrfs for many subcommands.
 
 The non-root user who executes this command must be a member of "sudo".
 
@@ -175,8 +181,9 @@ should manually mount using "/etc/fstab" for all subvolumes under the subvolume
 to run "revert" operation and manage them separately to keep the system
 recoverable since the snapshot operation isn't recursive.
 
-Although this "bss" focuses on btrfs, there is minimal upport for ext2/ext3
-(this includes ext4) for "bss copy ..." without using the snapshot. 
+Although this "bss" focuses on btrfs, there is minimal support for ext2/ext3
+(this includes ext4) for "bss copy ...", "bss backup ...", and "bss
+template".
 
 Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
 <!---
@@ -368,45 +375,44 @@ In order to address valid data security concern of storing data on a remote serv
 administered NOT by oneself, a command `luksimg` is provided as a helper tool to
 work easily with LUKS encrypted disk image for storing sensitive data.
 
-Usage: luksimg [ new [size] | [-j|-p] [mount|backup|umount|one]...]
+Usage: luksimg [-r RSYNC|-s SECRET] [-l|-a] [n [size]|o|m|b|u|c|a]
 
 "luksimg" helps to create and update LUKS encrypted disk image.
 
 OPTION:
 
--j      use journald to record log (useful for systemd timer service)
+-r RSYNC        use '~/RSYNC/' insted of '~/rsync/' to place the
+                LUKS encrypted disk image file.
 
--p      ask passphrase to unlock LUKS encryption (Uunless this is set, GNOME
-        secret-tool is used to obtain passphrase)
+-s SECRET       use '~/rsync/SECRET.img' insted of '~/rsync/secret.img'
+                for the LUKS encrypted disk image file.
+
+-l, --logger    use journald to record log (useful for systemd timer service)
+
+-a, --ask       ask passphrase to unlock LUKS encryption (Unless this is set,
+                GNOME secret-tool is used to obtain passphrase)
 
 COMMAND:
 
 Multiple commands may be specified to execute them in sequence.
 
 new [size]:
-        make a new disk image /rsync/secret.img formatted as ext4 filesystem
-        on LUKS encrypted volume. The size can be optionally specified, e.g.
-        as '32G'
-mount:  decrypt disk image /rsync/secret.img to create a device-mapper device
-        /dev/device-mapper/secret and mount it to ~/secret
-backup: backup to ~/secret/relative_path for files and directories listed in
-        ~/.secretrc as relative path; or to ~/secret/absolute_path for ones
-        listed in it as absolute path.
-umount: umount disk image and disable decrypted device-mapper device
-one:    Do mount -> backup -> umount in one action
+        make a new sparse disk image '~/rsync/secret.img' formatted as
+        ext4 filesystem on LUKS encrypted volume. The size can be
+        optionally specified, e.g. as '32G'
+open:   decrypt the LUKS disk image '~/rsync/secret.img' to create a
+        device-mapper device '/dev/device-mapper/secret'
+mount:  mount the device-mapper device '/dev/device-mapper/secret' onto
+        '~/rsync/secret.mnt'
+backup: backup files specified in '~/.secretrc' to '~/secret.mnt/'
+umount: umount the device-mapper device '/dev/device-mapper/secret'
+        from '~/secret.mnt/'
+close:  close the device-mapper device '/dev/device-mapper/secret'
+all:    perform all actions: open -> mount -> backup -> umount -> close
 
 These commands may be shortened if they aren't ambiguous.
-
-ENVIRONMENT:
-
-DISK_IMG_FILE:
-        Set this to the file name (w/o extension ".img") of the disk image.
-        This is used for the associated backup configuration file name, device
-        mapper name and mount point name. (default: secret)
-DISK_IMG_DIR:
-        Set this to the directory name of the disk image. (default: rsync)
 
 See /usr/share/doc/bss/examples/README.md or
     https://github.com/osamuaoki/bss/tree/main/examples
 
-Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2023 Osamu Aoki <osamu@debian.org>, GPL 2+

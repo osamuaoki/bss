@@ -1,6 +1,6 @@
---- bss.1.orig	2022-08-23 11:45:28.464169482 +0900
-+++ bss.1	2022-08-23 11:51:35.288658997 +0900
-@@ -33,30 +33,40 @@
+--- bss.1.orig	2023-04-29 17:52:14.709947605 +0900
++++ bss.1	2023-04-29 17:50:39.056626175 +0900
+@@ -34,30 +34,40 @@
  between them from the older ones to newer ones and makes them more sparse for
  the older ones by removing some of them using parameters in ".bss.conf" in the
  ".bss.d/" directory.  This involves following actions:
@@ -63,7 +63,7 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -100,49 +110,54 @@
+@@ -101,51 +111,56 @@
  trace on (trace shell code for debug)
  .PP
  .SH SUBCOMMAND
@@ -103,9 +103,9 @@
 +age
  assess aging status of all snapshots
  .TP
--base:
-+base
- print the BASE directory for "bss"
+-backup:
++backup
+ backup files into this file system based on ".bss.d/.bss.list"
  .TP
 -filter:
 -create a filtered snapshot from the specified snapshot in
@@ -137,10 +137,13 @@
 +.IP "\(bu" 4
  ".bss.fltr" (filtering rule)
 +.RE
+ .TP
+-.SH BASE
++BASE
+ print the BASE directory for "bss"
  .PP
  Subcommands may be shortened to a single character.
- .PP
-@@ -163,17 +178,14 @@
+@@ -167,17 +182,14 @@
  .PP
  For "bss zap", the first argument is normally ".".  The following argument
  specifies the action which can be:
@@ -166,7 +169,7 @@
  .PP
  Unless you have specific reasons to use "bss zap", you should consider to use
  "bss process" to prune outdated snapshots.
-@@ -188,16 +200,16 @@
+@@ -196,16 +208,16 @@
  examples for systemd scripts to enable automatic daily "process" operation.
  .PP
  For some snapshots, different TYPE values may be used instead of TYPE='single'.

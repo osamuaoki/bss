@@ -1,10 +1,11 @@
-bss (1.2.3) UNRELEASED; urgency=medium
+bss (1.2.3) unstable; urgency=medium
 
   * Factor out logging to common.sh
   * Refactor __template for readable code
+  * Redesign UI for luksimg command
   * Change TMIN default
 
- -- Osamu Aoki <osamu@debian.org>  Sat, 29 Apr 2023 16:27:30 +0900
+ -- Osamu Aoki <osamu@debian.org>  Sat, 29 Apr 2023 22:48:43 +0900
 
 bss (1.2.2) unstable; urgency=medium
 
