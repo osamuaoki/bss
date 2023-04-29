@@ -74,7 +74,7 @@ README.md: .FORCE
 	echo >>$@
 	usr/bin/bss help | sed -E -e '/^  [^ *]/s/^  /* /' -e '/^[^:]*$$/s/^(\* [^ ]+ ?[^ ]+)  /\1: /' -e 's/…_/…\\_/' -e 's/^  \* <sub/  \* \\<sub/' >>$@
 	cat README.tail >>$@
-	usr/bin/luksimg --help >>$@
+	usr/bin/luksimg --help | sed -e "s/\~/\\\~/g" >>$@
 
 .FORCE:
 

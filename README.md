@@ -381,10 +381,10 @@ Usage: luksimg [-r RSYNC|-s SECRET] [-l|-a] [n [size]|o|m|b|u|c|a]
 
 OPTION:
 
--r RSYNC        use '~/RSYNC/' insted of '~/rsync/' to place the
+-r RSYNC        use '\~/RSYNC/' insted of '\~/rsync/' to place the
                 LUKS encrypted disk image file.
 
--s SECRET       use '~/rsync/SECRET.img' insted of '~/rsync/secret.img'
+-s SECRET       use '\~/rsync/SECRET.img' insted of '\~/rsync/secret.img'
                 for the LUKS encrypted disk image file.
 
 -l, --logger    use journald to record log (useful for systemd timer service)
@@ -397,16 +397,16 @@ COMMAND:
 Multiple commands may be specified to execute them in sequence.
 
 new [size]:
-        make a new sparse disk image '~/rsync/secret.img' formatted as
+        make a new sparse disk image '\~/rsync/secret.img' formatted as
         ext4 filesystem on LUKS encrypted volume. The size can be
         optionally specified, e.g. as '32G'
-open:   decrypt the LUKS disk image '~/rsync/secret.img' to create a
+open:   decrypt the LUKS disk image '\~/rsync/secret.img' to create a
         device-mapper device '/dev/device-mapper/secret'
 mount:  mount the device-mapper device '/dev/device-mapper/secret' onto
-        '~/rsync/secret.mnt'
-backup: backup files specified in '~/.secretrc' to '~/secret.mnt/'
+        '\~/rsync/secret.mnt'
+backup: backup files specified in '\~/.secretrc' to '\~/secret.mnt/'
 umount: umount the device-mapper device '/dev/device-mapper/secret'
-        from '~/secret.mnt/'
+        from '\~/secret.mnt/'
 close:  close the device-mapper device '/dev/device-mapper/secret'
 all:    perform all actions: open -> mount -> backup -> umount -> close
 
