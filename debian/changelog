@@ -1,6 +1,14 @@
+bss (1.2.3) UNRELEASED; urgency=medium
+
+  * Factor out logging to common.sh
+  * Refactor __template for readable code
+  * Change TMIN default
+
+ -- Osamu Aoki <osamu@debian.org>  Sat, 29 Apr 2023 16:27:30 +0900
+
 bss (1.2.2) unstable; urgency=medium
 
-  * Change post, pre process timing. 
+  * Change post, pre process timing.
   * Refactor around copy command
 
  -- Osamu Aoki <osamu@debian.org>  Mon, 29 Aug 2022 11:26:06 +0900

@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Osamu Aoki <osamu@debian.org>
 Build-Depends: debhelper-compat (= 13)
-Standards-Version: 4.6.0
+Standards-Version: 4.6.2
 Homepage: https://github.com/osamuaoki/bss
 
 Package: bss
@@ -15,8 +15,7 @@ Depends: btrfs-progs,
          rsync,
          sudo,
          systemd,
-         ${misc:Depends},
-         ${shlibs:Depends}
+         ${misc:Depends}
 Description: Btrfs Subvolume Snapshot Utility
  "bss" is basically a "btrfs subvolume ..." command wrapper to create and age
  historical snapshots with the intuitive snapshot subvolume name and flexible
