@@ -929,22 +929,19 @@ __rsync () {
     exit $EXIT_ERROR
   fi
   if [ "${BSS_COPY_DEST}" != "${BSS_COPY_DEST#/}" ] || \
-    [ "${BSS_COPY_DEST}" == "${BSS_COPY_DEST#*:}" ]; then
+    [ "${BSS_COPY_DEST}" = "${BSS_COPY_DEST#*:}" ]; then
     # BSS_COPY_DEST is local: (started with '/') or (not containing ':')
     RSYNC_OPTS="$RSYNC_OPTA $VERBOSE"
     if [ ! -e "${BSS_COPY_DEST%/*}" ]; then
-      __echo 0 "non-accessible copy destination missing its parent '${BSS_COPY_DEST%/*}'"
-      exit $EXIT_ERROR
+      $SUDO mkdir -p "${BSS_COPY_DEST%/*}"
     fi
     # Secure BSS_COPY_DEST existence for local absolute path
-    BSS_COPY_DEST=$(realpath "$BSS_COPY_DEST")
     if [ ! -e "$BSS_COPY_DEST" ]; then
       if [ "$($SUDO stat -f -c %T "${BSS_COPY_DEST%/*}")" = "btrfs" ]; then
         # parent is btrfs
         $SUDO btrfs subvolume create "$BSS_COPY_DEST"
       else
-        __echo 0 "non-btrfs copy destination parent '${BSS_COPY_DEST%/*}'"
-        exit $EXIT_ERROR
+        $SUDO mkdir -p "$BSS_COPY_DEST"
       fi
     fi
     if [ "$($SUDO stat -f -c %T "$BSS_COPY_DEST")" = "btrfs" ] && \
@@ -957,13 +954,8 @@ __rsync () {
     else
       __echo 2 "non-snapshottable copy destination '$BSS_COPY_DEST'"
     fi
-    # ready for 'bss copy'
-    if [ ! -e "${BSS_COPY_DEST%/*}" ]; then
-      __echo 0 "non-accessible copy destination missing its parent '${BSS_COPY_DEST%/*}'"
-      exit $EXIT_ERROR
-    fi
   else
-    # remote path not started with /
+    # remote path not started with / or contain :
     RSYNC_OPTS="$RSYNC_OPTR $VERBOSE"
   fi
   #

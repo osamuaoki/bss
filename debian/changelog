@@ -1,3 +1,10 @@
+bss (1.2.5) unstable; urgency=medium
+
+  * bss: more foregiving copy destination
+  * Use version defined in d/changelog to simplify build
+
+ -- Osamu Aoki <osamu@debian.org>  Sun, 30 Apr 2023 17:05:33 +0900
+
 bss (1.2.4) unstable; urgency=medium
 
   * bss: refine copy, snap, backup

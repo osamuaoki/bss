@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.2.4)
+# Btrfs Subvolume Snapshot Utility (version: 1.2.5)
 
 Original source repository: https://github.com/osamuaoki/bss
 

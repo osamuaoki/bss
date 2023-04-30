@@ -10,7 +10,9 @@ all:
 
 install:
 	install -m 755 -D usr/bin/bss                                   $(DESTDIR)$(prefix)/usr/bin/bss
-	install -m 644 -D usr/share/bss/common.sh                       $(DESTDIR)$(prefix)/usr/share/bss/common.sh
+	install -d $(DESTDIR)$(prefix)/usr/share/bss
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" < usr/share/bss/common.sh > $(DESTDIR)$(prefix)/usr/share/bss/common.sh
+	chown 644 $(DESTDIR)$(prefix)/usr/share/bss/common.sh
 	install -m 644 -D usr/share/bash-completion/completions/bss     $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/bss
 	install -m 644 -D usr/share/man/man1/bss.1                      $(DESTDIR)$(prefix)/usr/share/man/man1/bss.1
 	install -m 755 -D usr/bin/luksimg                               $(DESTDIR)$(prefix)/usr/bin/luksimg
@@ -37,19 +39,6 @@ test:
 	sh -n usr/bin/bss
 	sh -n usr/bin/luksimg
 	sh -n usr/share/bss/common.sh
-	# check version consistency
-	if [ -d debian ] && [ -r debian/changelog ]; then \
-		D_VER=$$(dpkg-parsechangelog -S Version) ; \
-		U_VER=$$(sed -n -e '/^BSS_VERSION=/s/"//g' \
-			-e "/^BSS_VERSION=/s/'//g" \
-			-e '/^BSS_VERSION=/s/BSS_VERSION=//p' usr/share/bss/common.sh) ; \
-		echo "    --> Version in debian/changelog         $${D_VER%-*}" ; \
-		echo "    --> Version in usr/share/bss/common.sh  $$U_VER" ; \
-		if [ "$$U_VER" != "$${D_VER%-*}" ]; then \
-			echo "ERROR: version mismatch between debian/changelog and usr/share/bss/common.sh" ; \
-			exit 1 ; \
-		fi ; \
-	fi
 
 # Run this during development
 dev: test usr/share/man/man1/bss.1 usr/share/man/man1/luksimg.1 README.md
@@ -63,7 +52,7 @@ prep: usr/share/man/man1/bss.1 usr/share/man/man1/luksimg.1 README.md
 
 README.md: .FORCE
 	echo "<!-- This is auto-generated file.  Edit usr/bin/bss or README.tail and run 'make README.md' -->" > $@
-	echo "# Btrfs Subvolume Snapshot Utility (version: $$(usr/bin/bss --version|sed -n -e 's/bss (\(.*\))$$/\1/p' ))" > $@
+	echo "# Btrfs Subvolume Snapshot Utility (version: $$(dpkg-parsechangelog -S Version))" > $@
 	echo >>$@
 	echo "Original source repository: https://github.com/osamuaoki/bss" >>$@
 	echo >>$@
@@ -72,15 +61,19 @@ README.md: .FORCE
 	echo >>$@
 	echo '## `bss` command' >> $@
 	echo >>$@
-	usr/bin/bss help | sed -E -e '/^  [^ *]/s/^  /* /' -e '/^[^:]*$$/s/^(\* [^ ]+ ?[^ ]+)  /\1: /' -e 's/…_/…\\_/' -e 's/^  \* <sub/  \* \\<sub/' >>$@
+	usr/bin/bss --help | \
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" | \
+	sed -E -e '/^  [^ *]/s/^  /* /' -e '/^[^:]*$$/s/^(\* [^ ]+ ?[^ ]+)  /\1: /' -e 's/…_/…\\_/' -e 's/^  \* <sub/  \* \\<sub/' >>$@
 	cat README.tail >>$@
-	usr/bin/luksimg --help | sed -e "s/\~/\\\~/g" >>$@
+	usr/bin/luksimg --help | \
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" | \
+	sed -e "s/\~/\\\~/g" >>$@
 
 .FORCE:
 
 bss.1: .FORCE
 	if ! type help2man >/dev/null ; then echo "install 'help2man' package" ; fi
-	help2man usr/bin/bss >bss.help2man
+	help2man usr/bin/bss | sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" >bss.help2man
 	sed -E -e 's/^([A-Z]*):$$/.SH \1/' \
 	       -e 's/bss \\- manual page for bss/bss \\- btrfs subvolume snapshot utility/' \
 	       bss.help2man | \
@@ -105,7 +98,7 @@ bss.1: .FORCE
 
 luksimg.1: .FORCE
 	if ! type help2man >/dev/null ; then echo "install 'help2man' package" ; fi
-	help2man usr/bin/luksimg >luksimg.help2man
+	help2man usr/bin/luksimg | sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" >luksimg.help2man
 	sed -E -e 's/^([A-Z]*):$$/.SH \1/' \
 	       -e 's/luksimg \\- manual page for luksimg/luksimg \\-  LUKS encrypted disk image utility/' \
 	       luksimg.help2man | \
