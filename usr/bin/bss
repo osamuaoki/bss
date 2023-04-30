@@ -948,7 +948,7 @@ __rsync () {
      [ "$($SUDO stat -c %i "$FS_BASE")" = "256" ]; then
       # root of btrfs subvolume has always inode number 256
       if [ ! -e "$BSS_COPY_DEST/$BSS_DIR" ]; then
-        bss template "$BSS_COPY_DEST"
+        bss template "$BSS_COPY_DEST" no_filter
       fi
       __echo 2 "snapshottable copy destination '$BSS_COPY_DEST'"
     else
@@ -1292,13 +1292,18 @@ __template () {
       if [ "$FS_BASE" = "/" ]; then
         __template_filter_root
       else
-        __template_filter_non_root
+        if [ -n "$1" ] ; then
+          # hidden feature
+          __echo 1 "Skip creating filter file as requested: $BSS_FLTR for BASE=$FS_BASE"
+        else
+          __template_filter_non_root
+        fi
       fi
       __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
     # shellcheck disable=SC2086
       $NOOP $SUDO chown $FS_BASE_UID:$FS_BASE_GID "$BSS_FLTR_BASE"
     fi
-    if [ "$BSS_TMID_ACTION" != "filter" ]; then
+    if [ "$BSS_TMID_ACTION" != "filter" ] && [ -e "$BSS_FLTR_BASE" ]; then
       __echo 2 "Please reconcile settings."
       __echo 2 " * Update $BSS_CONF to set MID_ACTION='filter' to use properly updated $BSS_FLTR."
       __echo 2 " * Keep $BSS_CONF to set MID_ACTION='no_filter' and remove template $BSS_FLTR."
@@ -1540,7 +1545,7 @@ case "$BSS_COMMAND" in
     __zap "$@"
     ;;
   t*) # template
-    __template
+    __template "$@"
     ;;
   c*) # copy
     __load_config
