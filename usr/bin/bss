@@ -1331,8 +1331,8 @@ __template () {
 ##############################################################################
 # The quotes around "$@" are essential!
 # We need TEMP as the 'eval set --' would nuke the return value of getopt.
-TEMP=$(getopt -o 't:c:s:fnqvxhl' -n "${BSS}" \
-  --long 'type:,config:,snap:,force,noop,quiet,version,verbose,trace,help,logger' -- "$@")
+TEMP=$(getopt -o 't:c:s:fmnqvxhl' -n "${BSS}" \
+  --long 'type:,config:,snap:,force,may, noop,quiet,version,verbose,trace,help,logger' -- "$@")
 # Note the quotes around "$TEMP": they are essential!
 #echo "DEBUG: ***** TEMP='$TEMP'"
 eval set -- "$TEMP"
