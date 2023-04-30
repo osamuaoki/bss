@@ -9,7 +9,7 @@
 #############################################################################
 # Constants
 #############################################################################
-BSS_VERSION="1.2.3"
+BSS_VERSION="1.2.4"
 NOOP="" # set to ":" for no-operation
 VERBOSE="" # set to "-v" for verbose (BSS_LOGGER_LEVEL=3,4)
 SETX_ON="" # set to "set -x" for trace

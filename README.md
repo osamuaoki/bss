@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.2.3)
+# Btrfs Subvolume Snapshot Utility (version: 1.2.4)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -69,6 +69,7 @@ OPTIONS:
 * -h,--help:      show this help
 * --version:      show version
 * -l,--logger:    use systemd logger
+* -m,--may:       may execute snapshot or backup if possible
 * -q,--quiet:     quiet (no notice messages, just warn/error messages)
 * -v,--verbose:   verbose (with info messages)
 * -vv:            very verbose for debug (with info and debug messages)
@@ -85,7 +86,7 @@ SUBCOMMAND:
 * jobs:     list all systemd timer schedule jobs for bss
 * list:     list all snapshots
 * age:      assess aging status of all snapshots
-* backup:   backup files into this file system based on ".bss.d/.bss.list"
+* backup:   backup files into this file system based on ".backuprc"
 * filter:   create a filtered snapshot from the specified snapshot in
             ".bss.d/" as <specified_subvol_name>_filter
 * revert:   make snapshot <ISO_8601_date>.last and replace the subvolume at the
@@ -131,8 +132,8 @@ Unless you have specific reasons to use "bss zap", you should consider to use
 For "bss revert PATH PATH_OLD", subvolume at PATH is replaced by the
 subvolume at PATH_OLD.  PATH can't be set to "/".
 
-For "bss backup [PATH [PREFIX]]", files listed in ".bss.d/.bss.list" are
-copied into BASE_PATH/PREFIX.  The relative path are located from the user's
+For "bss backup [PATH [PREFIX]]", files listed in ".backuprc" are copied
+into BASE_PATH/PREFIX.  The relative path are located from the user's
 home directory. The default for PREFIX is "backup".
 
 NOTE:

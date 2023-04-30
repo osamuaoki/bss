@@ -1,5 +1,5 @@
---- bss.1.orig	2023-04-29 17:52:14.709947605 +0900
-+++ bss.1	2023-04-29 17:50:39.056626175 +0900
+--- bss.1.orig	2023-04-30 13:21:34.806004912 +0900
++++ bss.1	2023-04-30 13:28:24.983192297 +0900
 @@ -34,30 +34,40 @@
  between them from the older ones to newer ones and makes them more sparse for
  the older ones by removing some of them using parameters in ".bss.conf" in the
@@ -63,7 +63,7 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -101,51 +111,56 @@
+@@ -104,35 +114,38 @@
  trace on (trace shell code for debug)
  .PP
  .SH SUBCOMMAND
@@ -77,12 +77,10 @@
 -process:  process snapshots according to their aging status
 -copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
 -.IP
--destination (2nd argument) using rsync
 +snapshot
 +make a readonly snapshot normally in the relative path ".bss.d/"
 +as <ISO_8601_date>.<TYPE> (The default type is "single")
- .TP
--jobs:
++.TP
 +overview
 +overview of all snapshots (wrapper for age)
 +.TP
@@ -90,8 +88,10 @@
 +process snapshots according to their aging status
 +.TP
 +copy
-+copy subvolume at the BASE directory (1st argument) to the (remote) destination (2nd argument) using rsync
-+.TP
++copy subvolume at the BASE directory (1st argument) to the (remote)
+ destination (2nd argument) using rsync
+ .TP
+-jobs:
 +jobs
  list all systemd timer schedule jobs for bss
  .TP
@@ -105,24 +105,20 @@
  .TP
 -backup:
 +backup
- backup files into this file system based on ".bss.d/.bss.list"
+ backup files into this file system based on ".backuprc"
  .TP
 -filter:
--create a filtered snapshot from the specified snapshot in
--".bss.d/" as <specified_subvol_name>_filter
 +filter
-+create a filtered snapshot from the specified snapshot in ".bss.d/" as <specified_subvol_name>_filter
+ create a filtered snapshot from the specified snapshot in
+ ".bss.d/" as <specified_subvol_name>_filter
  .TP
 -revert:
 +revert
  make snapshot <ISO_8601_date>.last and replace the subvolume at the
  BASE directory (1st argument) with the specified snapshot
  <ISO_8601_date>.<extension> (2nd argument) found under
- "BSS_SNAP_DEST" specified in ".bss.conf".  This is only for the
- system mode. (This is alpha stage untested feature.)
- .TP
--zap:
-+zap
+@@ -142,13 +155,17 @@
+ zap:
  zap (=delete) particular snapshot(s) specified by the arguments
  "zap" is required to be typed in full text.
 -.IP
@@ -143,7 +139,7 @@
  print the BASE directory for "bss"
  .PP
  Subcommands may be shortened to a single character.
-@@ -167,17 +182,14 @@
+@@ -170,17 +187,14 @@
  .PP
  For "bss zap", the first argument is normally ".".  The following argument
  specifies the action which can be:
@@ -169,7 +165,7 @@
  .PP
  Unless you have specific reasons to use "bss zap", you should consider to use
  "bss process" to prune outdated snapshots.
-@@ -196,16 +208,16 @@
+@@ -199,16 +213,16 @@
  examples for systemd scripts to enable automatic daily "process" operation.
  .PP
  For some snapshots, different TYPE values may be used instead of TYPE='single'.

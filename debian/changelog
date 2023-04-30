@@ -1,3 +1,11 @@
+bss (1.2.4) unstable; urgency=medium
+
+  * bss: refine copy, snap, backup
+  * bss: add --may option
+  * bss: 'bss backup' to use .backuprc instead
+
+ -- Osamu Aoki <osamu@debian.org>  Sun, 30 Apr 2023 13:21:04 +0900
+
 bss (1.2.3) unstable; urgency=medium
 
   * Factor out logging to common.sh
