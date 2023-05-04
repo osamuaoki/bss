@@ -227,6 +227,8 @@ RSYNC="$SUDO rsync"
 RSYNC_OPTA="-aHxS --delete"
 # less communication bandwidth
 RSYNC_OPTR="-aHxSz --delete"
+# local and --mkpath for backup
+RSYNC_OPTB="-aHxS --delete --mkpath"
 #
 BSS="${0##*/}"
 PROG_NAME="$BSS"
@@ -950,9 +952,9 @@ __rsync () {
       if [ ! -e "$BSS_COPY_DEST/$BSS_DIR" ]; then
         bss template "$BSS_COPY_DEST" no_filter
       fi
-      __echo 2 "snapshottable copy destination '$BSS_COPY_DEST'"
+      __echo 2 "Copy destination '$BSS_COPY_DEST' (btrfs)"
     else
-      __echo 2 "non-snapshottable copy destination '$BSS_COPY_DEST'"
+      __echo 2 "Copy destination '$BSS_COPY_DEST' (non-btrfs)"
     fi
   else
     # remote path not started with / or contain :
@@ -1009,27 +1011,27 @@ __rsync () {
 ##############################################################################
 __rsync_backup () {
   if [ -e "$BSS_LIST_BASE" ]; then
-    DEST_DIR="${FS_BASE}/${1:-backup}/"
+    DEST_DIR="${FS_BASE}/${1:-backup}"
     $SUDO mkdir -p "$DEST_DIR"
+    RSYNC_OPTS="$RSYNC_OPTB $VERBOSE"
+    # cd to user's home directory
     cd
-    __echo 2 "back up to $DEST_DIR, cwd=$(cwd)"
     grep -v -e "^#"  "$BSS_LIST_BASE" | \
     while read -r F ; do
-      # remove tailing / if exists
       G="$(realpath "$F")"
-      D="$(dirname "$G")"
-      if [ ! -d "$D" ]; then
-        __echo 0 "backup missing parent directory (no shell glob, please): $D"
-        exit $EXIT_ERROR
-      fi
-      # all local transfer no-need to be verbose
-      # shell wild card allowed for $F, cwd=$HOME
-      $LOGGER $NOOP mkdir -p "$DEST_DIR/$D"
+      __echo 2 "Backup $F -> $DEST_DIR$G"
       # --filter to exclude $BSS directory
+      # --mkpath to create realpath $G started with /
       # Hidden undocumented argument handling: $@ (after source)
-      # shellcheck disable=SC2086
-      $LOGGER $NOOP $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
-        $F "$DEST_DIR/$D"
+      if [ -d "$f" ]; then
+        # shellcheck disable=SC2086
+        $LOGGER $NOOP $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+          $F/ "$DEST_DIR$G"
+      else # file, symlink, ...
+        # shellcheck disable=SC2086
+        $LOGGER $NOOP $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+          $F "$DEST_DIR$G"
+      fi
     done
   else
     if [ $EXIT_MAY=$EXIT_SUCCESS ]; then

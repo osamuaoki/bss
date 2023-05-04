@@ -1,3 +1,9 @@
+bss (1.2.7) unstable; urgency=medium
+
+  * bss: 'backup' fix typo.
+
+ -- Osamu Aoki <osamu@debian.org>  Thu, 04 May 2023 20:36:29 +0900
+
 bss (1.2.6) unstable; urgency=medium
 
   * bss: 'template' may skip filter if 2nd argument exists
