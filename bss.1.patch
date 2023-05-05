@@ -1,191 +1,44 @@
---- bss.1.orig	2023-05-05 18:31:11.840789412 +0900
-+++ bss.1	2023-05-05 18:34:39.008586268 +0900
-@@ -34,30 +34,40 @@
- between them from the older ones to newer ones and makes them more sparse for
- the older ones by removing some of them using parameters in ".bss.conf" in the
+--- bss.1.orig	2023-05-05 22:38:30.837644051 +0900
++++ bss.1	2023-05-05 23:03:02.542358396 +0900
+@@ -36,19 +36,22 @@
  ".bss.d/" directory.  This involves following actions:
--.IP
--* Secure minimum required free blocks (minimum FMIN %).
--* Keep initial few (NMIN) snapshots unconditionally.
--* Limit the maximum number of snapshots to NMAX.
--.IP
--* NMAX=0 is the special case and means no limit for number of snapshots.
--.IP
--* Before TMIN, keep snapshots unconditionally.
+ .IP
+ * Secure minimum required free blocks (minimum FMIN %).
++.IP
+ * Keep initial few (NMIN) snapshots unconditionally.
++.IP
+ * Limit the maximum number of snapshots to NMAX.
+ .IP
+ * NMAX=0 is the special case and means no limit for number of snapshots.
+ .IP
+ * Before TMIN, keep snapshots unconditionally.
 -* Age snapshots with basically exponentially growing intervals with the
--.IP
-+.IP "\(bu" 4
-+Secure minimum required free blocks (minimum FMIN %).
-+.IP "\(bu" 4
-+Keep initial few (NMIN) snapshots unconditionally.
-+.IP "\(bu" 4
-+Limit the maximum number of snapshots to NMAX.
-+.RS
-+.IP "\(bu" 4
-+NMAX=0 is the special case and means no limit for number of snapshots.
-+.RE
-+.IP "\(bu" 4
-+Before TMIN, keep snapshots unconditionally.
-+.IP "\(bu" 4
-+Age snapshots with basically exponentially growing intervals with the
+ .IP
++* Age snapshots with basically exponentially growing intervals with the
  specified ratio (STEP 2%\-90%).
--.IP
--* After TMID, age snapshots more aggressively.
--.IP
--* Special handlings to keep some high priority snapshots stop.
--* If TMID_ACTION=filter, content files of snapshots are filtered with the
--.IP
-+.IP "\(bu" 4
-+After TMID, age snapshots more aggressively.
-+.RS
-+.IP "\(bu" 4
-+Special handlings to keep some high priority snapshots stop.
-+.IP "\(bu" 4
-+If TMID_ACTION=filter, content files of snapshots are filtered with the
+ .IP
+ * After TMID, age snapshots more aggressively.
+ .IP
+ * Special handlings to keep some high priority snapshots stop.
++.IP
+ * If TMID_ACTION=filter, content files of snapshots are filtered with the
+ .IP
  script ".bss.fltr" at the ".bss.d/" directory.
--.IP
--* After TMAX, stop aging snapshots.
--.IP
--* TMAX=0 is the special case and means no limit for aging.
--* If TMAX_ACTION=drop, drop subvolume after TMAX.
--* If TMAX_ACTION=keep, keep subvolume after TMAX.
-+.RE
-+.IP "\(bu" 4
-+After TMAX, stop aging snapshots.
-+.RS
-+.IP "\(bu" 4
-+TMAX=0 is the special case and means no limit for aging.
-+.IP "\(bu" 4
-+If TMAX_ACTION=drop, drop subvolume after TMAX.
-+.IP "\(bu" 4
-+If TMAX_ACTION=keep, keep subvolume after TMAX.
-+.RE
+@@ -56,7 +59,9 @@
+ * After TMAX, stop aging snapshots.
+ .IP
+ * TMAX=0 is the special case and means no limit for aging.
++.IP
+ * If TMAX_ACTION=drop, drop subvolume after TMAX.
++.IP
+ * If TMAX_ACTION=keep, keep subvolume after TMAX.
  .PP
  .SH OPTIONS
- .TP
-@@ -104,35 +114,38 @@
- trace on (trace shell code for debug)
- .PP
- .SH SUBCOMMAND
--.IP
--snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
- .TP
-+snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
- as <ISO_8601_date>.<TYPE>
- (The default type is "single")
--.IP
--overview: overview of all snapshots (wrapper for age)
--process:  process snapshots according to their aging status
--copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
--.IP
-+.TP
-+overview
-+overview of all snapshots (wrapper for age)
-+.TP
-+process
-+process snapshots according to their aging status
-+.TP
-+copy
-+copy subvolume at the BASE directory (1st argument) to the (remote)
- destination (2nd argument) using rsync
- .TP
--jobs:
-+jobs
- list all systemd timer schedule jobs for bss
- .TP
--list:
-+list
- list all snapshots
- .TP
- age:
- assess aging status of all snapshots
- .TP
--gather:
-+gather
- gather files to "gather_root" and "gather_home" based on ".gatherrc"
- .TP
--filter:
-+filter
- create a filtered snapshot from the specified snapshot in
- ".bss.d/" as <specified_subvol_name>_filter
- .TP
--revert:
-+revert
- make snapshot <ISO_8601_date>.last and replace the subvolume at the
- BASE directory (1st argument) with the specified snapshot
- <ISO_8601_date>.<extension> (2nd argument) found under
-@@ -142,13 +155,17 @@
- zap:
- zap (=delete) particular snapshot(s) specified by the arguments
- "zap" is required to be typed in full text.
--.IP
--template: make template files in the ".bss.d/" directory:
--.IP
-+.TP
-+template
-+make template files in the ".bss.d/" directory:
-+.RS
-+.IP "\(bu" 4
+@@ -150,6 +155,7 @@
+ make template files in the ".bss.d/" directory:
+ .IP
  ".bss.conf" (aging rule)
-+.IP "\(bu" 4
++.IP
  ".bss.fltr" (filtering rule)
-+.RE
  .TP
--.SH BASE
-+BASE
- print the BASE directory for "bss"
- .PP
- Subcommands may be shortened to a single character.
-@@ -170,17 +187,14 @@
- .PP
- For "bss zap", the first argument is normally ".".  The following argument
- specifies the action which can be:
--.TP
--* new:
--zap (=delete) the newest snapshot subvolume
--.TP
--* old:
--zap the oldest snapshot subvolume
--.TP
--* half:
--zap the older half of snapshot subvolumes
--.IP
--* <subvolume>???: zap specified snapshot subvolume(s) (path without ".bss.d/")
-+.IP "\(bu" 4
-+new: zap (=delete) the newest snapshot subvolume
-+.IP "\(bu" 4
-+old: zap the oldest snapshot subvolume
-+.IP "\(bu" 4
-+half: zap the older half of snapshot subvolumes
-+.IP "\(bu" 4
-+<subvolume>???: zap specified snapshot subvolume(s) (path without ".bss.d/")
- .PP
- Unless you have specific reasons to use "bss zap", you should consider to use
- "bss process" to prune outdated snapshots.
-@@ -199,16 +213,16 @@
- examples for systemd scripts to enable automatic daily "process" operation.
- .PP
- For some snapshots, different TYPE values may be used instead of TYPE='single'.
--.TP
--* TYPE='pre':
--automatic "snapshot" operation just before APT update
--.TP
--* TYPE='post': automatic "snapshot" operation just after
--APT update
--.IP
--* TYPE='copy': automatic "snapshot" operation just before "bss copy"
--* TYPE='hour': automatic "snapshot" operation on boot and every hour
--* TYPE='last': automatic "snapshot" operation just before "bss revert"
-+.IP "\(bu" 4
-+TYPE='pre': automatic "snapshot" operation just before APT update
-+.IP "\(bu" 4
-+TYPE='post': automatic "snapshot" operation just after APT update
-+.IP "\(bu" 4
-+TYPE='copy': automatic "snapshot" operation just before "bss copy"
-+.IP "\(bu" 4
-+TYPE='hour': automatic "snapshot" operation on boot and every hour
-+.IP "\(bu" 4
-+TYPE='last': automatic "snapshot" operation just before "bss revert"
- .PP
- This "bss" calculates age related time values in the second and prints them in
- the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
+ BASE

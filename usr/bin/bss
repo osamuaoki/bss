@@ -82,29 +82,29 @@ OPTIONS:
 
 SUBCOMMAND:
 
-  snapshot: make a readonly snapshot normally in the relative path "$BSS_DIR/"
+  snapshot  make a readonly snapshot normally in the relative path "$BSS_DIR/"
             as <ISO_8601_date>.<TYPE>  (The default type is "single")
-  overview: overview of all snapshots (wrapper for age)
-  process:  process snapshots according to their aging status
-  copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
+  overview  overview of all snapshots (wrapper for age)
+  process   process snapshots according to their aging status
+  copy      copy subvolume at the BASE directory (1st argument) to the (remote)
             destination (2nd argument) using rsync
-  jobs:     list all systemd timer schedule jobs for $BSS
-  list:     list all snapshots
-  age:      assess aging status of all snapshots
-  gather:   gather files to "gather_root" and "gather_home" based on ".gatherrc"
-  filter:   create a filtered snapshot from the specified snapshot in
+  jobs      list all systemd timer schedule jobs for $BSS
+  list      list all snapshots
+  age       assess aging status of all snapshots
+  gather    gather files to "gather_root" and "gather_home" based on ".gatherrc"
+  filter    create a filtered snapshot from the specified snapshot in
             "$BSS_DIR/" as <specified_subvol_name>_filter
-  revert:   make snapshot <ISO_8601_date>.last and replace the subvolume at the
+  revert    make snapshot <ISO_8601_date>.last and replace the subvolume at the
             BASE directory (1st argument) with the specified snapshot
             <ISO_8601_date>.<extension> (2nd argument) found under
             "BSS_SNAP_DEST" specified in "$BSS_CONF".  This is only for the
             system mode. (This is alpha stage untested feature.)
-  zap:      zap (=delete) particular snapshot(s) specified by the arguments
+  zap       zap (=delete) particular snapshot(s) specified by the arguments
             "zap" is required to be typed in full text.
-  template: make template files in the "$BSS_DIR/" directory:
+  template  make template files in the "$BSS_DIR/" directory:
               "$BSS_CONF" (aging rule)
               "$BSS_FLTR" (filtering rule)
-  BASE:     print the BASE directory for "$BSS"
+  BASE      print the BASE directory for "$BSS"
 
 Subcommands may be shortened to a single character.
 
@@ -126,10 +126,10 @@ load.
 For "$BSS zap", the first argument is normally ".".  The following argument
 specifies the action which can be:
 
-  * new:        zap (=delete) the newest snapshot subvolume
-  * old:        zap the oldest snapshot subvolume
-  * half:       zap the older half of snapshot subvolumes
-  * <subvolume>…: zap specified snapshot subvolume(s) (path without "$BSS_DIR/")
+  * new           zap (=delete) the newest snapshot subvolume
+  * old           zap the oldest snapshot subvolume
+  * half          zap the older half of snapshot subvolumes
+  * <subvolume>…  zap specified snapshot subvolume(s) (path without "$BSS_DIR/")
 
 Unless you have specific reasons to use "$BSS zap", you should consider to use
 "$BSS process" to prune outdated snapshots.
@@ -149,11 +149,11 @@ examples for systemd scripts to enable automatic daily "process" operation.
 
 For some snapshots, different TYPE values may be used instead of TYPE='single'.
 
-  * TYPE='pre':  automatic "snapshot" operation just before APT update
-  * TYPE='post': automatic "snapshot" operation just after  APT update
-  * TYPE='copy': automatic "snapshot" operation just before "$BSS copy"
-  * TYPE='hour': automatic "snapshot" operation on boot and every hour
-  * TYPE='last': automatic "snapshot" operation just before "$BSS revert"
+  * TYPE='pre'   automatic "snapshot" operation just before APT update
+  * TYPE='post'  automatic "snapshot" operation just after  APT update
+  * TYPE='copy'  automatic "snapshot" operation just before "$BSS copy"
+  * TYPE='hour'  automatic "snapshot" operation on boot and every hour
+  * TYPE='last'  automatic "snapshot" operation just before "$BSS revert"
 
 This "$BSS" calculates age related time values in the second and prints them in
 the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
