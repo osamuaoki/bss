@@ -1,5 +1,5 @@
---- bss.1.orig	2023-04-30 13:21:34.806004912 +0900
-+++ bss.1	2023-04-30 13:28:24.983192297 +0900
+--- bss.1.orig	2023-05-05 18:31:11.840789412 +0900
++++ bss.1	2023-05-05 18:34:39.008586268 +0900
 @@ -34,30 +34,40 @@
  between them from the older ones to newer ones and makes them more sparse for
  the older ones by removing some of them using parameters in ".bss.conf" in the
@@ -70,16 +70,14 @@
 -.IP
 -snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
  .TP
--as <ISO_8601_date>.<TYPE>
--(The default type is "single")
++snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
+ as <ISO_8601_date>.<TYPE>
+ (The default type is "single")
 -.IP
 -overview: overview of all snapshots (wrapper for age)
 -process:  process snapshots according to their aging status
 -copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
 -.IP
-+snapshot
-+make a readonly snapshot normally in the relative path ".bss.d/"
-+as <ISO_8601_date>.<TYPE> (The default type is "single")
 +.TP
 +overview
 +overview of all snapshots (wrapper for age)
@@ -99,13 +97,12 @@
 +list
  list all snapshots
  .TP
--age:
-+age
+ age:
  assess aging status of all snapshots
  .TP
--backup:
-+backup
- backup files into this file system based on ".backuprc"
+-gather:
++gather
+ gather files to "gather_root" and "gather_home" based on ".gatherrc"
  .TP
 -filter:
 +filter

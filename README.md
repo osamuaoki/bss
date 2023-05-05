@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.2.7)
+# Btrfs Subvolume Snapshot Utility (version: 1.3.1)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -69,7 +69,7 @@ OPTIONS:
 * -h,--help:      show this help
 * --version:      show version
 * -l,--logger:    use systemd logger
-* -m,--may:       may execute snapshot or backup if possible
+* -m,--may:       may execute snapshot or gather if possible
 * -q,--quiet:     quiet (no notice messages, just warn/error messages)
 * -v,--verbose:   verbose (with info messages)
 * -vv:            very verbose for debug (with info and debug messages)
@@ -86,7 +86,7 @@ SUBCOMMAND:
 * jobs:     list all systemd timer schedule jobs for bss
 * list:     list all snapshots
 * age:      assess aging status of all snapshots
-* backup:   backup files into this file system based on ".backuprc"
+* gather:   gather files to "gather_root" and "gather_home" based on ".gatherrc"
 * filter:   create a filtered snapshot from the specified snapshot in
             ".bss.d/" as <specified_subvol_name>_filter
 * revert:   make snapshot <ISO_8601_date>.last and replace the subvolume at the
@@ -129,12 +129,12 @@ specifies the action which can be:
 Unless you have specific reasons to use "bss zap", you should consider to use
 "bss process" to prune outdated snapshots.
 
-For "bss revert PATH PATH_OLD", subvolume at PATH is replaced by the
-subvolume at PATH_OLD.  PATH can't be set to "/".
+For "bss revert PATH PATH_OLD", subvolume at PATH is replaced by the subvolume
+at PATH_OLD.  PATH can't be set to "/".
 
-For "bss backup [PATH [PREFIX]]", files listed in ".backuprc" are copied
-into BASE_PATH/PREFIX.  The relative path are located from the user's
-home directory. The default for PREFIX is "backup".
+For "bss gather [PATH [PREFIX]]", files listed in ".PREFIXrc" are copied into
+PREFIX_root and PREFIX_home.  The relative path are interpreted as one from the
+user's home directory. The default for PREFIX is "gather".
 
 NOTE:
 
@@ -183,7 +183,7 @@ to run "revert" operation and manage them separately to keep the system
 recoverable since the snapshot operation isn't recursive.
 
 Although this "bss" focuses on btrfs, there is minimal support for ext2/ext3
-(this includes ext4) for "bss copy ...", "bss backup ...", and "bss
+(this includes ext4) for "bss copy ...", "bss gather ...", and "bss
 template".
 
 Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
