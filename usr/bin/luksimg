@@ -14,7 +14,7 @@ USRBIN="$(realpath "${0%/*}/.")" # /usr/bin
 PROG_NAME="${0##*/}"
 # set mode
 SECRET_TOOL="YES"
-SIZE_DISK="16G"
+SIZE_DISK="2G"
 
 BSS_LOGGER=0
 BSS_LOGGER_LEVEL="2"
@@ -89,6 +89,7 @@ open_luks () {
   else
     sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
   fi
+  sync
 }
 
 close_luks () {
@@ -98,6 +99,23 @@ close_luks () {
   else
     __echo 2 "I: cryptsetup close disk image at $XSECRET with error"
   fi
+  sync
+}
+
+umount_secret () {
+  sync
+  # Just after mount, somehow its device is busy to prevent umount
+  # this may be due to Gnome Files etc.
+  sleep 1
+  sync
+  __echo 2 "I: umount disk image at: $MNT_PATH ..."
+  # use umount w/o -l to be on safe side.
+  if sudo umount "$MNT_PATH" ; then
+    __echo 2 "I: umount disk image at: $MNT_PATH done"
+  else
+    __echo 2 "I: umount disk image at: $MNT_PATH with error"
+  fi
+  close_luks
 }
 
 new_secret () {
@@ -138,7 +156,8 @@ new_secret () {
   __echo 2 "I: create .gatherrc"
   bss template "$MNT_PATH"
   __echo 2 "I: create .bss.d/.bss.conf"
-  close_luks
+  # just to be safe
+  umount_secret
 }
 
 mount_secret () {
@@ -160,26 +179,14 @@ mount_secret () {
     | grep "$MNT_PATH" \
     | sed -e 's/\s\s*/ /g' \
     | cut -d' ' -f 2-5)"
+  sync
 }
 
 gather_secret () {
+  # use bss
+  sync
   bss gather "$MNT_PATH"
-}
-
-unmount_secret () {
   sync
-  # Just after mount, somehow its device is busy to prevent umount
-  # this may be due to Gnome Files etc.
-  sleep 1
-  sync
-  __echo 2 "I: umount disk image at: $MNT_PATH ..."
-  # use umount w/o -l to be on safe side.
-  if sudo umount "$MNT_PATH" ; then
-    __echo 2 "I: umount disk image at: $MNT_PATH done"
-  else
-    __echo 2 "I: umount disk image at: $MNT_PATH with error"
-  fi
-  close_luks
 }
 
 ##############################################################################
@@ -201,12 +208,10 @@ while [ -n "$1" ]; do
     -r|--rsync)
       shift
       XRSYNC="${1:-rsync}"
-      shift
       ;;
     -s|--secret)
       shift
       XSECRET="${1:-secret}"
-      shift
       ;;
     -l|--log*)
       BSS_LOGGER=1
@@ -316,7 +321,7 @@ while [ -n "$1" ]; do
       ;;
     u*) # umount secret folder
       shift
-      unmount_secret
+      umount_secret
       ;;
     o*) # open luks -- not public
       shift
@@ -330,8 +335,7 @@ while [ -n "$1" ]; do
       shift
       mount_secret
       gather_secret
-      unmount_secret
-      close_luks
+      umount_secret
       ;;
     *)
       __help
