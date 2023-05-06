@@ -8,11 +8,10 @@
 # See /usr/share/doc/bss/examples/README.md
 #
 # common shell code
+PROG_NAME="${0##*/}"
 USRBIN="$(realpath "${0%/*}/.")" # /usr/bin
 . "${USRBIN%/*}/share/bss/common.sh"
 ### VARIABLES ###
-PROG_NAME="${0##*/}"
-# set mode
 SECRET_TOOL="YES"
 SIZE_DISK="2G"
 
@@ -68,7 +67,7 @@ END_OF_HELP
 }
 __version () {
 cat << EOM
-$PROG_NAME ($BSS_VERSION)
+$PROG_NAME ($PROG_VERSION)
 
 Copyright (C) 2023 Osamu Aoki <osamu@debian.org>
 
@@ -82,7 +81,7 @@ EOM
 }
 
 open_luks () {
-  __echo 2 "I: unlock LUKS disk image $DISK_IMAGE as $DEV_MAPPER_PATH"
+  __echo 2 "unlock LUKS disk image $DISK_IMAGE as $DEV_MAPPER_PATH"
   if [ "$SECRET_TOOL" = "YES" ]; then
     secret-tool lookup LUKS "$DISK_IMAGE" | \
       sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
@@ -93,11 +92,11 @@ open_luks () {
 }
 
 close_luks () {
-  __echo 2 "I: cryptsetup close disk image at $XSECRET ..."
+  __echo 2 "cryptsetup close disk image at $XSECRET ..."
   if sudo cryptsetup close "$XSECRET" ; then
-    __echo 2 "I: cryptsetup close disk image at $XSECRET done"
+    __echo 2 "cryptsetup close disk image at $XSECRET done"
   else
-    __echo 2 "I: cryptsetup close disk image at $XSECRET with error"
+    __echo 2 "cryptsetup close disk image at $XSECRET with error"
   fi
   sync
 }
@@ -108,42 +107,42 @@ umount_secret () {
   # this may be due to Gnome Files etc.
   sleep 1
   sync
-  __echo 2 "I: umount disk image at: $MNT_PATH ..."
+  __echo 2 "umount disk image at: $MNT_PATH ..."
   # use umount w/o -l to be on safe side.
   if sudo umount "$MNT_PATH" ; then
-    __echo 2 "I: umount disk image at: $MNT_PATH done"
+    __echo 2 "umount disk image at: $MNT_PATH done"
   else
-    __echo 2 "I: umount disk image at: $MNT_PATH with error"
+    __echo 2 "umount disk image at: $MNT_PATH with error"
   fi
   close_luks
 }
 
 new_secret () {
   if [ -e "$DISK_IMAGE" ]; then
-    __echo 0 "E: disk image already exists: $DISK_IMAGE"
+    __echo 0 "disk image already exists: $DISK_IMAGE"
     exit $EXIT_ERROR
   fi
   # this is always called from console
   # create a new LUKS disk image formatted with ext4
   if ! secret-tool lookup LUKS "$DISK_IMAGE" >/dev/null ; then
-    __echo 2 "I: Setup passphrase for LUKS: $DISK_IMAGE"
+    __echo 2 "setup passphrase for LUKS: $DISK_IMAGE"
     secret-tool store --label="LUKS $DISK_IMAGE" LUKS "$DISK_IMAGE"
   else
-    __echo 2 "I: Passphrase for LUKS aleady stored: $DISK_IMAGE"
+    __echo 2 "passphrase for LUKS aleady stored: $DISK_IMAGE"
   fi
-  __echo 2 "I: create $SIZE_DISK image: $DISK_IMAGE"
+  __echo 2 "create $SIZE_DISK image: $DISK_IMAGE"
   fallocate -l "$SIZE_DISK" "$DISK_IMAGE"
-  __echo 2 "I: create LUKS in $DISK_IMAGE"
+  __echo 2 "create LUKS in $DISK_IMAGE"
   secret-tool lookup LUKS "$DISK_IMAGE" | \
     cryptsetup luksFormat "$DISK_IMAGE" -
-  __echo 2 "I: open LUKS as $DEV_MAPPER_PATH"
+  __echo 2 "open LUKS as $DEV_MAPPER_PATH"
   secret-tool lookup LUKS "$DISK_IMAGE" | \
     sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
-  __echo 2 "I: create btrfs in $DEV_MAPPER_PATH"
+  __echo 2 "create btrfs in $DEV_MAPPER_PATH"
   sudo mkfs.ext4 -L "$XSECRET" "$DEV_MAPPER_PATH"
-  __echo 2 "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
+  __echo 2 "mount $DEV_MAPPER_PATH on $MNT_PATH"
   sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
-  __echo 2 "I: set $MNT_PATH to UID:GID=1000:1000"
+  __echo 2 "set $MNT_PATH to UID:GID=1000:1000"
   sudo chown "1000:1000" "$MNT_PATH"
   {
     echo "# This file lists files and directories to be gathered"
@@ -153,29 +152,29 @@ new_secret () {
     echo ".gnupg"
     echo ".ssh"
   } > "$MNT_PATH/.gatherrc"
-  __echo 2 "I: create .gatherrc"
+  __echo 2 "create .gatherrc"
   bss template "$MNT_PATH"
-  __echo 2 "I: create .bss.d/.bss.conf"
+  __echo 2 "create .bss.d/.bss.conf"
   # just to be safe
   umount_secret
 }
 
 mount_secret () {
   if [ ! -e "$DISK_IMAGE" ]; then
-    __echo 0 "E: disk image missing: $DISK_IMAGE"
-    __echo 2 "I: create disk image interactively as: '$PROG_NAME new [size]'"
+    __echo 0 "disk image missing: $DISK_IMAGE"
+    __echo 2 "create disk image interactively as: '$PROG_NAME new [size]'"
     exit $EXIT_ERROR
   fi
   # mount if not mounted
   if mount|grep -e "$MNT_PATH" >/dev/null; then
-    __echo 2 "I: skip mounting:   $DEV_MAPPER_PATH on $MNT_PATH"
-    __echo 2 "I: already mounted: $(mount|grep -e "$MNT_PATH"|sed 's/type.*$//')"
+    __echo 2 "skip mounting:   $DEV_MAPPER_PATH on $MNT_PATH"
+    __echo 2 "already mounted: $(mount|grep -e "$MNT_PATH"|sed 's/type.*$//')"
   else
     open_luks
-    __echo 2 "I: mount $DEV_MAPPER_PATH on $MNT_PATH"
+    __echo 2 "mount $DEV_MAPPER_PATH on $MNT_PATH"
     sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"
   fi
-  __echo 2 "I: disk image usage (size used avail use%): $(df -h "$MNT_PATH" \
+  __echo 2 "disk image usage (size used avail use%): $(df -h "$MNT_PATH" \
     | grep "$MNT_PATH" \
     | sed -e 's/\s\s*/ /g' \
     | cut -d' ' -f 2-5)"
@@ -265,28 +264,9 @@ mkdir -p "$MNT_PATH"
 DEV_MAPPER_PATH="/dev/mapper/$XSECRET"
 # encrypted disk image file path: ~/rsync/secret.img
 DISK_IMAGE="$HOME/$XRSYNC/$XSECRET.img"
-# update parameters for -c
+# update __echo/__logger
+. "${USRBIN%/*}/share/bss/log.sh"
 $SETX_ON
-if [ "$BSS_LOGGER_LEVEL" -ge 3 ]; then
-  VERBOSE="-v"
-fi
-if [ "$BSS_LOGGER" = "1" ]; then
-  case $BSS_LOGGER_LEVEL in
-    0) LOGGER="systemd-cat -p 3 -t luksimg"
-      ;;
-    1) LOGGER="systemd-cat -p 4 -t luksimg"
-      ;;
-    2) LOGGER="systemd-cat -p 5 -t luksimg"
-      ;;
-    3) LOGGER="systemd-cat -p 6 -t luksimg"
-      ;;
-    4|5|6|7) LOGGER="systemd-cat -p 7 -t luksimg"
-      ;;
-  esac
-else
-  LOGGER=""
-fi
-
 ##############################################################################
 # "new" should be run alone and from console
 case "$1" in

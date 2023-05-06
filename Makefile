@@ -13,6 +13,7 @@ install:
 	install -d $(DESTDIR)$(prefix)/usr/share/bss
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" < usr/share/bss/common.sh > $(DESTDIR)$(prefix)/usr/share/bss/common.sh
 	chown 644 $(DESTDIR)$(prefix)/usr/share/bss/common.sh
+	install -m 644 -D usr/share/bss/log.sh                          $(DESTDIR)$(prefix)/usr/share/bss/log.sh
 	install -m 644 -D usr/share/bash-completion/completions/bss     $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/bss
 	install -m 644 -D usr/share/man/man1/bss.1                      $(DESTDIR)$(prefix)/usr/share/man/man1/bss.1
 	install -m 755 -D usr/bin/luksimg                               $(DESTDIR)$(prefix)/usr/bin/luksimg
