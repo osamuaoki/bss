@@ -120,6 +120,9 @@ its first argument SOURCE_PATH and the second argument DEST_PATH.  This command
 is smart enough to skip the "$BSS_DIR/" directory to allow independent
 management of data using "$BSS" on both the BASE directory and DEST_PATH.
 
+For "$BSS list", you may add the second argument to match snapshot <TYPE>.
+"$BSS list . 's.*'" should list snapshots with "single".
+
 If DEST_PATH is a local path such as "/srv/backup", then
   "$RSYNC $RSYNC_OPTA"
 is used to have enough privilege and to save the CPU load.
@@ -135,7 +138,9 @@ specifies the action which can be:
   * new           zap (=delete) the newest snapshot subvolume
   * old           zap the oldest snapshot subvolume
   * half          zap the older half of snapshot subvolumes
-  * <subvolume>…  zap specified snapshot subvolume(s) (path without "$BSS_DIR/")
+  * <subvolume>   zap specified snapshot subvolume (path with or without
+                  "$BSS_DIR/" such as "2020-01-01T00:00:00+00:00.single").
+                  Multiple subvolumes may be specified.
 
 Unless you have specific reasons to use "$BSS zap", you should consider to use
 "$BSS process" to prune outdated snapshots.
@@ -205,7 +210,7 @@ __version() {
   cat <<EOM
 $PROG_NAMR ($PROG_VERSION)
 
-Copyright (C) 2021 Osamu Aoki <osamu@debian.org>
+Copyright (C) 2021-2023 Osamu Aoki <osamu@debian.org>
 
 License GPLv2+: GNU GPL version 2 or later
 <https://gnu.org/licenses/gpl-2.0.html>.  This is free software: you are free
@@ -222,7 +227,7 @@ EOM
 #############################################################################
 BSV="$SUDO btrfs subvolume"
 RSYNC="$SUDO rsync"
-# remote copy uses user account
+# remote copy uses user account for ssh-key
 RSYNC_REMOTE="rsync"
 # Use readonly snapshot as the rsync source
 # Note on rsync options -a == -rlptgoD
@@ -306,29 +311,27 @@ __load_config() {
   else
     __echo 3 "    filter  missing     (probably OK)."
   fi
-  __echo 2 "Ensure to run a single instance of $BSS (wait up to 30 sec)" >&2
+  __echo 3 "Ensure to run a single instance of $BSS (wait up to 30 sec)"
   # fd=9 not used elsewhere in this script. (/ home, ... starts this script)
   exec 9<"$0"
   if ! flock --wait 30 9; then
-    __echo 0 "$BSS already running.  Try later" >&2
+    __echo 0 "$BSS already running.  Try later"
     exit 2
   fi
-  __echo 2 "No other instance of $BSS found" >&2
-  # make sure $BSS_DIR_BASE exists
+  __echo 3 "No other instance of $BSS found"
+  # make sure BSS_DIR_BASE=FS_BASE/BSS_DIR=FS_BASE/.bss.d exists
   if [ ! -d "$BSS_DIR_BASE" ]; then
-    if [ -z "$NOOP" ]; then
-      __logger $SUDO mkdir -p "$BSS_DIR_BASE"
-      __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_DIR_BASE"
-      # match owner with the parent directory
-      __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
-    else
-      __echo 0 "$BSS is not configured yet but --noop or -n option was used."
-      __echo 0 "  * Use '$BSS template' and edit generated template files first."
-      __echo 0 ""
-      __help
-      exit $EXIT_ERROR
-    fi
+    __echo 0 "$BSS is not configured."
+    __echo 0 "  * Use '$BSS template' and edit generated template files first."
+    __echo 0 ""
+    __help
+    exit $EXIT_ERROR
   fi
+  # ensure proper permissions
+  __echo 3 "Set permissions to $FS_BASE_UID:$FS_BASE_GID $FS_BASE_MOD for $BSS_DIR_BASE"
+  # match owner with the parent directory
+  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
+  __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_DIR_BASE"
   if [ -r "$BSS_CONF_BASE" ]; then
     # shellcheck disable=SC1090
     . "$BSS_CONF_BASE"
@@ -488,7 +491,7 @@ __list() {
   fi
   # $1      .* (egrep pattern)
   # $2      "-r" for reverse, "" for normal
-  # echo    snapshot time stamps
+  # STDOUT  snapshot time stamps
   __echo 4 "List snapshots for BASE=$FS_BASE matching TYPE_REGEX='${1}' (${2})"
   if [ -d "$BSS_SNAP_DEST_BASE" ]; then
     cd "$BSS_SNAP_DEST_BASE" >/dev/null
@@ -503,11 +506,12 @@ __list() {
 
 ##############################################################################
 __age() {
+  # use STDERR for age assessment result
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "Age not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "Age not available: FS=$FS_TYPE, BASE=$FS_BASE"
     exit $EXIT_ERROR
   fi
-  # echo    snapshot time stamps with + or - prepended
+  # STDOUT  snapshot time stamps with + or - prepended
   __echo 4 "Assess aging status of snapshots for BASE=$FS_BASE"
   BSS_TLAST="-1" # Initial value place holder
   BSS_TSTEP=$((BSS_TMAX * BSS_STEP / 100))
@@ -549,35 +553,35 @@ __age() {
     # Classify: I < NMIN
     #########################################################################
     if [ "$BSS_I" -lt "$BSS_NMIN" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE, I=$BSS_I < NMIN=$S_NMIN, TYPE=$BSS_TYPE (keep: unconditional, before NMIN)"
-      echo "+++_$BSS_SV"
+      __echo 3 "+++ TAGE=$S_TAGE, I=$BSS_I < NMIN=$S_NMIN, TYPE=$BSS_TYPE (keep: unconditional, before NMIN)"
+      echo "+++_$BSS_SV" >&2
     #########################################################################
     # Keep
     # Classify: TAGE < TMIN
     #########################################################################
     elif [ "$BSS_TAGE" -lt "$BSS_TMIN" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE < TMIN=$S_TMIN, TYPE=$BSS_TYPE (keep: unconditional, before TMIN)"
-      echo "+++_$BSS_SV"
+      __echo 3 "+++ TAGE=$S_TAGE < TMIN=$S_TMIN, TYPE=$BSS_TYPE (keep: unconditional, before TMIN)"
+      echo "+++_$BSS_SV" >&2
     #########################################################################
     # Keep
     # Classify: TYPE = keep
     #########################################################################
     elif [ "$BSS_TYPE" = "keep" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE, TYPE=$BSS_TYPE (keep: unconditional by TYPE)"
+      __echo 3 "+++ TAGE=$S_TAGE, TYPE=$BSS_TYPE (keep: unconditional by TYPE)"
       if [ "$BSS_TAGE" -ge "$BSS_TMAX" ]; then
         BSS_TLAST="$BSS_TAGE"
       else
         BSS_TLAST="$BSS_TAGE"
         BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
       fi
-      echo "+++_$BSS_SV"
+      echo "+++_$BSS_SV" >&2
     #########################################################################
     # Drop
     # Classify: I > NMAX and NMAX > 0, i.e., except for no_limit
     #########################################################################
     elif [ "$BSS_I" -ge "$BSS_NMAX" ] && [ "$BSS_NMAX" -gt "0" ]; then
-      __echo 2 "--- TAGE=$S_TAGE, $BSS_I >= NMAX=$S_NMAX, TYPE=$BSS_TYPE (drop: unconditional, after NMAX)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE, $BSS_I >= NMAX=$S_NMAX, TYPE=$BSS_TYPE (drop: unconditional, after NMAX)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # TMAX or older (keep step when keeping snapshot)
     #########################################################################
@@ -586,46 +590,46 @@ __age() {
     # Classify: TAGE >= TMAX and TMAX_ACTION=drop (TMAX>0 pre checked)
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX_ACTION" = "drop" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TMAX_ACTION=$BSS_TMAX_ACTION, TYPE=$BSS_TYPE (drop: after TMAX)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TMAX_ACTION=$BSS_TMAX_ACTION, TYPE=$BSS_TYPE (drop: after TMAX)"
+      echo "---_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Drop special TYPE
     # Classify: TAGE >= TMAX and TMAX>0 and TYPE = post or last
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && { [ "$BSS_TYPE" = "post" ] || [ "$BSS_TYPE" = "last" ]; }; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TYPE=$BSS_TYPE (drop: special TYPE, after TMAX)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TYPE=$BSS_TYPE (drop: special TYPE, after TMAX)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # Drop dense
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMAX)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMAX)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # Keep sparse as filtered
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL => TSTEP and TMID_ACTION=filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
-      __echo 2 "### TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA, TYPE=$BSS_TYPE (keep as filtered: sparse, keep step, after TMAX)"
-      echo "###_$BSS_SV"
+      __echo 3 "### TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA, TYPE=$BSS_TYPE (keep as filtered: sparse, keep step, after TMAX)"
+      echo "###_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Keep sparse without filter
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL => TSTEP and TMID_ACTION != filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" != "filter" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL => TSTEP=$S_TSTEP TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, TYPE=$BSS_TYPE (keep: sparse, keep step, after TMAX)"
-      echo "+++_$BSS_SV"
+      __echo 3 "+++ TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL => TSTEP=$S_TSTEP TMAX_ACTION=$BSS_TMAX_ACTION, TMID_ACTION=$BSS_TMID_ACTION, TYPE=$BSS_TYPE (keep: sparse, keep step, after TMAX)"
+      echo "+++_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Drop dense
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, keep step, after TMAX)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMAX=$S_TMAX, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, keep step, after TMAX)"
+      echo "---_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # TMID or older (update step when keeping snapshot)
@@ -635,22 +639,22 @@ __age() {
     # Classify: TAGE >= TMID and TYPE = post or last
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && { [ "$BSS_TYPE" = "post" ] || [ "$BSS_TYPE" = "last" ]; }; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TYPE=$BSS_TYPE (drop: special TYPE, after TMID)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TYPE=$BSS_TYPE (drop: special TYPE, after TMID)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # Drop dense
     # Classify: TAGE >= TMID and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMID)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMID)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # Keep sparse with filter
     # Classify: TAGE >= TMID and TDEL => TSTEP and TMID_ACTION=filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
-      __echo 2 "### TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA, TYPE=$BSS_TYPE (keep as filtered: sparse, update step, after TMID)"
-      echo "###_$BSS_SV"
+      __echo 3 "### TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, EXTRA=$BSS_EXTRA, TYPE=$BSS_TYPE (keep as filtered: sparse, update step, after TMID)"
+      echo "###_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -658,8 +662,8 @@ __age() {
     # Classify: TAGE >= TMID and TDEL => TSTEP and TMID_ACTION != filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" != "filter" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL => TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, TYPE=$BSS_TYPE (keep: sparse, keep step, after TMID)"
-      echo "+++_$BSS_SV"
+      __echo 3 "+++ TAGE=$S_TAGE >= TMID=$S_TMID, TDEL=$S_TDEL => TSTEP=$S_TSTEP, TMID_ACTION=$BSS_TMID_ACTION, TYPE=$BSS_TYPE (keep: sparse, keep step, after TMID)"
+      echo "+++_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -670,15 +674,15 @@ __age() {
     # Classify: TAGE >= TMIN and TYPE = post
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TYPE" = "post" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMIN=$S_TMIN, TYPE=$BSS_TYPE (drop: special TYPE, after TMIN)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMIN=$S_TMIN, TYPE=$BSS_TYPE (drop: special TYPE, after TMIN)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # Keep sparse
     # Classify: TAGE >= TMIN and TDEL > TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (keep: sparse, update step, after TMIN)"
-      echo "+++_$BSS_SV"
+      __echo 3 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL >= TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (keep: sparse, update step, after TMIN)"
+      echo "+++_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -686,8 +690,8 @@ __age() {
     # Classify: TAGE >= TMIN and TYPE = last
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TYPE" = "last" ]; then
-      __echo 2 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TYPE=$BSS_TYPE (keep: special TYPE, update step, after TMIN)"
-      echo "+++_$BSS_SV"
+      __echo 3 "+++ TAGE=$S_TAGE >= TMIN=$S_TMIN, TYPE=$BSS_TYPE (keep: special TYPE, update step, after TMIN)"
+      echo "+++_$BSS_SV" >&2
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -695,8 +699,8 @@ __age() {
     # Classify: TAGE >= TMIN and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
-      __echo 2 "--- TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMIN)"
-      echo "---_$BSS_SV"
+      __echo 3 "--- TAGE=$S_TAGE >= TMIN=$S_TMIN, TDEL=$S_TDEL < TSTEP=$S_TSTEP, TYPE=$BSS_TYPE (drop: dense, after TMIN)"
+      echo "---_$BSS_SV" >&2
     #########################################################################
     # NO WAY
     #########################################################################
@@ -721,7 +725,8 @@ __process() {
     __echo 2 "Assess aging status of snapshots internally: (silenced except for debug)"
     BSS_LOGGER_LEVEL="1" # Force __age to be quieter
   fi
-  for XBSS_SV in $(__age); do
+  for XBSS_SV in $(__age 2>&1 1>/dev/null ); do
+  # STDERR is age assessment result
     BSS_LOGGER_LEVEL="$BASE_BSS_LOGGER_LEVEL"
     # drop first character + or - or #
     BSS_SV="${XBSS_SV#???_}"
@@ -756,6 +761,7 @@ __process() {
 
 ##############################################################################
 __jobs() {
+  # interactive use only
   echo " $ systemctl --system list-timers 'bss-*'"
   systemctl --system list-timers 'bss-*'
   echo
@@ -891,6 +897,7 @@ __zap() {
   *) # labels (local only now)
     __echo 3 "Del. listed snapshots: BASE=$FS_BASE"
     for BSS_SV in "${@}"; do
+      BSS_SV="${BSS_SV##*/}"
       if [ -e "$BSS_SNAP_DEST_BASE/$BSS_SV" ]; then
         __echo 2 "Del. snapshot: BASE=$FS_BASE SV=$BSS_SV"
         # shellcheck disable=SC2086
@@ -1046,10 +1053,12 @@ __rsync_gather() {
     __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $DEST_DIR_H and $DEST_DIR_R"
     # match owner with the parent directory
     __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$DEST_DIR_H"
+    __logger $SUDO chmod "$FS_BASE_MOD" "$DEST_DIR_H"
     __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$DEST_DIR_R"
     RSYNC_OPTS="$RSYNC_OPTG $VERBOSE"
     # cd to user's home directory
     cd
+    __echo 2 "Gather using '$BSS_LIST' to '$FS_BASE/${BSS_PREFIX}_{root,home}'"
     grep -v -e "^#" "$BSS_LIST_BASE" | \
       while read -r F; do
         # normalize path by removing tailing / or similar
@@ -1078,12 +1087,12 @@ __rsync_gather() {
         # --mkpath to create path $F containing / in it
         # Hidden undocumented argument handling: $@ (after source)
         if [ -d "$F" ]; then
-          __echo 2 "Backup '$F/' -> '$DEST_DIR'"
+          __echo 3 "Gather '$F/' -> '$DEST_DIR'"
           # shellcheck disable=SC2086
           __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
             $F/ "$DEST_DIR"
         else # file, symlink, ...
-          __echo 2 "Backup '$F' -> '$DEST_DIR'"
+          __echo 3 "Gather '$F' -> '$DEST_DIR'"
           # shellcheck disable=SC2086
           __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
             $F "$DEST_DIR"
@@ -1307,6 +1316,7 @@ __template() {
       __logger $SUDO mkdir -p "$BSS_DIR_BASE"
       # match owner with the parent directory
       __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
+      __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_DIR_BASE"
     else
       __echo 0 "'$BSS template' must not be used with --noop nor -n option."
       exit $EXIT_ERROR
@@ -1335,7 +1345,7 @@ __template() {
       __template_conf_btrfs
       __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
       # shellcheck disable=SC2086
-      __logger $SUDO chown $FS_BASE_UID:$FS_BASE_GID "$BSS_CONF_BASE"
+      __logger $SUDO chown "$FS_BASE_UID:$FS_BASE_GID" "$BSS_CONF_BASE"
     fi
     #
     ### FILTER ###
@@ -1343,20 +1353,20 @@ __template() {
     if [ -e "$BSS_FLTR_BASE" ]; then
       __echo 1 "Filter file already exists: $BSS_FLTR for BASE=$FS_BASE, keep it as is."
     else
-      __echo 2 "Creating template: $BSS_FLTR for BASE=$FS_BASE."
-      if [ "$FS_BASE" = "/" ]; then
-        __template_filter_root
+      if [ -n "$1" ]; then
+        # hidden feature, no-filter specified
+        __echo 1 "Skip creating filter file as requested: $BSS_FLTR for BASE=$FS_BASE"
       else
-        if [ -n "$1" ]; then
-          # hidden feature
-          __echo 1 "Skip creating filter file as requested: $BSS_FLTR for BASE=$FS_BASE"
+        __echo 2 "Creating template: $BSS_FLTR for BASE=$FS_BASE."
+        if [ "$FS_BASE" = "/" ]; then
+          __template_filter_root
         else
           __template_filter_non_root
         fi
+        __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
+        # shellcheck disable=SC2086
+        __logger $SUDO chown $FS_BASE_UID:$FS_BASE_GID "$BSS_FLTR_BASE"
       fi
-      __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $BSS_CONF_BASE and $BSS_FLTR_BASE"
-      # shellcheck disable=SC2086
-      __logger $SUDO chown $FS_BASE_UID:$FS_BASE_GID "$BSS_FLTR_BASE"
     fi
     if [ "$BSS_TMID_ACTION" != "filter" ] && [ -e "$BSS_FLTR_BASE" ]; then
       __echo 2 "Please reconcile settings."
@@ -1434,7 +1444,7 @@ while [ -n "$1" ]; do
     break
     ;;
   -*)
-    echo "E: Unknown option: '$1'" >&2
+    __echo 0 "Unknown option: '$1'"
     __help
     exit $EXIT_ERROR
     ;;
@@ -1514,6 +1524,7 @@ else
 fi
 # FS_BASE is clean canonical absolute path pointing to the root of btrfs
 # containing FS_BASE0
+FS_BASE_MOD="755"
 FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
 FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
 # derivative parameters
@@ -1543,7 +1554,7 @@ l*) # list
   if [ -z "$1" ]; then
     __list '.*'
   else
-    __list "$1" "$2"
+    __list "$1" "$2" "$3"
   fi
   ;;
 a*) # assess aging status
@@ -1552,17 +1563,14 @@ a*) # assess aging status
   ;;
 o*) # overview
   __load_config
-  if [ "$BSS_LOGGER_LEVEL" -le "2" ]; then
-    BSS_LOGGER_LEVEL="$(($BSS_LOGGER_LEVEL + 1))"
-    __age >/dev/null
-  else
-    __age
-  fi
+  # VERBOSE w/o data line
+  BSS_LOGGER_LEVEL=3
+  __age 2>/dev/null
   ;;
 j*) # jobs
   __jobs
   ;;
-B*) # BASE
+B*) # BASE (interactive use only)
   echo "$FS_BASE"
   __load_config
   ;;

@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.3.4)
+# Btrfs Subvolume Snapshot Utility (version: 1.3.5)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -114,6 +114,9 @@ its first argument SOURCE_PATH and the second argument DEST_PATH.  This command
 is smart enough to skip the ".bss.d/" directory to allow independent
 management of data using "bss" on both the BASE directory and DEST_PATH.
 
+For "bss list", you may add the second argument to match snapshot <TYPE>.
+"bss list . 's.*'" should list snapshots with "single".
+
 If DEST_PATH is a local path such as "/srv/backup", then
 * "sudo rsync -aHxS --delete --mkpath"
 is used to have enough privilege and to save the CPU load.
@@ -129,7 +132,9 @@ specifies the action which can be:
   * new           zap (=delete) the newest snapshot subvolume
   * old           zap the oldest snapshot subvolume
   * half          zap the older half of snapshot subvolumes
-  * \<subvolume>…  zap specified snapshot subvolume(s) (path without ".bss.d/")
+  * \<subvolume>   zap specified snapshot subvolume (path with or without
+                  ".bss.d/" such as "2020-01-01T00:00:00+00:00.single").
+                  Multiple subvolumes may be specified.
 
 Unless you have specific reasons to use "bss zap", you should consider to use
 "bss process" to prune outdated snapshots.

@@ -138,7 +138,7 @@ new_secret () {
   __echo 2 "open LUKS as $DEV_MAPPER_PATH"
   secret-tool lookup LUKS "$DISK_IMAGE" | \
     sudo cryptsetup open "$DISK_IMAGE" "$XSECRET" --type luks
-  __echo 2 "create btrfs in $DEV_MAPPER_PATH"
+  __echo 2 "create ext4 in $DEV_MAPPER_PATH"
   sudo mkfs.ext4 -L "$XSECRET" "$DEV_MAPPER_PATH"
   __echo 2 "mount $DEV_MAPPER_PATH on $MNT_PATH"
   sudo mount "$DEV_MAPPER_PATH" "$MNT_PATH"

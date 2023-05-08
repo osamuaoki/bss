@@ -70,15 +70,15 @@ __echo () {
   shift
   if [ "$BSS_LOGGER_LEVEL" -ge "$BSS_MSG_LEVEL" ]; then
     case $BSS_MSG_LEVEL in
-      0) echo "E: $*" >&2
+      0) echo "E: $*"
         ;;
-      1) echo "W: $*" >&2
+      1) echo "W: $*"
         ;;
-      2) echo "N: $*" >&2
+      2) echo "N: $*"
         ;;
-      3) echo "I: $*" >&2
+      3) echo "I: $*"
         ;;
-      4|5|6|7) echo "D: $*" >&2
+      4|5|6|7) echo "D: $*"
         ;;
     esac
     if [ "$BSS_LOGGER" = "1" ]; then
