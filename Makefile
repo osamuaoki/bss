@@ -64,11 +64,11 @@ README.md: .FORCE
 	echo >>$@
 	usr/bin/bss --help | \
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" | \
-	sed -E -e '/^  [^ *]/s/^  /* /' -e '/^[^:]*$$/s/^(\* [^ ]+ ?[^ ]+)  /\1: /' -e 's/…_/…\\_/' -e 's/^  \* <sub/  \* \\<sub/' >>$@
+	sed -E -e '/^  [^ *]/s/^  /* /' -e '/^[^:]*$$/s/^(\* [^ ]+ ?[^ ]+)  /\1: /' -e 's/</\\\</g' -e "s/\~/\\\~/g" >>$@
 	cat README.tail >>$@
 	usr/bin/luksimg --help | \
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" | \
-	sed -e "s/\~/\\\~/g" >>$@
+	sed -E -e '/^  [^ *]/s/^  /* /' -e '/^[^:]*$$/s/^(\* [^ ]+ ?[^ ]+)  /\1: /' -e 's/</\\\</g' -e "s/\~/\\\~/g" >>$@
 
 .FORCE:
 

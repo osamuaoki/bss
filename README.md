@@ -78,7 +78,7 @@ OPTIONS:
 SUBCOMMAND:
 
 * snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
-            as <ISO_8601_date>.<TYPE>  (The default type is "single")
+            as \<ISO_8601_date>.\<TYPE>  (The default type is "single")
 * overview: overview of all snapshots (wrapper for age)
 * process:  process snapshots according to their aging status
 * copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
@@ -88,10 +88,10 @@ SUBCOMMAND:
 * age:      assess aging status of all snapshots
 * gather:   gather files to "gather_root" and "gather_home" based on ".gatherrc"
 * filter:   create a filtered snapshot from the specified snapshot in
-            ".bss.d/" as <specified_subvol_name>_filter
-* revert:   make snapshot <ISO_8601_date>.last and replace the subvolume at the
+            ".bss.d/" as \<specified_subvol_name>_filter
+* revert:   make snapshot \<ISO_8601_date>.last and replace the subvolume at the
             BASE directory (1st argument) with the specified snapshot
-            <ISO_8601_date>.<extension> (2nd argument) found under
+            \<ISO_8601_date>.\<extension> (2nd argument) found under
             "BSS_SNAP_DEST" specified in ".bss.conf".  This is only for the
             system mode. (This is alpha stage untested feature.)
 * zap:      zap (=delete) particular snapshot(s) specified by the arguments
@@ -114,7 +114,7 @@ its first argument SOURCE_PATH and the second argument DEST_PATH.  This command
 is smart enough to skip the ".bss.d/" directory to allow independent
 management of data using "bss" on both the BASE directory and DEST_PATH.
 
-For "bss list", you may add the second argument to match snapshot <TYPE>.
+For "bss list", you may add the second argument to match snapshot \<TYPE>.
 "bss list . 's.*'" should list snapshots with "single".
 
 If DEST_PATH is a local path such as "/srv/backup", then
@@ -124,7 +124,7 @@ is used to have enough privilege and to save the CPU load.
 If DEST_PATH is a remote path such as "[USER@]HOST:DEST_PATH", then
 * "rsync -aHxSz --delete --mkpath"
 is used to limit privilege and save the network load. Also, this allows
-"bss copy" to use the SSH-key stored under "~/.ssh/".
+"bss copy" to use the SSH-key stored under "\~/.ssh/".
 
 For "bss zap", the first argument is normally ".".  The following argument
 specifies the action which can be:
@@ -196,7 +196,7 @@ Although this "bss" focuses on btrfs, there is minimal support for ext2/ext3
 (this includes ext4) for "bss copy ...", "bss gather ...", and "bss
 template".
 
-Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2022 Osamu Aoki \<osamu@debian.org>, GPL 2+
 <!---
 vim:se tw=78 ai si sts=4 sw=4 et:
 -->
@@ -392,35 +392,35 @@ Usage: luksimg [-r RSYNC|-s SECRET] [-l|-a] [n [size]|m|g|u|a]
 
 OPTION:
 
-  -r RSYNC      use '\~/RSYNC/' insted of '\~/rsync/' to place the LUKS
+* -r RSYNC:     use '\~/RSYNC/' insted of '\~/rsync/' to place the LUKS
                 encrypted disk image file.
 
-  -s SECRET     use '\~/rsync/SECRET.img' insted of '\~/rsync/secret.img' for
+* -s SECRET:    use '\~/rsync/SECRET.img' insted of '\~/rsync/secret.img' for
                 the LUKS encrypted disk image file.
 
-  -l, --logger  use journald to record log (useful for systemd timer service)
+* -l, --logger: use journald to record log (useful for systemd timer service)
 
-  -a, --ask     ask passphrase to unlock LUKS encryption (Unless this is set,
+* -a, --ask:    ask passphrase to unlock LUKS encryption (Unless this is set,
                 GNOME secret-tool is used to obtain passphrase)
 
 COMMAND:
 
 Multiple commands may be specified to execute them in sequence.
 
-  new [size]    make a new sparse disk image '\~/rsync/secret.img' formatted as
+* new [size]:   make a new sparse disk image '\~/rsync/secret.img' formatted as
                 ext4 filesystem on LUKS encrypted volume. The size can be
                 optionally specified, e.g. as '32G'
-  mount         decrypt the LUKS disk image '\~/rsync/secret.img' to create a
+* mount:        decrypt the LUKS disk image '\~/rsync/secret.img' to create a
                 device-mapper device '/dev/device-mapper/secret', then
                 mount it onto '\~/rsync/secret.mnt'
-  gather        run 'bss gather \~/secret.mnt/'
-  umount        umount the device-mapper device '/dev/device-mapper/secret'
+* gather:       run 'bss gather \~/secret.mnt/'
+* umount:       umount the device-mapper device '/dev/device-mapper/secret'
                 from '\~/secret.mnt/' and close it
-  all           perform all actions: mount -> gather -> umount -> close
+* all           perform all actions: mount -> gather -> umount -> close
 
 These commands may be shortened if they aren't ambiguous.
 
 See /usr/share/doc/bss/examples/README.md or
       https://github.com/osamuaoki/bss/tree/main/examples
 
-Copyright 2023 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2023 Osamu Aoki \<osamu@debian.org>, GPL 2+
