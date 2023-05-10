@@ -1,0 +1,85 @@
+#!/bin/sh
+########################################################################
+# bu: Backup to the USB drive
+########################################################################
+# Sanity check
+SUDO="sudo"
+XUSER=$(id -u -n)
+# move to $HOME
+cd
+if [ ! -d /media/$XUSER/ ]; then
+  echo "E: Media directory missing: /media/$XUSER/."
+  exit 1
+fi
+########################################################################
+# utility function
+# * destination is a USB drive
+#   * auto-mountable partition formatted as btrfs labeled as LABEL
+# * source is a btrfs subvolume under user's home directory
+#   * the btrfs subvolume path is '~/SUBVOL`.
+# * syntax: buckup LABEL SUBVOL
+########################################################################
+backup() {
+  if [ -d /media/$XUSER/$1/ ]; then
+    XDEVICE=$1
+    XFOLDER=$2
+    bss --may gather "$XFOLDER"
+    bss copy "$XFOLDER" "/media/$XUSER/$XDEVICE/$XFOLDER"
+    bss --may snap "/media/$XUSER/$XDEVICE/$XFOLDER"
+  fi
+}
+
+########################################################################
+# backup config for each USB storage (relative path from home directory)
+########################################################################
+echo "I: Backup started"
+
+HOSTNAME="$(hostname)"
+
+case $HOSTNAME in
+goofy)
+  # Backup to BKUP_USB 250GB (main backup SSD device)
+  backup BKUP_USB Documents
+
+  # Backup to BKUP_USB_LF 250GB (medium frequency backup SSD device)
+  backup BKUP_USB_LF Documents
+  backup BKUP_USB_LF github
+  backup BKUP_USB_LF salsa
+  backup BKUP_USB_LF rsync
+
+  # Backup to WD4.0TB (low frequency backup HDD device)
+  backup WD40
+  backup WD40 Pictures
+  backup WD40 Music
+  backup WD40 Documents
+  backup WD40 Downloads
+  backup WD40 github
+  backup WD40 salsa
+  backup WD40 rsync
+  backup WD40 kbd
+
+  # Backup to WD2.0TB (low frequency backup HDD device)
+  backup WD20
+  backup WD20 Pictures
+  backup WD20 Music
+  backup WD20 Documents
+  backup WD20 Downloads
+  backup WD20 github
+  backup WD20 salsa
+  backup WD20 rsync
+  backup WD20 kbd
+
+  # BKUP_AV_2023 is full 64GB -- historic
+  #backup BKUP_AV_2023 Pictures
+  #backup BKUP_AV_2023 Music
+  ;;
+casper)
+
+  echo "I: NoBackup setup yet"
+  ;;
+*)
+  echo "I: NoBackup setup yet for $HOSTNAME"
+  ;;
+esac
+
+echo "I: Backup end"

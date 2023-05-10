@@ -58,9 +58,9 @@ OPTIONS:
 
 * -t,--type TYPE: use TYPE instead of the default "single" for the snapshot
                   type.  The automatic snapshot uses "pre" (before APT), "post"
-                  (after APT), "hour" (on boot and every hour).
-                  If "keep" is specified, the snapshot with it will be
-                  kept forever under the normal aging process.
+                  (after APT), "hour" (on boot and every hour). If "keep" is
+                  specified, the snapshot with it will be kept forever under
+                  the normal aging process.
 * -c,--conf RC:   use "RC.conf", "RC.fltr" etc. instead of their
                   default ".bss.conf", ".bss.fltr" etc.
 * -f,--force:     force to reapply filter
@@ -78,20 +78,21 @@ OPTIONS:
 SUBCOMMAND:
 
 * snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
-            as \<ISO_8601_date>.\<TYPE>  (The default type is "single")
-* overview: overview of all snapshots (wrapper for age)
+            as "\<ISO_8601_date>.\<TYPE>"  (The default type is "single")
+* overview: overview of all snapshots (wrapper for "bss -v age 2>/dev/null")
 * process:  process snapshots according to their aging status
 * copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
             destination (2nd argument) using rsync
 * jobs:     list all systemd timer schedule jobs for bss
 * list:     list all snapshots
 * age:      assess aging status of all snapshots
-* gather:   gather files to "gather_root" and "gather_home" based on ".gatherrc"
+* gather:   gather local files and directories to ".gather_root" and
+            ".gather_home" directories specified on ".gatherrc"
 * filter:   create a filtered snapshot from the specified snapshot in
-            ".bss.d/" as \<specified_subvol_name>_filter
-* revert:   make snapshot \<ISO_8601_date>.last and replace the subvolume at the
-            BASE directory (1st argument) with the specified snapshot
-            \<ISO_8601_date>.\<extension> (2nd argument) found under
+            ".bss.d/" as "\<specified_subvol_name>_filter"
+* revert:   make snapshot "\<ISO_8601_date>.last" and replace the subvolume at
+            the BASE directory (1st argument) with the specified snapshot
+            "\<ISO_8601_date>.\<extension>" (2nd argument) found under
             "BSS_SNAP_DEST" specified in ".bss.conf".  This is only for the
             system mode. (This is alpha stage untested feature.)
 * zap:      zap (=delete) particular snapshot(s) specified by the arguments
@@ -105,26 +106,28 @@ Subcommands may be shortened to a single character.
 
 ARGUMENTS:
 
-For some SUBCOMMANDs, enxtra optional arguments after the explicit PATH may
-be specified.
+For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" as
+the first argument may be specified.
 
-For "bss copy", this is a combination of "bss snapshot" to create a snapshot
-of the BASE directory to SOURCE_PATH and a wrapper for "sudo rsync" command with
-its first argument SOURCE_PATH and the second argument DEST_PATH.  This command
-is smart enough to skip the ".bss.d/" directory to allow independent
-management of data using "bss" on both the BASE directory and DEST_PATH.
+For "bss list", you may add the second argument to match snapshot "\<TYPE>".
+"bss list . '(s.*|h.*)' " should list snapshots with both "single" and "hour"
+types.
 
-For "bss list", you may add the second argument to match snapshot \<TYPE>.
-"bss list . 's.*'" should list snapshots with "single".
+For "bss copy BASE DEST_PATH", this is a combination of "bss snapshot" to
+create a snapshot of the BASE directory to SOURCE_PATH and a wrapper for
+"sudo rsync" command with its first argument SOURCE_PATH and the second argument
+"DEST_PATH".  This command is smart enough to skip the ".bss.d/" directory to
+allow independent management of data using "bss" on both the BASE directory
+and "DEST_PATH".
 
-If DEST_PATH is a local path such as "/srv/backup", then
-* "sudo rsync -aHxS --delete --mkpath"
-is used to have enough privilege and to save the CPU load.
+If "DEST_PATH" is a local path such as "/srv/backup", then
+"sudo rsync -aHxS --delete --mkpath" is used to have enough privilege and to
+save the CPU load.
 
 If DEST_PATH is a remote path such as "[USER@]HOST:DEST_PATH", then
-* "rsync -aHxSz --delete --mkpath"
-is used to limit privilege and save the network load. Also, this allows
-"bss copy" to use the SSH-key stored under "\~/.ssh/".
+"rsync -aHxSz --delete --mkpath" is used to limit privilege and
+to save the network load. Also, this allows "bss copy" to use the SSH-key
+stored under "\~/.ssh/".
 
 For "bss zap", the first argument is normally ".".  The following argument
 specifies the action which can be:
@@ -133,7 +136,7 @@ specifies the action which can be:
   * old           zap the oldest snapshot subvolume
   * half          zap the older half of snapshot subvolumes
   * \<subvolume>   zap specified snapshot subvolume (path with or without
-                  ".bss.d/" such as "2020-01-01T00:00:00+00:00.single").
+                  ".../.bss.d/" such as "2020-01-01T00:00:00+00:00.single").
                   Multiple subvolumes may be specified.
 
 Unless you have specific reasons to use "bss zap", you should consider to use
@@ -142,9 +145,10 @@ Unless you have specific reasons to use "bss zap", you should consider to use
 For "bss revert PATH PATH_OLD", subvolume at PATH is replaced by the subvolume
 at PATH_OLD.  PATH can't be set to "/".
 
-For "bss gather [PATH [PREFIX]]", files listed in ".PREFIXrc" are copied into
-PREFIX_root and PREFIX_home.  The relative path are interpreted as one from the
-user's home directory. The default for PREFIX is "gather".
+For "bss gather PATH PREFIX", files and directories listed in ".PREFIXrc" are
+copied into ".PREFIX_root" and ".PREFIX_home".  The relative path are
+interpreted as one from the user's home directory. The default for "PREFIX" is
+"gather" if missing.
 
 NOTE:
 
@@ -152,23 +156,25 @@ This "bss" command comes with examples for systemd scripts and apt hook script
 to enable automatic "snapshot" operations.  This "bss" command also comes with
 examples for systemd scripts to enable automatic daily "process" operation.
 
-For some snapshots, different TYPE values may be used instead of TYPE='single'.
+For some snapshots, different "TYPE" values may be used instead of its default
+"single".
 
-  * TYPE='pre'   automatic "snapshot" operation just before APT update
-  * TYPE='post'  automatic "snapshot" operation just after  APT update
-  * TYPE='copy'  automatic "snapshot" operation just before "bss copy"
-  * TYPE='hour'  automatic "snapshot" operation on boot and every hour
-  * TYPE='last'  automatic "snapshot" operation just before "bss revert"
+  * TYPE="pre"   automatic "snapshot" operation just before APT update
+  * TYPE="post"  automatic "snapshot" operation just after  APT update
+  * TYPE="copy"  automatic "snapshot" operation just before "bss copy"
+  * TYPE="hour"  automatic "snapshot" operation on boot and every hour
+  * TYPE="last"  automatic "snapshot" operation just before "bss revert"
 
-This "bss" calculates age related time values in the second and prints them in
-the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
+This "bss" calculates time values related to age in the second and prints them
+in the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
 
 You can make a snapshot just by "bss" alone.
 
 You can use verbose "bss -v BASE" command to print current effective
 configuration parameters without side effects.
 
-This "bss" command uses systemd journal.  You can check recent invocation with:
+This "bss" command uses systemd logger.  You can check results of its recent
+invocations with:
 
 * $ journalctl -a -b -t bss
 
@@ -180,7 +186,7 @@ The non-root user who executes this command must be a member of "sudo".
 
 Running filter script ".bss.fltr" drains CPU and SSD resources but it may save
 SSD usage size significantly.  If you are not interested in reducing SSD usage
-size by this script, remove this ".bss.fltr" file and set
+size by this script, remove the ".bss.fltr" file and set
 BSS_TMID_ACTION="no_filter" in ".bss.conf".
 
 The "revert" operation is supported only for the system mode.  APT updates can

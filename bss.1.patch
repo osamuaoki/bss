@@ -1,5 +1,5 @@
---- bss.1.orig	2023-05-05 22:38:30.837644051 +0900
-+++ bss.1	2023-05-05 23:03:02.542358396 +0900
+--- bss.1.orig	2023-05-10 17:17:40.503511354 +0900
++++ bss.1	2023-05-10 17:19:48.677676378 +0900
 @@ -36,19 +36,22 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
@@ -34,7 +34,7 @@
  * If TMAX_ACTION=keep, keep subvolume after TMAX.
  .PP
  .SH OPTIONS
-@@ -150,6 +155,7 @@
+@@ -151,6 +156,7 @@
  make template files in the ".bss.d/" directory:
  .IP
  ".bss.conf" (aging rule)

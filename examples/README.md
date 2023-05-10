@@ -46,30 +46,26 @@ operations.
 
 For secure backups, use `luksimg` command to create and update encrypted disk
 image file (LUKS+ext4).  The default disk image file path of `luksimg` command
-is `~/rsync/secret.img` . The selection of files to be copied into
-`~/rsync/secret.img` are listed in `~/.secretrc` .
-
-The pathes involved can be changed by exporting `$DISK_IMG_FILE` and
-`$DISK_IMG_DIR` to the `luksimg` command. 
-
-If you set up `~/.config/autostart/mount_home_secret.desktop` as presented in
-example, the content of `~/rsync/secret.img` is mounted to `~/secret/` upon
-system start.
+is `~/rsync/secret.img` .  It is mounted on `~/secret.mnt/`. The selection of
+files and directories to be copied into `~/rsync/secret.img` are listed in
+`~/secret.mnt/.gatherrc` .
 
 Please note `luksimg` uses the passphrase stored in GNOME `secret-tool` with
 `attribute` to be `LUKS` and  `value` to be the full expanded path
 corresponding to `~/rsync/secret.img`.  (Use GNOME seahose for GUI management.)
 
-For network backups, you need to have access to a remote server accepting ssh
-and `rsync` connection.  I currently use rsync.net service. (For other cloud
-services, please consider to update this code to support `rclone` command.
-This is my TODO and such patch is welcomed.)
+## Backup script examples
 
-Another TODO is an example to support USB connected storage for backups upon
-connecting them to the PC using a udev hook script.
+For USB storage device backup, `examples/bin/bu` provides an example to use `bss`.
+
+For network backups, `examples/bin/rbu` provides an example to use `bss` and `luksimg`.
+
+Both of these are not auto start.
 
 Since `~/github/` and `~/salsa/` contain publicly mirrored contents, I don't
-bother to make their remote/USB copies.
+bother to make their remote copies.
+
+For USB copies, I limit data for regular backup to SSD.  I use HDD for large static data backup.
 
 ## rsync.net
 
@@ -108,7 +104,7 @@ You can inspect contents in the downloaded `secret.img` as:
  $ mv secret.img secret-keep.img        # if secret.img exists
  $ mv ~/oldrsync/secret.img secret.img
  $ luksimg mount
- $ cd ~/secret; ls -laR
+ $ cd ~/secret.mnt; ls -laR
 ```
 
 (Here, secret.img must be placed in the original location with the original
@@ -116,7 +112,7 @@ name to use the passphrase stored in GNOME `secret-tool` and you may be able to
 check it using GNOME seahorse.)
 
 Alternatively, you can inspect contents in downloaded `secret.img` as:
-
+XXX FIXME XXX
 ```
  $ mkdir -p ~/oldrsync
  $ mkdir -p ~/oldrsecret
@@ -142,4 +138,6 @@ For list of available older backups
 ```
  $ ssh de1234@de1234.rsync.net ls -lsa .zfs/snapshot
 ```
+## Set up passwordless ssh access
 
+XXX FIXME XXX

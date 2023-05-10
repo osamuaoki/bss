@@ -93,7 +93,7 @@ open_luks () {
 
 close_luks () {
   __echo 2 "cryptsetup close disk image at $XSECRET ..."
-  if sudo cryptsetup close "$XSECRET" ; then
+  if sudo cryptsetup close --deferred "$XSECRET" ; then
     __echo 2 "cryptsetup close disk image at $XSECRET done"
   else
     __echo 2 "cryptsetup close disk image at $XSECRET with error"
@@ -109,7 +109,7 @@ umount_secret () {
   sync
   __echo 2 "umount disk image at: $MNT_PATH ..."
   # use umount w/o -l to be on safe side.
-  if sudo umount "$MNT_PATH" ; then
+  if sudo umount -l "$MNT_PATH" ; then
     __echo 2 "umount disk image at: $MNT_PATH done"
   else
     __echo 2 "umount disk image at: $MNT_PATH with error"
