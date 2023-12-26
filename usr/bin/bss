@@ -8,9 +8,10 @@
 # License: GPL 2+
 ##############################################################################
 PROG_NAME="${0##*/}"
-USRBIN="$(realpath "${0%/*}/.")" # /usr/bin
+USRBIN="$(realpath "${0%/*}/.")" # /usr/bin /usr/local/bin ~/.local/share/bin
 . "${USRBIN%/*}/share/bss/common.sh"
 
+# two spaces "  " are meaningful for markdown conversion
 __help() {
   cat <<END_OF_HELP
 Usage: $BSS [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
@@ -63,10 +64,11 @@ the older ones by removing some of them using parameters in "$BSS_CONF" in the
 OPTIONS:
 
   -t,--type TYPE  use TYPE instead of the default "single" for the snapshot
-                  type.  The automatic snapshot uses "pre" (before APT), "post"
-                  (after APT), "hour" (on boot and every hour). If "keep" is
-                  specified, the snapshot with it will be kept forever under
-                  the normal aging process.
+                  type.  If \$BSS_TYPE is exported to $BSS, its value is used
+                  as the default for TYPE instead. The automatic snapshot uses
+                  "pre" (before APT), "post (after APT), "hour" (on boot and
+                  every hour). If "keep" is specified, the snapshot with it
+                  will be kept forever under the normal aging process.
   -c,--conf RC    use "RC.$EXT_CONF", "RC.$EXT_FLTR" etc. instead of their
                   default "$BSS_CONF", "$BSS_FLTR" etc.
   -f,--force      force to reapply filter
@@ -74,7 +76,8 @@ OPTIONS:
                   internal commands with "echo __"
   -h,--help       show this help
   --version       show version
-  -l,--logger     use systemd logger
+  -l,--logger     use systemd logger (default)
+  -L,--nologger   don't use systemd logger (terminal echo to STDERR only)
   -m,--may        may execute snapshot or gather if possible
   -q,--quiet      quiet (no notice messages, just warn/error messages)
   -v,--verbose    verbose (with info messages)
@@ -83,37 +86,40 @@ OPTIONS:
 
 SUBCOMMAND:
 
-  snapshot  make a readonly snapshot normally in the relative path "$BSS_DIR/"
-            as "<ISO_8601_date>.<TYPE>"  (The default type is "single")
-  overview  overview of all snapshots (wrapper for "$BSS -v age 2>/dev/null")
-  process   process snapshots according to their aging status
-  copy      copy subvolume at the BASE directory (1st argument) to the (remote)
-            destination (2nd argument) using rsync
-  jobs      list all systemd timer schedule jobs for $BSS
-  list      list all snapshots
-  age       assess aging status of all snapshots
-  gather    gather local files and directories to ".gather_root" and
-            ".gather_home" directories specified on ".gatherrc"
-  filter    create a filtered snapshot from the specified snapshot in
-            "$BSS_DIR/" as "<specified_subvol_name>_filter"
-  revert    make snapshot "<ISO_8601_date>.last" and replace the subvolume at
-            the BASE directory (1st argument) with the specified snapshot
-            "<ISO_8601_date>.<extension>" (2nd argument) found under
-            "BSS_SNAP_DEST" specified in "$BSS_CONF".  This is only for the
-            system mode. (This is alpha stage untested feature.)
-  zap       zap (=delete) particular snapshot(s) specified by the arguments
-            "zap" is required to be typed in full text.
-  template  make template files in the "$BSS_DIR/" directory:
-              "$BSS_CONF" (aging rule)
-              "$BSS_FLTR" (filtering rule)
-  BASE      print the BASE directory for "$BSS"
+  snapshot   make a readonly snapshot normally in the relative path "$BSS_DIR/"
+             as "<ISO_8601_date>.<TYPE>"  (The default type is "single")
+  overview   overview of all snapshots (wrapper for "$BSS -v age >/dev/null")
+  process    process snapshots according to their aging status
+  copy       copy subvolume at the BASE directory (1st argument) to the
+             (remote) destination (2nd argument) using rsync
+  jobs       list all systemd timer schedule jobs for $BSS
+  list       list all snapshots
+  age        assess aging status of all snapshots
+  gather     gather local files and directories to ".gather_root" and
+             ".gather_home" directories specified on ".gatherrc"
+  filter     create a filtered snapshot from the specified snapshot in
+             "$BSS_DIR/" as "<specified_subvol_name>_filter"
+  revert     make snapshot "<ISO_8601_date>.last" and replace the subvolume at
+             the BASE directory (1st argument) with the specified snapshot
+             "<ISO_8601_date>.<extension>" (2nd argument) found under
+             "BSS_SNAP_DEST" specified in "$BSS_CONF".  This is only for the
+             system mode. (This is alpha stage untested feature.)
+  zap        zap (=delete) particular snapshot(s) specified by the arguments
+             ("zap" is required to be typed in full text)
+  template   make template files in the "$BSS_DIR/" directory:
+               * "$BSS_CONF" (aging rule)
+               *  "$BSS_FLTR" (filtering rule)
+  batch FNB  execute $BSS in the batch mode (see BATCH MODE) using:
+               *  "~/.config/$BSS/FNB" (non-root)
+               *  "/etc/$BSS/FNB" (root)
+  BASE       print the BASE directory for "$BSS"
 
 Subcommands may be shortened to a single character.
 
 ARGUMENTS:
 
-For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" as
-the first argument may be specified.
+For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" may
+be specified to provide arguments to them.
 
 For "$BSS list", you may add the second argument to match snapshot "<TYPE>".
 "$BSS list . '(s.*|h.*)' " should list snapshots with both "single" and "hour"
@@ -138,12 +144,12 @@ stored under "~/.ssh/".
 For "$BSS zap", the first argument is normally ".".  The following argument
 specifies the action which can be:
 
-  * new           zap (=delete) the newest snapshot subvolume
-  * old           zap the oldest snapshot subvolume
-  * half          zap the older half of snapshot subvolumes
-  * <subvolume>   zap specified snapshot subvolume (path with or without
-                  ".../$BSS_DIR/" such as "2020-01-01T00:00:00+00:00.single").
-                  Multiple subvolumes may be specified.
+  new           zap (=delete) the newest snapshot subvolume
+  old           zap the oldest snapshot subvolume
+  half          zap the older half of snapshot subvolumes
+  <subvolume>   zap specified snapshot subvolume (path with or without
+                ".../$BSS_DIR/" such as "2020-01-01T00:00:00+00:00.single").
+                Multiple subvolumes may be specified.
 
 Unless you have specific reasons to use "$BSS zap", you should consider to use
 "$BSS process" to prune outdated snapshots.
@@ -156,6 +162,11 @@ copied into ".PREFIX_root" and ".PREFIX_home".  The relative path are
 interpreted as one from the user's home directory. The default for "PREFIX" is
 "$BSS_PREFIX" if missing.
 
+For "$BSS batch FNB", there is no PATH argument and it executes $BSS in the
+batch mode (see BATCH MODE) using "~/.local/$BSS/FNB" (non-root) or
+"/etc/$BSS/FNB" (root).  If \$XDG_CONFIG_HOME is exported, "~/.config" is
+substituted by its value.
+
 NOTE:
 
 This "$BSS" command comes with examples for systemd scripts and apt hook script
@@ -165,11 +176,11 @@ examples for systemd scripts to enable automatic daily "process" operation.
 For some snapshots, different "TYPE" values may be used instead of its default
 "single".
 
-  * TYPE="pre"   automatic "snapshot" operation just before APT update
-  * TYPE="post"  automatic "snapshot" operation just after  APT update
-  * TYPE="copy"  automatic "snapshot" operation just before "$BSS copy"
-  * TYPE="hour"  automatic "snapshot" operation on boot and every hour
-  * TYPE="last"  automatic "snapshot" operation just before "$BSS revert"
+  TYPE="pre"   automatic "snapshot" operation just before APT update
+  TYPE="post"  automatic "snapshot" operation just after  APT update
+  TYPE="copy"  automatic "snapshot" operation just before "$BSS copy"
+  TYPE="hour"  automatic "snapshot" operation on boot and every hour
+  TYPE="last"  automatic "snapshot" operation just before "$BSS revert"
 
 This "$BSS" calculates time values related to age in the second and prints them
 in the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
@@ -183,6 +194,19 @@ This "$BSS" command uses systemd logger.  You can check results of its recent
 invocations with:
 
   $ journalctl -a -b -t bss
+
+BATCH MODE:
+
+When this "$BSS" command is executed in the batch mode with "batch FNB" ,
+"$BSS" reads "/etc/$BSS/FNB" file and parses it as:
+
+  * Empty lines are ignored.
+  * Lines starting with "#" are considered as comments and ignored.
+  * Lines starting with "!" are sourced as shell code.
+  * Lines starting with "-" are executed after replacing "-" with
+    "$BSS --may " and always return SUCCESS.
+  * Other lines are executed as if "$BSS " is prefixed to each of them.
+  * On error exit, this batch process stops at that line.
 
 CAVEAT:
 
@@ -225,7 +249,6 @@ by law.
 
 Written by Osamu Aoki.
 EOM
-
 }
 
 #############################################################################
@@ -250,17 +273,17 @@ RSYNC_OPTR="-aHxSz --delete --mkpath"
 RSYNC_OPTG="-aHxS --delete --mkpath"
 #
 BSS="$PROG_NAME"
-BSS_LOGGER=0
+BSS_LOGGER="1"
 BSS_LOGGER_LEVEL="2"
 BSS_DIR=".bss.d"
-BSS_TYPE="single" # single, pre, post, hour, ...
+BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, hour, ...
 EXT_CONF="conf"
 EXT_FLTR="fltr"
 EXT_COPY_PRE="pre_copy_script"
 EXT_COPY_POST="post_copy_script"
 BSS_STEM=".$BSS"
-NOW_TSTR=$(date -u --iso=second)   # time stamp string
-NOW_TEPO=$(date +%s -d"$NOW_TSTR") # unix epoch
+NOW_TSTR=$(date -u --iso=second)   # time stamp string for NOW
+NOW_TEPO=$(date +%s -d"$NOW_TSTR") # unix epoch time (s) for NOW
 BSS_NMIN="3"                       # minimum items to keep (initial)
 BSS_NMAX="0"                       # maximum items to keep (0 for no_limit)
 BSS_TMAX="60*60*24*1000"           # ~3YR    (time to stop aging)
@@ -282,7 +305,7 @@ BSS_LIST=".${BSS_PREFIX}rc"
 PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
 POST_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_POST"
 #
-EXIT_MAY=$EXIT_ERROR
+BSS_MAY="false"
 ##############################################################################
 # @brief             convert $1 in seconds to day.hh:mm:ss string
 # @arg   $1          seconds
@@ -303,13 +326,43 @@ age_string() {
 ##############################################################################
 # This is basically executed from this host
 ##############################################################################
+# set FS_BASE, FS_TYPE, FS_BASE_*, BSS_* parameters
+##############################################################################
+__set_fs_base() {
+  FS_BASE="$($SUDO stat -c %m "$FS_BASE0")"
+  FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE")"
+  if [ "$FS_TYPE" != "btrfs" ] && [ "$FS_TYPE" != "ext2/ext3" ]; then
+    __echo 0 "S: unsupported filesystem $FS_TYPE: $FS_BASE0 (mounted at $FS_BASE)"
+    exit $EXIT_ERROR
+  fi
+# FS_BASE is clean canonical absolute path pointing to the root of filesystem
+# containing FS_BASE0
+  FS_BASE_MOD="755"
+  FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
+  FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
+# derivative parameters
+  BSS_DIR_BASE="$FS_BASE/$BSS_DIR"
+  BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
+  BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
+  BSS_PRE_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$PRE_COPY_SCRIPT"
+  BSS_POST_COPY_SCRIPT="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
+}
+##############################################################################
 # load parameters
 ##############################################################################
 __load_config() {
+  __echo 4 "C: NOOP             = '$NOOP'"
+  __echo 4 "C: BSS_CONF         = '$BSS_CONF'"
+  __echo 4 "C: BSS_FLTR         = '$BSS_FLTR'"
+  __echo 4 "C: BSS_LIST         = '$BSS_LIST'"
+  __echo 4 "C: BSS_TYPE         = '$BSS_TYPE'"
+  __echo 4 "C: BSS_LOGGER       = '$BSS_LOGGER'"
+  __echo 4 "C: BSS_LOGGER_LEVEL = '$BSS_LOGGER_LEVEL'"
+  __echo 3 "Run '$BSS $BSS_COMMAND' on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
   if [ -r "$BSS_CONF_BASE" ]; then
     __echo 3 "    configuration at    $BSS_CONF_BASE"
   else
-    __echo 0 "    configuration missing, please use '$BSS template $FS_BASE'"
+    __echo 0 "C:  configuration missing, please use '$BSS template $FS_BASE'"
     exit $EXIT_ERROR
   fi
   if [ -r "$BSS_FLTR_BASE" ]; then
@@ -321,15 +374,15 @@ __load_config() {
   # fd=9 not used elsewhere in this script. (/ home, ... starts this script)
   exec 9<"$0"
   if ! flock --wait 30 9; then
-    __echo 0 "$BSS already running.  Try later"
+    __echo 0 "C: $BSS already running.  Try later"
     exit 2
   fi
   __echo 3 "No other instance of $BSS found"
   # make sure BSS_DIR_BASE=FS_BASE/BSS_DIR=FS_BASE/.bss.d exists
   if [ ! -d "$BSS_DIR_BASE" ]; then
-    __echo 0 "$BSS is not configured."
-    __echo 0 "  * Use '$BSS template' and edit generated template files first."
-    __echo 0 ""
+    __echo 0 "C: $BSS is not configured."
+    __echo 0 "C:   * Use '$BSS template' and edit generated template files first."
+    __echo 0 "C:"
     __help
     exit $EXIT_ERROR
   fi
@@ -341,7 +394,7 @@ __load_config() {
   if [ -r "$BSS_CONF_BASE" ]; then
     # shellcheck disable=SC1090
     . "$BSS_CONF_BASE"
-    __echo 4 "Sourced $BSS_CONF for BASE=$FS_BASE"
+    __echo 4 "C: Sourced $BSS_CONF for BASE=$FS_BASE"
   fi
   # normalize and sanity check parameters (ensure gaps TMIN TMID TMAX etc.)
   if [ "$BSS_NMIN" -lt "1" ]; then
@@ -437,20 +490,20 @@ __load_config() {
 ##############################################################################
 __snapshot() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    if [ $EXIT_MAY=$EXIT_SUCCESS ]; then
+    if $BSS_MAY ; then
       __echo 1 "Skip snapshot since FS=$FS_TYPE, BASE=$FS_BASE (may)"
-      exit $EXIT_MAY
+      exit $EXIT_SUCCESS
     else
-      __echo 0 "Error since snapshot is impossible on FS=$FS_TYPE, BASE=$FS_BASE"
-      exit $EXIT_MAY
+      __echo 0 "S: wrong filesystem FS=$FS_TYPE, BASE=$FS_BASE"
+      exit $EXIT_ERROR
     fi
   fi
   # disk size sanity check without quota consideration
   BSS_STAT_TOTAL=$(stat -f -c %b "$FS_BASE")
   # Even on 4k block system, disk with 200 blocks is less than 1MB
   if [ "$BSS_STAT_TOTAL" -le 200 ]; then
-    __echo 0 "Total disk size: $BSS_STAT_TOTAL blocks (too small, minimum required 200)"
-    __echo 0 "Skip snapshot: BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
+    __echo 0 "S: total disk size: $BSS_STAT_TOTAL blocks (too small, minimum required 200)"
+    __echo 0 "S: no snapshot: BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
     exit $EXIT_ERROR
   fi
   BSS_STAT_UNIT=$((BSS_STAT_TOTAL / 100))
@@ -458,8 +511,8 @@ __snapshot() {
   BSS_FREE_UNIT=$((BSS_STAT_FREE / BSS_STAT_UNIT))
   BSS_FMIN_PRE=$(($BSS_FMIN + 20))
   if [ "$BSS_FREE_UNIT" -le "$BSS_FMIN" ]; then
-    __echo 0 "Free disk space: $BSS_FREE_UNIT%  (too small, minimum required FMIN=$BSS_FMIN%)"
-    __echo 0 "Skip snapshot: BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
+    __echo 0 "S: free disk space: $BSS_FREE_UNIT%  (too small, minimum required FMIN=$BSS_FMIN%)"
+    __echo 0 "S: skip snapshot: BASE=$FS_BASE TIME=${NOW_TSTR} TYPE=${BSS_TYPE}"
     exit $EXIT_ERROR
   elif [ "$BSS_FREE_UNIT" -lt "$BSS_FMIN_PRE" ]; then
     __echo 2 "Free disk space: $BSS_FREE_UNIT%  (enough, minimum required FMIN=$BSS_FMIN%)"
@@ -492,40 +545,41 @@ __snapshot() {
 RE_ISO='[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[-+]00:00'
 __list() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "List not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "L: wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE "
     exit $EXIT_ERROR
   fi
   # $1      .* (egrep pattern)
   # $2      "-r" for reverse, "" for normal
   # STDOUT  snapshot time stamps
-  __echo 4 "List snapshots for BASE=$FS_BASE matching TYPE_REGEX='${1}' (${2})"
+  # STDERR  debug output
+  __echo 4 "L: snapshots for BASE=$FS_BASE matching TYPE_REGEX='${1}' (${2})"
   if [ -d "$BSS_SNAP_DEST_BASE" ]; then
     cd "$BSS_SNAP_DEST_BASE" >/dev/null
     # shellcheck disable=SC2086
     { ls -1d ${2} -- * 2>/dev/null || true; } |
       grep -E "^$RE_ISO\.${1}\$" || true
   else
-    __echo 0 "No 'list' since snapshot directory $BSS_SNAP_DEST_BASE is missing for BASE=$FS_BASE"
+    __echo 0 "L: no 'list' since snapshot directory $BSS_SNAP_DEST_BASE is missing for BASE=$FS_BASE"
     exit $EXIT_ERROR
   fi
 }
 
 ##############################################################################
 __age() {
-  # use STDERR for age assessment result
+  # use STDOUT for age assessment result
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "Age not available: FS=$FS_TYPE, BASE=$FS_BASE"
+    __echo 0 "A: wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE"
     exit $EXIT_ERROR
   fi
-  # STDOUT  snapshot time stamps with + or - prepended
-  __echo 4 "Assess aging status of snapshots for BASE=$FS_BASE"
-  BSS_TLAST="-1" # Initial value place holder
+  # snapshot time stamps with + or - prepended
+  __echo 4 "A: aging status of snapshots for BASE=$FS_BASE"
   BSS_TSTEP=$((BSS_TMAX * BSS_STEP / 100))
   # search in direction: old -> new
-  BSS_LIST="$(__list '.*')"
+  BSS_LIST="$(__list '.*')" # ignore debug output
   BSS_N="$(echo "$BSS_LIST" | wc -w)"
   # count down
   BSS_I="$BSS_N"
+  BSS_TLAST="-1" # Initial value place holder for-loop
   for BSS_SV in $BSS_LIST; do
     # Scan                     Scan from Old to New
     # Time   Old    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  New
@@ -534,23 +588,25 @@ __age() {
     # LAST          BSS_TEPO(LAST)              NOW_TEPO   diff=TLAST
     # THIS             BSS_TEPO(THIS)           NOW_TEPO   diff=TAGE
     BSS_I=$((BSS_I - 1))
-    BSS_TSTR="${BSS_SV%%.*}"
+    __echo 4 "A: I=$BSS_I subvolume=$BSS_SV"
+    BSS_TSTR="${BSS_SV%%.*}"  # timestamp string for SV
     BSS_TYPE="${BSS_SV##*.}"
     BSS_EXTRA="${BSS_TYPE##*_}"
     if [ "$BSS_EXTRA" = "$BSS_TYPE" ]; then
       BSS_EXTRA=""
     fi
-    BSS_TEPO=$(date '+%s' -d"$BSS_TSTR")
-    BSS_TAGE=$((NOW_TEPO - BSS_TEPO)) # age of SV in seconds
+    BSS_TEPO=$(date '+%s' -d"$BSS_TSTR")  # unix epoch time (s) for SV
+    BSS_TAGE=$((NOW_TEPO - BSS_TEPO))  # age (s) of SV
     if [ "$BSS_TLAST" = "-1" ]; then
       # Ensure to keep the oldest SV
-      BSS_TLAST="$(($BSS_TAGE + $BSS_TSTEP * 2))"
+      BSS_TLAST="$(($BSS_TAGE + $BSS_TSTEP * 2))"  # large fake age (s) of last SV
     fi
-    S_TAGE="$(age_string $BSS_TAGE)"
+    S_TAGE="$(age_string $BSS_TAGE)"  # age string of SV
     # delta age of SV in seconds from last SV kept
-    BSS_TDEL=$((BSS_TLAST - BSS_TAGE))
-    S_TDEL="$(age_string $BSS_TDEL)"
-    S_TSTEP="$(age_string $BSS_TSTEP)"
+    BSS_TDEL=$((BSS_TLAST - BSS_TAGE))  # age delata (s) from last SV to this SV
+    S_TDEL="$(age_string $BSS_TDEL)"  # age delata string from last SV to this SV
+    S_TSTEP="$(age_string $BSS_TSTEP)"  # step string
+    __echo 4 "A: AGE=$BSS_TAGE=$S_TAGE LAST=$BSS_TLAST DEL=$BSS_TDEL=$S_TDEL STEP=$BSS_TSTEP=$S_TSTEP"
     #########################################################################
     # Index rules (no use to update TLAST, TDEL)
     #########################################################################
@@ -560,21 +616,21 @@ __age() {
     #########################################################################
     if [ "$BSS_I" -lt "$BSS_NMIN" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE, I=$BSS_I <  NMIN=$S_NMIN (keep)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
     #########################################################################
     # Keep
     # Classify: TAGE < TMIN
     #########################################################################
     elif [ "$BSS_TAGE" -lt "$BSS_TMIN" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE <  TMIN=$S_TMIN (keep)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
     #########################################################################
     # Keep
     # Classify: TYPE = keep
     #########################################################################
     elif [ "$BSS_TYPE" = "keep" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE (keep: by TYPE)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
       if [ "$BSS_TAGE" -ge "$BSS_TMAX" ]; then
         BSS_TLAST="$BSS_TAGE"
       else
@@ -587,7 +643,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_I" -ge "$BSS_NMAX" ] && [ "$BSS_NMAX" -gt "0" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE, $BSS_I >= NMAX=$S_NMAX (drop)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # TMAX or older (keep step when keeping snapshot)
     #########################################################################
@@ -597,7 +653,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX_ACTION" = "drop" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMAX=$S_TMAX, (TMAX_ACTION=$BSS_TMAX_ACTION)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Drop special TYPE
@@ -605,14 +661,14 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && { [ "$BSS_TYPE" = "post" ] || [ "$BSS_TYPE" = "last" ]; }; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMAX=$S_TMAX (drop: special TYPE)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # Drop dense
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMAX=$S_TMAX, DEL=$S_TDEL <  STEP=$S_TSTEP (drop: dense)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # Keep sparse as filtered
     # Classify: TAGE >= TMAX and TMAX>0 and TDEL => TSTEP and TMID_ACTION=filter
@@ -620,7 +676,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
       __echo 3 "###_$BSS_SV AGE=$S_TAGE >= TMAX=$S_TMAX, DEL=$S_TDEL >= STEP=$S_TSTEP, EXTRA=$BSS_EXTRA (TMID_ACTION=$BSS_TMID_ACTION: sparse, keep step)"
-      echo "###_$BSS_SV" >&2
+      echo "###_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Keep sparse without filter
@@ -629,7 +685,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" != "filter" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE >= TMAX=$S_TMAX, DEL=$S_TDEL >= STEP=$S_TSTEP (TMID_ACTION=$BSS_TMID_ACTION: sparse, keep step)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # Drop dense
@@ -637,7 +693,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMAX" ] && [ "$BSS_TMAX" -gt "0" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMAX=$S_TMAX, DEL=$S_TDEL <  STEP=$S_TSTEP (drop: dense, keep step)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
     #########################################################################
     # TMID or older (update step when keeping snapshot)
@@ -648,21 +704,21 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && { [ "$BSS_TYPE" = "post" ] || [ "$BSS_TYPE" = "last" ]; }; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMID=$S_TMID (drop: special TYPE)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # Drop dense
     # Classify: TAGE >= TMID and TDEL < TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMID=$S_TMID, DEL=$S_TDEL <  STEP=$S_TSTEP (drop: dense)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # Keep sparse with filter
     # Classify: TAGE >= TMID and TDEL => TSTEP and TMID_ACTION=filter
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
       __echo 3 "###_$BSS_SV AGE=$S_TAGE >= TMID=$S_TMID, DEL=$S_TDEL >= STEP=$S_TSTEP, EXTRA=$BSS_EXTRA (TMID_ACTION=$BSS_TMID_ACTION: sparse, update step)"
-      echo "###_$BSS_SV" >&2
+      echo "###_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -671,7 +727,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMID" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ] && [ "$BSS_TMID_ACTION" != "filter" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE >= TMID=$S_TMID, DEL=$S_TDEL >= STEP=$S_TSTEP (TMID_ACTION=$BSS_TMID_ACTION: sparse, keep step)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -683,14 +739,14 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TYPE" = "post" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMIN=$S_TMIN (drop: special TYPE)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # Keep sparse
     # Classify: TAGE >= TMIN and TDEL > TSTEP
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TDEL" -ge "$BSS_TSTEP" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE >= TMIN=$S_TMIN, DEL=$S_TDEL >= STEP=$S_TSTEP (keep: sparse, update step)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -699,7 +755,7 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TYPE" = "last" ]; then
       __echo 3 "+++_$BSS_SV AGE=$S_TAGE >= TMIN=$S_TMIN (keep: special TYPE, update step)"
-      echo "+++_$BSS_SV" >&2
+      echo "+++_$BSS_SV"
       BSS_TLAST="$BSS_TAGE"
       BSS_TSTEP=$((BSS_TLAST * BSS_STEP / 100))
     #########################################################################
@@ -708,14 +764,14 @@ __age() {
     #########################################################################
     elif [ "$BSS_TAGE" -ge "$BSS_TMIN" ] && [ "$BSS_TDEL" -lt "$BSS_TSTEP" ]; then
       __echo 3 "---_$BSS_SV AGE=$S_TAGE >= TMIN=$S_TMIN, DEL=$S_TDEL <  STEP=$S_TSTEP (drop: dense)"
-      echo "---_$BSS_SV" >&2
+      echo "---_$BSS_SV"
     #########################################################################
     # NO WAY
     #########################################################################
     # Classify: ???
     #########################################################################
     else # This should never reached
-      __echo 0 "???_$BSS_SV AGE=$S_TAGE, DEL=$S_TDEL, I=$BSS_I (strange)"
+      __echo 1 "???_$BSS_SV AGE=$S_TAGE, DEL=$S_TDEL, I=$BSS_I (strange)"
       exit $EXIT_SUCCESS
     fi
   done
@@ -724,7 +780,7 @@ __age() {
 ##############################################################################
 __process() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "Process not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "P: wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE "
     exit $EXIT_ERROR
   fi
   __echo 2 "Process snapshots: BASE=$FS_BASE TIME=$NOW_TSTR"
@@ -733,8 +789,8 @@ __process() {
     __echo 2 "Assess aging status of snapshots internally: (silenced except for debug)"
     BSS_LOGGER_LEVEL="1" # Force __age to be quieter
   fi
-  for XBSS_SV in $(__age 2>&1 1>/dev/null ); do
-  # STDERR is age assessment result
+  for XBSS_SV in $(__age 2>/dev/null ); do
+  # STDOUT is age assessment result
     BSS_LOGGER_LEVEL="$BASE_BSS_LOGGER_LEVEL"
     # drop first character + or - or #
     BSS_SV="${XBSS_SV#???_}"
@@ -769,18 +825,21 @@ __process() {
 
 ##############################################################################
 __jobs() {
+  # $1 == --all or none
   # interactive use only
-  echo " $ systemctl --system list-timers 'bss-*'"
-  systemctl --system list-timers 'bss-*'
+  echo " $ systemctl --system --all list-timers 'bss-*'"
+  systemctl --system --all list-timers 'bss-*'
   echo
-  echo " $ systemctl --user list-timers 'bss-*'"
-  systemctl --user list-timers 'bss-*'
+  echo " $ systemctl --user --all list-timers 'bss-*'"
+  systemctl --user --all list-timers 'bss-*'
+  echo
+  echo '# See journal with "journalctl -a -b -t bss" or "journalctl -f -t bss"'
 }
 
 ##############################################################################
 __filter() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "Filter not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "F: wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE "
     exit $EXIT_ERROR
   fi
   # $1      SV to be filtered
@@ -793,20 +852,20 @@ __filter() {
     __echo 1 "Do nothing since $BSS_FLTR is missing for BASE=$FS_BASE"
     exit $EXIT_SUCCESS
   elif [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw" ]; then
-    __echo 0 "Pre-existing ${BSS_SV0}_rw blocks filter BASE=$FS_BASE SV=$BSS_SV"
+    __echo 0 "F: Pre-existing ${BSS_SV0}_rw blocks filter BASE=$FS_BASE SV=$BSS_SV"
     exit $EXIT_ERROR
   elif [ "$BSS_FORCE" != "FORCE" ] && [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_filter" ]; then
-    __echo 0 "Pre-existing ${BSS_SV0}_filter blocks filter BASE=$FS_BASE SV=$BSS_SV"
+    __echo 0 "F: Pre-existing ${BSS_SV0}_filter blocks filter BASE=$FS_BASE SV=$BSS_SV"
     exit $EXIT_ERROR
   else
-    __echo 4 "Filter snapshot of BASE=$FS_BASE SV=$BSS_SV with $BSS_FLTR"
+    __echo 4 "F: filter snapshot of BASE=$FS_BASE SV=$BSS_SV with $BSS_FLTR"
     # shellcheck disable=SC2086
     __logger $BSV snapshot "$BSS_SNAP_DEST_BASE/$BSS_SV/" "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw"
     # filter snapshot subvolume contents
     # shellcheck disable=SC2086
     {
       __logger cd "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw"
-      __logger $SUDO sh <"$BSS_FLTR_BASE"
+      __logger $SUDO sh <"$BSS_FLTR_BASE" || $BSS_MAY
     }
     # remove the original snapshot now for --force
     if [ "$BSS_SV" != "$BSS_SV0" ]; then
@@ -815,7 +874,7 @@ __filter() {
         # shellcheck disable=SC2086
         __logger $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
       else
-        __echo 0 "Use '--force' to filter BASE=$FS_BASE SV=$BSS_SV"
+        __echo 0 "F: use '--force' to filter BASE=$FS_BASE SV=$BSS_SV"
         exit $EXIT_ERROR
       fi
     fi
@@ -834,24 +893,24 @@ __filter() {
 ##############################################################################
 __revert() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "Revert not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "R: wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE "
     exit $EXIT_ERROR
   fi
   # $1      revert to this SV
   BSS_SV="${1}"
   # sanity check
   if [ "$FS_BASE" = "/" ]; then
-    __echo 0 "No revert allowed: BASE=$FS_BASE, reboot from a different root filesystem."
+    __echo 0 "R: no revert allowed: BASE=$FS_BASE, reboot from a different root filesystem."
     exit $EXIT_ERROR
   fi
   if [ -z "$BSS_SNAP_DEST" ]; then
-    __echo 0 "No revert supported: BSS_SNAP_DEST_BASE must be defined as non-null string in $BSS_CONF."
+    __echo 0 "R: no revert supported: BSS_SNAP_DEST_BASE must be defined as non-null string in $BSS_CONF."
     exit $EXIT_ERROR
   fi
   # make last snapshot
   BSS_TYPE="last"
   __snapshot
-  __echo 0 "revert $FS_BASE with $BSS_SNAP_DEST_BASE/$BSS_SV"
+  __echo 1 "Revert $FS_BASE with $BSS_SNAP_DEST_BASE/$BSS_SV"
   __logger $BSV delete "$FS_BASE"
   __logger $BSV snapshot "$BSS_SNAP_DEST_BASE/$BSS_SV" "$FS_BASE"
 }
@@ -859,14 +918,14 @@ __revert() {
 ##############################################################################
 __zap() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "Zap not available: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "Z: wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE "
     exit $EXIT_ERROR
   fi
   if [ "$BSS_ZAP_ACTIVE" != "true" ]; then
-    __echo 0 "No zap operation since $BSS_CONF at BASE=$FS_BASE has BSS_ZAP_ACTIVE='$BSS_ZAP_ACTIVE'"
+    __echo 0 "Z: zap operation not allowed since $BSS_CONF at BASE=$FS_BASE has BSS_ZAP_ACTIVE='$BSS_ZAP_ACTIVE'"
     exit $EXIT_ERROR
   fi
-  __echo 4 "Zap snapshots: BASE=$FS_BASE"
+  __echo 4 "Z: zap snapshots: BASE=$FS_BASE"
   case "$1" in
   half) # half
     __echo 2 "Zap snapshots into half: BASE=$FS_BASE"
@@ -956,7 +1015,7 @@ __rsync() {
   done
   # sanity checks
   if [ -z "$BSS_COPY_DEST" ]; then
-    __echo 0 "No copy destination given (or was /)"
+    __echo 0 "C: no copy destination given (or was /)"
     exit $EXIT_ERROR
   fi
   if [ "$BSS_COPY_DEST" != "${BSS_COPY_DEST%:*}" ] || \
@@ -970,7 +1029,7 @@ __rsync() {
     RSYNC_OPTS="$RSYNC_OPTA $VERBOSE"
     if [ "${BSS_COPY_DEST}" = "${BSS_COPY_DEST#/}" ]; then
       # relative path: (not started with '/')
-      BSS_COPY_DEST="$HOME/$BSS_COPY_DEST"
+      BSS_COPY_DEST="$(echo ~)/$BSS_COPY_DEST"
     fi
     if [ ! -e "${BSS_COPY_DEST%/*}" ]; then
       # make parent dir
@@ -986,7 +1045,7 @@ __rsync() {
       fi
     fi
     if [ ! -e "$BSS_COPY_DEST" ]; then
-      __echo 0 "non-accessible local copy destination '$BSS_COPY_DEST'"
+      __echo 0 "C: non-accessible local copy destination '$BSS_COPY_DEST'"
       exit $EXIT_ERROR
     fi
     if [ "$($SUDO stat -f -c %T "$BSS_COPY_DEST")" = "btrfs" ]; then
@@ -1007,7 +1066,7 @@ __rsync() {
   if [ -x "$BSS_PRE_COPY_SCRIPT_BASE" ]; then
     __echo 2 "Run $PRE_COPY_SCRIPT before copy for BASE=$FS_BASE FS=$FS_TYPE"
     # shellcheck disable=SC1090
-    . "$BSS_PRE_COPY_SCRIPT_BASE"
+    . "$BSS_PRE_COPY_SCRIPT_BASE" || $BSS_MAY
   fi
   # relaxed rule to allow missing tailing /
   # make snapshot first
@@ -1023,7 +1082,7 @@ __rsync() {
     # shellcheck disable=SC2086
     __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
       "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}/" \
-      "$BSS_COPY_DEST/"
+      "$BSS_COPY_DEST/" || $BSS_MAY
     # Since this could be slow long process, record ending
     __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/ FS=$FS_TYPE"
   elif [ "$FS_TYPE" = "ext2/ext3" ]; then
@@ -1033,17 +1092,17 @@ __rsync() {
     # shellcheck disable=SC2086
     __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
       "$FS_BASE/" \
-      "$BSS_COPY_DEST/"
+      "$BSS_COPY_DEST/" || $BSS_MAY
     # Since this could be slow long process, record ending
     __echo 2 "... Successfully made copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/ FS=$FS_TYPE "
   else
-    __echo 0 "copy for unknown FS=$FS_TYPE requested."
+    __echo 0 "C: copy for unknown FS=$FS_TYPE requested."
     exit $EXIT_ERROR
   fi
   if [ -x "$BSS_POST_COPY_SCRIPT_BASE" ]; then
     __echo 2 "Run $POST_COPY_SCRIPT after copy for BASE=$FS_BASE FS=$FS_TYPE"
     # shellcheck disable=SC1090
-    . "$BSS_POST_COPY_SCRIPT_BASE"
+    . "$BSS_POST_COPY_SCRIPT_BASE" || $BSS_MAY
   fi
 }
 ##############################################################################
@@ -1098,18 +1157,20 @@ __rsync_gather() {
           __echo 3 "Gather '$F/' -> '$DEST_DIR'"
           # shellcheck disable=SC2086
           __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
-            $F/ "$DEST_DIR"
+            $F/ "$DEST_DIR" || $BSS_MAY
         else # file, symlink, ...
           __echo 3 "Gather '$F' -> '$DEST_DIR'"
           # shellcheck disable=SC2086
           __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
-            $F "$DEST_DIR"
+            $F "$DEST_DIR" || $BSS_MAY
         fi
       done
   else
-    if [ $EXIT_MAY!=$EXIT_SUCCESS ]; then
-      __echo 0 "Error since gather is impossible with missing '$BSS_LIST_BASE'"
-      exit $EXIT_MAY
+    if $BSS_MAY ; then
+      __echo 1 "Skip gathering due to missing '$BSS_LIST_BASE'"
+    else
+      __echo 0 "G: error since gather is impossible with missing '$BSS_LIST_BASE'"
+      exit $EXIT_ERROR
     fi
   fi
 }
@@ -1326,7 +1387,7 @@ __template() {
       __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
       __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_DIR_BASE"
     else
-      __echo 0 "'$BSS template' must not be used with --noop nor -n option."
+      __echo 0 "T: '$BSS template' must not be used with --noop nor -n option."
       exit $EXIT_ERROR
     fi
   fi
@@ -1396,16 +1457,64 @@ __template() {
 }
 
 ##############################################################################
+__batch() {
+  if [ "$(id -u)" = 0 ]; then
+    CONFIG_BSS="/etc/bss"
+    mkdir -p "$CONFIG_BSS"
+    chmod 755 "$CONFIG_BSS"
+  else
+    if [ -n "$XDG_CONFIG_HOME" ]; then
+      CONFIG_BSS="${XDG_CONFIG_HOME}/bss"
+    else
+      CONFIG_BSS="$(echo ~)/.config/bss"
+    fi
+    mkdir -p "$CONFIG_BSS"
+    chmod 755 "$CONFIG_BSS"
+  fi
+  if [ -z "$1" ]; then
+    BSS_BATCH_FILE="$CONFIG_BSS/default"
+    if [ ! -r "$BSS_BATCH_FILE" ]; then
+      __echo 0 "B: please specify existing file in $CONFIG_BSS"
+      exit 1
+    fi
+  else
+    BSS_BATCH_FILE="$CONFIG_BSS/${1}"
+    if [ ! -r "$BSS_BATCH_FILE" ]; then
+      __echo 0 "B: $BSS_BATCH_FILE is unreadable."
+      __echo 0 "B: please specify existing file in $CONFIG_BSS: BSS_BATCH_FILE=$BSS_BATCH_FILE"
+      exit 1
+    fi
+  fi
+  while read LINE; do
+    if [ -z "$LINE" ] ; then
+      : # IGNORE LINE
+    elif [ "$LINE" = "EOF" ]; then
+      break
+    elif [ "${LINE#\#}" != "$LINE" ]; then
+      eval "__echo 2 '${LINE}'"
+    elif [ "${LINE#\!}" != "$LINE" ]; then
+      # This may be abused.  Use with care.
+      eval "__echo 2 'SH: ${LINE#\!}'"
+      eval "${LINE#\!}"
+    elif [ "${LINE#-}" != "$LINE" ]; then
+      eval "$BSS --may ${LINE#-} || true"
+    else
+      eval "$BSS $LINE"
+    fi
+  done < "$BSS_BATCH_FILE"
+}
+##############################################################################
 # Parse Command Line
 ##############################################################################
 # The quotes around "$@" are essential!
 # We need TEMP as the 'eval set --' would nuke the return value of getopt.
-TEMP=$(getopt -o 't:c:s:fmnqvxhl' -n "${BSS}" \
-  --long 'type:,config:,snap:,force,may, noop,quiet,version,verbose,trace,help,logger' -- "$@")
+TEMP=$(getopt -o 't:c:s:fmnqvxhlL' -n "${BSS}" \
+  --long 'type:,config:,snap:,force,may,noop,quiet,version,verbose,trace,help,logger,nologger' -- "$@")
 # Note the quotes around "$TEMP": they are essential!
 #echo "DEBUG: ***** TEMP='$TEMP'"
 eval set -- "$TEMP"
 unset TEMP
+# The above reorder all options before subcommands
 # OPTIONS
 while [ -n "$1" ]; do
   case "$1" in
@@ -1421,7 +1530,7 @@ while [ -n "$1" ]; do
     BSS_FORCE="FORCE"
     ;;
   -m | --may)
-    EXIT_MAY=$EXIT_SUCCESS
+    BSS_MAY="true"
     ;;
   -n | --noop)
     NOOP="echo __" # ANY non ""
@@ -1446,6 +1555,9 @@ while [ -n "$1" ]; do
     ;;
   -l | --logger)
     BSS_LOGGER=1
+    ;;
+  -L | --nologger)
+    BSS_LOGGER=0
     ;;
   '--')
     shift
@@ -1475,89 +1587,61 @@ $SETX_ON
 ##############################################################################
 if [ -z "$1" ]; then
   BSS_COMMAND="snapshot"
-  # FS_BASE0: current path
-  FS_BASE0=$($SUDO realpath ".")
 else
   BSS_COMMAND="$1"
   shift
-  if [ -z "$1" ]; then
-    FS_BASE0=$($SUDO realpath ".")
-  else
-    FS_BASE0=$($SUDO realpath "${1}")
-    shift
-  fi
 fi
-# FS_BASE0 is clean canonical absolute path
-# sanity check
-FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE0")"
-FS_BASE="$FS_BASE0"
-if [ "$FS_TYPE" = "btrfs" ]; then
-  while true; do
-    # A subvolume has always inode number 256
-    if [ "$($SUDO stat -c %i "$FS_BASE")" = "256" ]; then
-      break
-    fi
-    # sanity check
-    if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "btrfs" ] ||
-      [ "$FS_BASE" = "/" ]; then
-      __echo 0 "No inode=256 on btrfs found from: $FS_BASE0 on btrfs (strange)"
-      exit $EXIT_ERROR
-    fi
-    FS_BASE=$($SUDO realpath "$FS_BASE/..")
-    __echo 4 "Check btrfs: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
-  done
-elif [ "$FS_TYPE" = "ext2/ext3" ]; then
-  while true; do
-    # root inode number 2 for ext2/ext3
-    if [ "$($SUDO stat -c %i "$FS_BASE")" = "2" ]; then
-      break
-    fi
-    if [ -e "$FS_BASE/$BSS_DIR" ]; then
-      # Treat directory with .bss.d/ as FS_BASE for ext2/ext3
-      break
-    fi
-    # sanity check
-    if [ "$($SUDO stat -f -c %T "$FS_BASE")" != "ext2/ext3" ] ||
-      [ "$FS_BASE" = "/" ]; then
-      __echo 0 "No inode=2 on ext2/ext3 found from: $FS_BASE0 on ext2/ext3 (strange)"
-      exit $EXIT_ERROR
-    fi
-    FS_BASE=$($SUDO realpath "$FS_BASE/..")
-    __echo 4 "Check ext2/ext3: BASE=$FS_BASE inode=$($SUDO stat -c %i "$FS_BASE")"
-  done
+# execute subcommands without PATH argument
+case "$BSS_COMMAND" in
+j*) # jobs
+  __jobs
+  exit $EXIT_SUCCESS
+  ;;
+b*) # batch
+  # batch file name can't start with "-"
+  __batch "$@"
+  exit $EXIT_SUCCESS
+  ;;
+h* | '') # help
+  __help
+  exit $EXIT_SUCCESS
+  ;;
+esac
+# set FS_BASE etc.
+if [ -z "$1" ]; then
+  # FS_BASE0: current path
+  FS_BASE0=$($SUDO realpath ".")
 else
-  FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE")"
-  __echo 0 "Unsupported file system $FS_TYPE found at: $FS_BASE0"
-  exit $EXIT_ERROR
+  FS_BASE0=$($SUDO realpath "${1}")
+  shift
 fi
-# FS_BASE is clean canonical absolute path pointing to the root of btrfs
-# containing FS_BASE0
-FS_BASE_MOD="755"
-FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
-FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
-# derivative parameters
-BSS_DIR_BASE="$FS_BASE/$BSS_DIR"
-BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
-BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
-BSS_PRE_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$PRE_COPY_SCRIPT"
-BSS_POST_COPY_SCRIPT="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
-
-##############################################################################
-__echo 4 "NOOP             = '$NOOP'"
-__echo 4 "BSS_CONF         = '$BSS_CONF'"
-__echo 4 "BSS_FLTR         = '$BSS_FLTR'"
-__echo 4 "BSS_LIST         = '$BSS_LIST'"
-__echo 4 "BSS_TYPE         = '$BSS_TYPE'"
-__echo 4 "BSS_LOGGER       = '$BSS_LOGGER'"
-__echo 4 "BSS_LOGGER_LEVEL = '$BSS_LOGGER_LEVEL'"
-__echo 3 "Run '$BSS $BSS_COMMAND'       on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
-#############################################################################
+__set_fs_base
+# execute subcommands with PATH argument
 case "$BSS_COMMAND" in
 s*) #snapshot
   __load_config
   __snapshot
   ;;
-l*) # list
+a*) # assess aging status and report age data lines to STDOUT
+  __load_config
+  __age
+  ;;
+o*) # overview (for human check)
+  __load_config
+  # VERBOSE (-v) but w/o normal age data lines which use STDOUT
+  # Logging outputs use STDERR
+  BSS_LOGGER_LEVEL=3
+  __age >/dev/null
+  ;;
+p*) # process
+  __load_config
+  __process
+  ;;
+c*) # copy
+  __load_config
+  __rsync "$@"
+  ;;
+l*) # list (report match in STDOUT)
   __load_config
   if [ -z "$1" ]; then
     __list '.*'
@@ -1565,26 +1649,9 @@ l*) # list
     __list "$1" "$2" "$3"
   fi
   ;;
-a*) # assess aging status
+g*) # gather
   __load_config
-  __age
-  ;;
-o*) # overview
-  __load_config
-  # VERBOSE w/o data line
-  BSS_LOGGER_LEVEL=3
-  __age 2>/dev/null
-  ;;
-j*) # jobs
-  __jobs
-  ;;
-B*) # BASE (interactive use only)
-  echo "$FS_BASE"
-  __load_config
-  ;;
-p*) # process
-  __load_config
-  __process
+  __rsync_gather "$@"
   ;;
 f*) # filter
   __load_config
@@ -1601,16 +1668,8 @@ zap) # zap
 t*) # template
   __template "$@"
   ;;
-c*) # copy
-  __load_config
-  __rsync "$@"
-  ;;
-g*) # gather
-  __load_config
-  __rsync_gather "$@"
-  ;;
-h* | '') # help
-  __help
+B*) # BASE (interactive use only)
+  echo "$FS_BASE"
   ;;
 *) # unknown
   __echo 0 "Unknown command: '$*'"

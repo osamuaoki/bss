@@ -34,9 +34,9 @@ backup() {
 ########################################################################
 echo "I: Backup started"
 
-HOSTNAME="$(hostname)"
+HOST_NAME="$(hostname)"
 
-case $HOSTNAME in
+case $HOST_NAME in
 goofy)
   # Backup to BKUP_USB 250GB (main backup SSD device)
   backup BKUP_USB Documents
@@ -73,12 +73,12 @@ goofy)
   #backup BKUP_AV_2023 Pictures
   #backup BKUP_AV_2023 Music
   ;;
-casper)
+micky)
 
   echo "I: NoBackup setup yet"
   ;;
 *)
-  echo "I: NoBackup setup yet for $HOSTNAME"
+  echo "I: NoBackup setup yet for $HOST_NAME"
   ;;
 esac
 

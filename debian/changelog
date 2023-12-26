@@ -1,3 +1,18 @@
+bss (1.4.0) unstable; urgency=medium
+
+  * Add batch mode
+  * Refactor code to swap use of STDOUT/STDERR
+  * XDG_CONFIG_HOME support
+  * Lintian clean
+  * Change default to use systemd logger
+  * Add leader marker for '__echo 0' and '__echo 4' for easier debug
+  * Change "bss jobs" to use --all for journalctl
+  * Commit more files (including auto-generated unstable results)
+  * Update build system (especially around documentation)
+  * Update __help message and sync manpage and README.md
+
+ -- Osamu Aoki <osamu@debian.org>  Fri, 29 Dec 2023 18:16:00 +0900
+
 bss (1.3.6) unstable; urgency=medium
 
   * examples: add 'bu' and 'rbu' with README.md updated

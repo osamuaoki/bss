@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.3.5)
+# Btrfs Subvolume Snapshot Utility (version: 1.4.0)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -57,57 +57,62 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
 OPTIONS:
 
 * -t,--type TYPE: use TYPE instead of the default "single" for the snapshot
-                  type.  The automatic snapshot uses "pre" (before APT), "post"
-                  (after APT), "hour" (on boot and every hour). If "keep" is
-                  specified, the snapshot with it will be kept forever under
-                  the normal aging process.
-* -c,--conf RC:   use "RC.conf", "RC.fltr" etc. instead of their
+                  type.  If $BSS_TYPE is exported to bss, its value is used
+                  as the default for TYPE instead. The automatic snapshot uses
+                  "pre" (before APT), "post (after APT), "hour" (on boot and
+                  every hour). If "keep" is specified, the snapshot with it
+                  will be kept forever under the normal aging process.
+* -c,--conf RC: use "RC.conf", "RC.fltr" etc. instead of their
                   default ".bss.conf", ".bss.fltr" etc.
-* -f,--force:     force to reapply filter
-* -n,--noop:      no file nor filesystem modification by prepending pertinent
+* -f,--force: force to reapply filter
+* -n,--noop: no file nor filesystem modification by prepending pertinent
                   internal commands with "echo __"
-* -h,--help:      show this help
-* --version:      show version
-* -l,--logger:    use systemd logger
-* -m,--may:       may execute snapshot or gather if possible
-* -q,--quiet:     quiet (no notice messages, just warn/error messages)
-* -v,--verbose:   verbose (with info messages)
-* -vv:            very verbose for debug (with info and debug messages)
-* -x:             trace on (trace shell code for debug)
+* -h,--help: show this help
+* --version: show version
+* -l,--logger: use systemd logger (default)
+* -L,--nologger: don't use systemd logger (terminal echo to STDERR only)
+* -m,--may: may execute snapshot or gather if possible
+* -q,--quiet: quiet (no notice messages, just warn/error messages)
+* -v,--verbose: verbose (with info messages)
+* -vv: very verbose for debug (with info and debug messages)
+* -x: trace on (trace shell code for debug)
 
 SUBCOMMAND:
 
 * snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
-            as "\<ISO_8601_date>.\<TYPE>"  (The default type is "single")
-* overview: overview of all snapshots (wrapper for "bss -v age 2>/dev/null")
-* process:  process snapshots according to their aging status
-* copy:     copy subvolume at the BASE directory (1st argument) to the (remote)
-            destination (2nd argument) using rsync
-* jobs:     list all systemd timer schedule jobs for bss
-* list:     list all snapshots
-* age:      assess aging status of all snapshots
-* gather:   gather local files and directories to ".gather_root" and
-            ".gather_home" directories specified on ".gatherrc"
-* filter:   create a filtered snapshot from the specified snapshot in
-            ".bss.d/" as "\<specified_subvol_name>_filter"
-* revert:   make snapshot "\<ISO_8601_date>.last" and replace the subvolume at
-            the BASE directory (1st argument) with the specified snapshot
-            "\<ISO_8601_date>.\<extension>" (2nd argument) found under
-            "BSS_SNAP_DEST" specified in ".bss.conf".  This is only for the
-            system mode. (This is alpha stage untested feature.)
-* zap:      zap (=delete) particular snapshot(s) specified by the arguments
-            "zap" is required to be typed in full text.
-* template  make template files in the ".bss.d/" directory:
-              ".bss.conf" (aging rule)
-              ".bss.fltr" (filtering rule)
-* BASE:     print the BASE directory for "bss"
+             as "\<ISO_8601_date>.\<TYPE>"  (The default type is "single")
+* overview: overview of all snapshots (wrapper for "bss -v age >/dev/null")
+* process: process snapshots according to their aging status
+* copy: copy subvolume at the BASE directory (1st argument) to the
+             (remote) destination (2nd argument) using rsync
+* jobs: list all systemd timer schedule jobs for bss
+* list: list all snapshots
+* age: assess aging status of all snapshots
+* gather: gather local files and directories to ".gather_root" and
+             ".gather_home" directories specified on ".gatherrc"
+* filter: create a filtered snapshot from the specified snapshot in
+             ".bss.d/" as "\<specified_subvol_name>_filter"
+* revert: make snapshot "\<ISO_8601_date>.last" and replace the subvolume at
+             the BASE directory (1st argument) with the specified snapshot
+             "\<ISO_8601_date>.\<extension>" (2nd argument) found under
+             "BSS_SNAP_DEST" specified in ".bss.conf".  This is only for the
+             system mode. (This is alpha stage untested feature.)
+* zap: zap (=delete) particular snapshot(s) specified by the arguments
+             ("zap" is required to be typed in full text)
+* template: make template files in the ".bss.d/" directory:
+  *  ".bss.conf" (aging rule)
+  *   ".bss.fltr" (filtering rule)
+* batch FNB: execute bss in the batch mode (see BATCH MODE) using:
+  *   "\~/.config/bss/FNB" (non-root)
+  *   "/etc/bss/FNB" (root)
+* BASE: print the BASE directory for "bss"
 
 Subcommands may be shortened to a single character.
 
 ARGUMENTS:
 
-For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" as
-the first argument may be specified.
+For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" may
+be specified to provide arguments to them.
 
 For "bss list", you may add the second argument to match snapshot "\<TYPE>".
 "bss list . '(s.*|h.*)' " should list snapshots with both "single" and "hour"
@@ -132,12 +137,12 @@ stored under "\~/.ssh/".
 For "bss zap", the first argument is normally ".".  The following argument
 specifies the action which can be:
 
-  * new           zap (=delete) the newest snapshot subvolume
-  * old           zap the oldest snapshot subvolume
-  * half          zap the older half of snapshot subvolumes
-  * \<subvolume>   zap specified snapshot subvolume (path with or without
-                  ".../.bss.d/" such as "2020-01-01T00:00:00+00:00.single").
-                  Multiple subvolumes may be specified.
+* new: zap (=delete) the newest snapshot subvolume
+* old: zap the oldest snapshot subvolume
+* half: zap the older half of snapshot subvolumes
+* \<subvolume>: zap specified snapshot subvolume (path with or without
+                ".../.bss.d/" such as "2020-01-01T00:00:00+00:00.single").
+                Multiple subvolumes may be specified.
 
 Unless you have specific reasons to use "bss zap", you should consider to use
 "bss process" to prune outdated snapshots.
@@ -150,6 +155,11 @@ copied into ".PREFIX_root" and ".PREFIX_home".  The relative path are
 interpreted as one from the user's home directory. The default for "PREFIX" is
 "gather" if missing.
 
+For "bss batch FNB", there is no PATH argument and it executes bss in the
+batch mode (see BATCH MODE) using "\~/.local/bss/FNB" (non-root) or
+"/etc/bss/FNB" (root).  If $XDG_CONFIG_HOME is exported, "\~/.config" is
+substituted by its value.
+
 NOTE:
 
 This "bss" command comes with examples for systemd scripts and apt hook script
@@ -159,11 +169,11 @@ examples for systemd scripts to enable automatic daily "process" operation.
 For some snapshots, different "TYPE" values may be used instead of its default
 "single".
 
-  * TYPE="pre"   automatic "snapshot" operation just before APT update
-  * TYPE="post"  automatic "snapshot" operation just after  APT update
-  * TYPE="copy"  automatic "snapshot" operation just before "bss copy"
-  * TYPE="hour"  automatic "snapshot" operation on boot and every hour
-  * TYPE="last"  automatic "snapshot" operation just before "bss revert"
+* TYPE="pre": automatic "snapshot" operation just before APT update
+* TYPE="post"  automatic "snapshot" operation just after: APT update
+* TYPE="copy": automatic "snapshot" operation just before "bss copy"
+* TYPE="hour": automatic "snapshot" operation on boot and every hour
+* TYPE="last": automatic "snapshot" operation just before "bss revert"
 
 This "bss" calculates time values related to age in the second and prints them
 in the DAYS.HH:MM:SS format (HH=hour, MM=minute, SS=second).
@@ -177,6 +187,19 @@ This "bss" command uses systemd logger.  You can check results of its recent
 invocations with:
 
 * $ journalctl -a -b -t bss
+
+BATCH MODE:
+
+When this "bss" command is executed in the batch mode with "batch FNB" ,
+"bss" reads "/etc/bss/FNB" file and parses it as:
+
+  * Empty lines are ignored.
+  * Lines starting with "#" are considered as comments and ignored.
+  * Lines starting with "!" are sourced as shell code.
+  * Lines starting with "-" are executed after replacing "-" with
+    "bss --may " and always return SUCCESS.
+  * Other lines are executed as if "bss " is prefixed to each of them.
+  * On error exit, this batch process stops at that line.
 
 CAVEAT:
 
@@ -398,31 +421,31 @@ Usage: luksimg [-r RSYNC|-s SECRET] [-l|-a] [n [size]|m|g|u|a]
 
 OPTION:
 
-* -r RSYNC:     use '\~/RSYNC/' insted of '\~/rsync/' to place the LUKS
+* -r RSYNC: use '\~/RSYNC/' insted of '\~/rsync/' to place the LUKS
                 encrypted disk image file.
 
-* -s SECRET:    use '\~/rsync/SECRET.img' insted of '\~/rsync/secret.img' for
+* -s SECRET: use '\~/rsync/SECRET.img' insted of '\~/rsync/secret.img' for
                 the LUKS encrypted disk image file.
 
 * -l, --logger: use journald to record log (useful for systemd timer service)
 
-* -a, --ask:    ask passphrase to unlock LUKS encryption (Unless this is set,
+* -a, --ask: ask passphrase to unlock LUKS encryption (Unless this is set,
                 GNOME secret-tool is used to obtain passphrase)
 
 COMMAND:
 
 Multiple commands may be specified to execute them in sequence.
 
-* new [size]:   make a new sparse disk image '\~/rsync/secret.img' formatted as
+* new [size]: make a new sparse disk image '\~/rsync/secret.img' formatted as
                 ext4 filesystem on LUKS encrypted volume. The size can be
                 optionally specified, e.g. as '32G'
-* mount:        decrypt the LUKS disk image '\~/rsync/secret.img' to create a
+* mount: decrypt the LUKS disk image '\~/rsync/secret.img' to create a
                 device-mapper device '/dev/device-mapper/secret', then
                 mount it onto '\~/rsync/secret.mnt'
-* gather:       run 'bss gather \~/secret.mnt/'
-* umount:       umount the device-mapper device '/dev/device-mapper/secret'
+* gather: run 'bss gather \~/secret.mnt/'
+* umount: umount the device-mapper device '/dev/device-mapper/secret'
                 from '\~/secret.mnt/' and close it
-* all           perform all actions: mount -> gather -> umount -> close
+* all: perform all actions: mount -> gather -> umount -> close
 
 These commands may be shortened if they aren't ambiguous.
 

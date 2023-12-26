@@ -1,6 +1,6 @@
---- bss.1.orig	2023-05-10 17:17:40.503511354 +0900
-+++ bss.1	2023-05-10 17:19:48.677676378 +0900
-@@ -36,19 +36,22 @@
+--- bss.1.orig	2024-01-01 08:03:52.939506889 +0900
++++ bss.1	2024-01-01 11:14:07.288962326 +0900
+@@ -36,28 +36,38 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
  * Secure minimum required free blocks (minimum FMIN %).
@@ -8,8 +8,10 @@
  * Keep initial few (NMIN) snapshots unconditionally.
 +.IP
  * Limit the maximum number of snapshots to NMAX.
++.RS 4
  .IP
  * NMAX=0 is the special case and means no limit for number of snapshots.
++.RE
  .IP
  * Before TMIN, keep snapshots unconditionally.
 -* Age snapshots with basically exponentially growing intervals with the
@@ -18,27 +20,75 @@
  specified ratio (STEP 2%\-90%).
  .IP
  * After TMID, age snapshots more aggressively.
++.RS 4
  .IP
  * Special handlings to keep some high priority snapshots stop.
-+.IP
- * If TMID_ACTION=filter, content files of snapshots are filtered with the
+-* If TMID_ACTION=filter, content files of snapshots are filtered with the
  .IP
++* If TMID_ACTION=filter, content files of snapshots are filtered with the
  script ".bss.fltr" at the ".bss.d/" directory.
-@@ -56,7 +59,9 @@
++.RE
+ .IP
  * After TMAX, stop aging snapshots.
++.RS 4
  .IP
  * TMAX=0 is the special case and means no limit for aging.
 +.IP
  * If TMAX_ACTION=drop, drop subvolume after TMAX.
 +.IP
  * If TMAX_ACTION=keep, keep subvolume after TMAX.
++.RE
  .PP
  .SH OPTIONS
-@@ -151,6 +156,7 @@
+ .TP
+@@ -155,14 +165,15 @@
  make template files in the ".bss.d/" directory:
  .IP
- ".bss.conf" (aging rule)
+ * ".bss.conf" (aging rule)
 +.IP
- ".bss.fltr" (filtering rule)
+ *  ".bss.fltr" (filtering rule)
  .TP
- BASE
+ batch FNB
+ execute bss in the batch mode (see BATCH MODE) using:
+-.TP
++.IP
+ *
+ "~/.config/bss/FNB" (non\-root)
+-.TP
++.IP
+ *
+ "/etc/bss/FNB" (root)
+ .TP
+@@ -266,19 +277,22 @@
+ .IP
+ \f(CW$ journalctl -a -b -t bss\fR
+ .PP
+-BATCH MODE:
++.SH BATCH MODE
+ .PP
+ When this "bss" command is executed in the batch mode with "batch FNB" ,
+ "bss" reads "/etc/bss/FNB" file and parses it as:
+ .IP
+ * Empty lines are ignored.
++.IP
+ * Lines starting with "#" are considered as comments and ignored.
++.IP
+ * Lines starting with "!" are sourced as shell code.
+-* Lines starting with "\-" are executed after replacing "\-" with
+ .IP
++* Lines starting with "\-" are executed after replacing "\-" with
+ "bss \fB\-\-may\fR " and always return SUCCESS.
+ .IP
+ * Other lines are executed as if "bss " is prefixed to each of them.
++.IP
+ * On error exit, this batch process stops at that line.
+ .PP
+ .SH CAVEAT
+@@ -306,6 +320,7 @@
+ template".
+ .SH AUTHOR
+ Written by Osamu Aoki.
++.PP
+ .SH COPYRIGHT
+ Copyright \(co 2021\-2022 Osamu Aoki <osamu@debian.org>
+ .PP

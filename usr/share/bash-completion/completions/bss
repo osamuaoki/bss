@@ -18,10 +18,8 @@ _bss()
 
     # see if the user selected a command already
     local COMMANDS=(
-        "snapshot" "list" "age" "process" "base"
-	"filter" "revert" "overview" "copy" "jobs"
-	"zap"
-        "template")
+        "snapshot" "list" "age" "process" "base" "filter" "revert" "overview"
+        "copy" "jobs" "zap" "template" "batch" "BASE")
 
     local command i
     for (( i=0; i < ${#words[@]}-1; i++ )); do
