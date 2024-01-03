@@ -87,10 +87,10 @@ show this help
 show version
 .TP
 \fB\-l\fR,\-\-logger
-use systemd logger (default)
+enable systemd logger (default for active subcommands)
 .TP
 \fB\-L\fR,\-\-nologger
-don't use systemd logger (terminal echo to STDERR only)
+disable systemd logger (default for passive subcommands)
 .TP
 \fB\-m\fR,\-\-may
 may execute snapshot or gather if possible
@@ -113,6 +113,12 @@ snapshot
 make a readonly snapshot normally in the relative path ".bss.d/"
 as "<ISO_8601_date>.<TYPE>"  (The default type is "single")
 .TP
+list
+list all snapshots
+.TP
+age
+assess aging status of all snapshots
+.TP
 overview
 overview of all snapshots (wrapper for "bss \fB\-v\fR age >/dev/null")
 .TP
@@ -122,15 +128,6 @@ process snapshots according to their aging status
 copy
 copy subvolume at the BASE directory (1st argument) to the
 (remote) destination (2nd argument) using rsync
-.TP
-jobs
-list all systemd timer schedule jobs for bss
-.TP
-list
-list all snapshots
-.TP
-age
-assess aging status of all snapshots
 .TP
 gather
 gather local files and directories to ".gather_root" and
@@ -168,6 +165,9 @@ execute bss in the batch mode (see BATCH MODE) using:
 .TP
 BASE
 print the BASE directory for "bss"
+.TP
+jobs
+list all systemd timer schedule jobs for bss
 .PP
 Subcommands may be shortened to a single character.
 .PP
@@ -307,10 +307,10 @@ template".
 .SH AUTHOR
 Written by Osamu Aoki.
 .SH COPYRIGHT
-Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2022 \- 2024 Osamu Aoki <osamu@debian.org>, GPL 2+
 .PP
 .br
-Copyright \(co 2021\-2023 Osamu Aoki <osamu@debian.org>
+Copyright \(co 2021\-2024 Osamu Aoki <osamu@debian.org>
 .PP
 License GPLv2+: GNU GPL version 2 or later
 <https://gnu.org/licenses/gpl\-2.0.html>.  This is free software: you are free

@@ -76,8 +76,8 @@ OPTIONS:
                   internal commands with "echo __"
   -h,--help       show this help
   --version       show version
-  -l,--logger     use systemd logger (default)
-  -L,--nologger   don't use systemd logger (terminal echo to STDERR only)
+  -l,--logger     enable systemd logger (default for active subcommands)
+  -L,--nologger   disable systemd logger (default for passive subcommands)
   -m,--may        may execute snapshot or gather if possible
   -q,--quiet      quiet (no notice messages, just warn/error messages)
   -v,--verbose    verbose (with info messages)
@@ -88,13 +88,12 @@ SUBCOMMAND:
 
   snapshot   make a readonly snapshot normally in the relative path "$BSS_DIR/"
              as "<ISO_8601_date>.<TYPE>"  (The default type is "single")
+  list       list all snapshots
+  age        assess aging status of all snapshots
   overview   overview of all snapshots (wrapper for "$BSS -v age >/dev/null")
   process    process snapshots according to their aging status
   copy       copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
-  jobs       list all systemd timer schedule jobs for $BSS
-  list       list all snapshots
-  age        assess aging status of all snapshots
   gather     gather local files and directories to ".gather_root" and
              ".gather_home" directories specified on ".gatherrc"
   filter     create a filtered snapshot from the specified snapshot in
@@ -113,6 +112,7 @@ SUBCOMMAND:
                *  "~/.config/$BSS/FNB" (non-root)
                *  "/etc/$BSS/FNB" (root)
   BASE       print the BASE directory for "$BSS"
+  jobs       list all systemd timer schedule jobs for $BSS
 
 Subcommands may be shortened to a single character.
 
@@ -232,7 +232,7 @@ Although this "$BSS" focuses on btrfs, there is minimal support for ext2/ext3
 (this includes ext4) for "$BSS copy ...", "$BSS gather ...", and "$BSS
 template".
 
-Copyright 2022 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2022 - 2024 Osamu Aoki <osamu@debian.org>, GPL 2+
 END_OF_HELP
 }
 
@@ -240,7 +240,7 @@ __version() {
   cat <<EOM
 $PROG_NAMR ($PROG_VERSION)
 
-Copyright (C) 2021-2023 Osamu Aoki <osamu@debian.org>
+Copyright (C) 2021-2024 Osamu Aoki <osamu@debian.org>
 
 License GPLv2+: GNU GPL version 2 or later
 <https://gnu.org/licenses/gpl-2.0.html>.  This is free software: you are free
@@ -273,7 +273,7 @@ RSYNC_OPTR="-aHxSz --delete --mkpath"
 RSYNC_OPTG="-aHxS --delete --mkpath"
 #
 BSS="$PROG_NAME"
-BSS_LOGGER="1"
+BSS_LOGGER="-1"  # Default value: use of the systemd journal depends on subcommand
 BSS_LOGGER_LEVEL="2"
 BSS_DIR=".bss.d"
 BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, hour, ...
@@ -1554,9 +1554,11 @@ while [ -n "$1" ]; do
     exit $EXIT_SUCCESS
     ;;
   -l | --logger)
+    # force to enable the systemd journal
     BSS_LOGGER=1
     ;;
   -L | --nologger)
+    # force to disable the systemd journal
     BSS_LOGGER=0
     ;;
   '--')
@@ -1594,16 +1596,18 @@ fi
 # execute subcommands without PATH argument
 case "$BSS_COMMAND" in
 j*) # jobs
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
   __jobs
   exit $EXIT_SUCCESS
   ;;
 b*) # batch
-  # batch file name can't start with "-"
+  # batch mode: systend logger ON as default
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __batch "$@"
-  exit $EXIT_SUCCESS
-  ;;
-h* | '') # help
-  __help
   exit $EXIT_SUCCESS
   ;;
 esac
@@ -1619,14 +1623,23 @@ __set_fs_base
 # execute subcommands with PATH argument
 case "$BSS_COMMAND" in
 s*) #snapshot
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __snapshot
   ;;
 a*) # assess aging status and report age data lines to STDOUT
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
   __load_config
   __age
   ;;
 o*) # overview (for human check)
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
   __load_config
   # VERBOSE (-v) but w/o normal age data lines which use STDOUT
   # Logging outputs use STDERR
@@ -1634,14 +1647,23 @@ o*) # overview (for human check)
   __age >/dev/null
   ;;
 p*) # process
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __process
   ;;
 c*) # copy
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __rsync "$@"
   ;;
 l*) # list (report match in STDOUT)
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
   __load_config
   if [ -z "$1" ]; then
     __list '.*'
@@ -1650,30 +1672,50 @@ l*) # list (report match in STDOUT)
   fi
   ;;
 g*) # gather
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __rsync_gather "$@"
   ;;
 f*) # filter
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __filter "$1"
   ;;
 r*) # revert
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __revert "$1"
   ;;
 zap) # zap
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=1
+  fi
   __load_config
   __zap "$@"
   ;;
 t*) # template
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
   __template "$@"
   ;;
 B*) # BASE (interactive use only)
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
   echo "$FS_BASE"
   ;;
 *) # unknown
-  __echo 0 "Unknown command: '$*'"
-  __help
+  if [ "$BSS_LOGGER" = "-1" ]; then
+    BSS_LOGGER=0
+  fi
+  __echo 0 "Unknown command: '$*'   ---   See more 'bss --help'"
   exit $EXIT_ERROR
   ;;
 esac

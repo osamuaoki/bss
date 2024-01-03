@@ -1,4 +1,4 @@
-# Btrfs Subvolume Snapshot Utility (version: 1.4.0)
+# Btrfs Subvolume Snapshot Utility (version: 1.4.1)
 
 Original source repository: https://github.com/osamuaoki/bss
 
@@ -69,8 +69,8 @@ OPTIONS:
                   internal commands with "echo __"
 * -h,--help: show this help
 * --version: show version
-* -l,--logger: use systemd logger (default)
-* -L,--nologger: don't use systemd logger (terminal echo to STDERR only)
+* -l,--logger: enable systemd logger (default for active subcommands)
+* -L,--nologger: disable systemd logger (default for passive subcommands)
 * -m,--may: may execute snapshot or gather if possible
 * -q,--quiet: quiet (no notice messages, just warn/error messages)
 * -v,--verbose: verbose (with info messages)
@@ -81,13 +81,12 @@ SUBCOMMAND:
 
 * snapshot: make a readonly snapshot normally in the relative path ".bss.d/"
              as "\<ISO_8601_date>.\<TYPE>"  (The default type is "single")
+* list: list all snapshots
+* age: assess aging status of all snapshots
 * overview: overview of all snapshots (wrapper for "bss -v age >/dev/null")
 * process: process snapshots according to their aging status
 * copy: copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
-* jobs: list all systemd timer schedule jobs for bss
-* list: list all snapshots
-* age: assess aging status of all snapshots
 * gather: gather local files and directories to ".gather_root" and
              ".gather_home" directories specified on ".gatherrc"
 * filter: create a filtered snapshot from the specified snapshot in
@@ -106,6 +105,7 @@ SUBCOMMAND:
   *   "\~/.config/bss/FNB" (non-root)
   *   "/etc/bss/FNB" (root)
 * BASE: print the BASE directory for "bss"
+* jobs: list all systemd timer schedule jobs for bss
 
 Subcommands may be shortened to a single character.
 
@@ -225,7 +225,7 @@ Although this "bss" focuses on btrfs, there is minimal support for ext2/ext3
 (this includes ext4) for "bss copy ...", "bss gather ...", and "bss
 template".
 
-Copyright 2022 Osamu Aoki \<osamu@debian.org>, GPL 2+
+Copyright 2022 - 2024 Osamu Aoki \<osamu@debian.org>, GPL 2+
 <!---
 vim:se tw=78 ai si sts=4 sw=4 et:
 -->
@@ -452,4 +452,4 @@ These commands may be shortened if they aren't ambiguous.
 See /usr/share/doc/bss/examples/README.md or
       https://github.com/osamuaoki/bss/tree/main/examples
 
-Copyright 2023 Osamu Aoki \<osamu@debian.org>, GPL 2+
+Copyright 2023 - 2024 Osamu Aoki \<osamu@debian.org>, GPL 2+

@@ -1,3 +1,9 @@
+bss (1.4.1) unstable; urgency=medium
+
+  * Logging to the systemd journal is default only for active subcommands
+
+ -- Osamu Aoki <osamu@debian.org>  Wed, 03 Jan 2024 18:55:00 +0900
+
 bss (1.4.0) unstable; urgency=medium
 
   * Add batch mode

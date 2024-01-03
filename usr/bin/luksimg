@@ -62,14 +62,14 @@ These commands may be shortened if they aren't ambiguous.
 See /usr/share/doc/bss/examples/README.md or
       https://github.com/osamuaoki/bss/tree/main/examples
 
-Copyright 2023 Osamu Aoki <osamu@debian.org>, GPL 2+
+Copyright 2023 - 2024 Osamu Aoki <osamu@debian.org>, GPL 2+
 END_OF_HELP
 }
 __version () {
 cat << EOM
 $PROG_NAME ($PROG_VERSION)
 
-Copyright (C) 2023 Osamu Aoki <osamu@debian.org>
+Copyright (C) 2023 - 2024 Osamu Aoki <osamu@debian.org>
 
 License GPLv2+: GNU GPL version 2 or later
 <https://gnu.org/licenses/gpl-2.0.html>.  This is free software: you are free

@@ -81,6 +81,8 @@ __echo () {
       4|5|6|7) echo "D: $*" >&2
         ;;
     esac
+    # BSS_LOGGER == -1 or 0 : disable the systemd journal logging
+    # BSS_LOGGER == 1       : enable the systemd journal logging
     if [ "$BSS_LOGGER" = "1" ]; then
       case $BSS_MSG_LEVEL in
         0) systemd-cat -p 3 -t "$PROG_NAME" echo "$*"

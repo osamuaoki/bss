@@ -1,5 +1,5 @@
---- bss.1.orig	2024-01-01 08:03:52.939506889 +0900
-+++ bss.1	2024-01-01 11:14:07.288962326 +0900
+--- bss.1.orig	2024-01-03 21:53:09.953441647 +0900
++++ bss.1	2024-01-03 21:53:10.285446000 +0900
 @@ -36,28 +36,38 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
@@ -41,7 +41,7 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -155,14 +165,15 @@
+@@ -152,14 +162,15 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
