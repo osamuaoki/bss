@@ -328,9 +328,9 @@ SUBCOMMAND:
                * "$BSS_FLTR[.disabled]" (filtering rule)
   batch FNB  change the current working directory to the user's home directory
              and source the shell script found at:
-               *  "\$XDG_CONFIG_HOME/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME set)
-               *  "~/.config/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME unset)
-               *  "/etc/$BSS/FNB" (root)
+               * "\$XDG_CONFIG_HOME/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME set)
+               * "~/.config/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME unset)
+               * "/etc/$BSS/FNB" (root)
   BASE       print the BASE directory for "$BSS"
   jobs       list all systemd timer schedule jobs for $BSS
 

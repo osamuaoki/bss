@@ -1,5 +1,5 @@
 <!--
-version: 2.0.1
+version: 2.0.2
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.1
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.2
 
 ## Design of `bss`
 
@@ -181,9 +181,9 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
   *  ".bss.fltr[.disabled]" (filtering rule)
 * batch FNB: change the current working directory to the user's home directory
              and source the shell script found at:
-  *   "$XDG_CONFIG_HOME/bss/FNB" (non-root, $XDG_CONFIG_HOME set)
-  *   "\~/.config/bss/FNB" (non-root, $XDG_CONFIG_HOME unset)
-  *   "/etc/bss/FNB" (root)
+  *  "$XDG_CONFIG_HOME/bss/FNB" (non-root, $XDG_CONFIG_HOME set)
+  *  "\~/.config/bss/FNB" (non-root, $XDG_CONFIG_HOME unset)
+  *  "/etc/bss/FNB" (root)
 * BASE: print the BASE directory for "bss"
 * jobs: list all systemd timer schedule jobs for bss
 

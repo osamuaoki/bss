@@ -23,7 +23,7 @@ binuninstall:
 
 install: bininstall
 	install -m 644 -D share/bash-completion/completions/bss     $(DESTDIR)/usr$(prefix)/share/bash-completion/completions/bss
-	install -m 644 -D share/man/man1/bss.1                      $(DESTDIR)/usr$(prefix)/share/man/man1/bss.1
+	install -m 644 -D bss.1                                     $(DESTDIR)/usr$(prefix)/share/man/man1/bss.1
 	install -m 644 -D README.md                                 $(DESTDIR)/usr$(prefix)/share/doc/bss/README.md
 	install -m 644 -D bss_tips.md                               $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tips.md
 	install -m 644 -D bss_tutorial.md                           $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tutorial.md
@@ -38,7 +38,6 @@ distclean: clean
 
 uninstall:
 	-rm -f $(DESTDIR)/usr$(prefix)/bin/bss
-	-rm -f $(DESTDIR)/usr$(prefix)/share/man/man1/bss.1
 	-rm -rf $(DESTDIR)/usr$(prefix)/share/doc/bss
 
 test:
@@ -144,7 +143,8 @@ patch: bss.1.patch
 
 %.1.patch: FORCE
 	if [ -r "$*.1.base" ] || [ -r "$*.1" ]; then \
-		diff -u $*.1.base $*.1 >$*.1.patch || true ; else \
+		diff -u $*.1.base $*.1 >$*.1.patch || true ; \
+		echo "patch updated for $*.1.patch" ; else \
 		echo "No patch generated for $*.1.patch"; fi
 .PHONY: FORCE
 FORCE:

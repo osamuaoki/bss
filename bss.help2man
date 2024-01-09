@@ -167,15 +167,10 @@ make template files in the ".bss.d/" directory:
 batch FNB
 change the current working directory to the user's home directory
 and source the shell script found at:
-.TP
-*
-"$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
-.TP
-*
-"~/.config/bss/FNB" (non\-root, $XDG_CONFIG_HOME unset)
-.TP
-*
-"/etc/bss/FNB" (root)
+.IP
+* "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
+* "~/.config/bss/FNB" (non\-root, $XDG_CONFIG_HOME unset)
+* "/etc/bss/FNB" (root)
 .TP
 BASE
 print the BASE directory for "bss"
