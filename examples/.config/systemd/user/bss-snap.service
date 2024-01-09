@@ -1,5 +1,5 @@
 [Unit]
-Description=Run bss commands hourly
+Description=Run bss commands frequently
 Documentation=man:bss(1)
 # journalctl -a -b -t bss
 
@@ -7,11 +7,7 @@ Documentation=man:bss(1)
 Type=oneshot
 Nice=15
 # make snapshot of user's home directory ~/ (in one FS)
-ExecStart=bss --logger --type=hour snapshot %h
-# do the same for other subvolumes
-ExecStart=bss --logger --type=hour snapshot %h/github
-ExecStart=bss --logger --type=hour snapshot %h/salsa
-ExecStart=bss --logger --type=hour snapshot %h/Documents
+ExecStart=bss --type snap --may batch snapshots
 IOSchedulingClass=idle
 CPUSchedulingPolicy=idle
 StandardInput=null

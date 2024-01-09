@@ -1,0 +1,27 @@
+########################################################################
+# make new backup copy (path are relative from $HOME)
+# * source is a btrfs subvolume at ~/SRC_SUBVOL
+#   * always ignore error from gather
+# * destination is auto-mountable partition on a USB drive:
+#   * formatted as btrfs and
+#   * labeled as 'DST_LABEL'
+########################################################################
+bss_usb_backup () {
+  # $1: SRC_SUBVOL
+  # $2: DST_LABEL
+  bss gather "$1" || true
+  bss copy   "$1" "/media/$(id -un)/$2" || $BSS_MAY
+  bss snap        "/media/$(id -un)/$2" || $BSS_MAY
+  bss process     "/media/$(id -un)/$2" || $BSS_MAY
+}
+
+# Backup to WD4.0TB (low frequency backup HDD device)
+bss_usb_backup .         WD40
+bss_usb_backup Pictures  WD40
+bss_usb_backup Music     WD40
+bss_usb_backup Documents WD40
+bss_usb_backup Downloads WD40
+bss_usb_backup github    WD40
+bss_usb_backup salsa     WD40
+bss_usb_backup rsync     WD40
+bss_usb_backup Keep      WD40

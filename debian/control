@@ -35,5 +35,6 @@ Description: Btrfs Subvolume Snapshot Utility
    * Examples for:
      * Automatic pre and post package installation snapshots of / via APT
        operations on Debian/Ubuntu system.
-     * Systemd timer to snapshot on boot and hourly
-     * Systemd timer to age snapshots on boot and daily.
+     * Systemd timer event to snapshot on boot and time intervals.
+     * Systemd timer event to age snapshots on boot.
+     * Systemd mount event to backup a snapshot to USB storage.

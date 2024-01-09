@@ -1,4 +1,3 @@
 #!/bin/sh -e
 # syntax check
 /bin/dash -n /usr/bin/bss
-/bin/dash -n /usr/bin/luksimg

@@ -1,3 +1,10 @@
 #!/usr/bin/make -f
+prefix = 
+export prefix
 %:
 	dh $@
+
+# Use grip to read markdown
+override_dh_compress:
+	dh_compress -X.md
+

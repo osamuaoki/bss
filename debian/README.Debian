@@ -1,48 +1,12 @@
-= bss and luksimg for Debian =
+= bss for Debian =
+
+This is Osamu's "Btrfs Subvolume Snapshot" utility.
 
 This package doesn't come with ready to run automatic snapshot scripts.
-You need to set up systemd timer following the upstream documentation and
-examples in /usr/share/doc/bss.
+You need to set up systemd unit following the upstream documentation.
 
-You can also manually run this command as:
+  * https://github.com/osamuaoki/bss
 
- $ bss snapshot /path/to/sobvol # make snapshot
- $ bss overview /path/to/subvol # observe the aging status
- $ bss process  /path/to/subvol # process snapshots according to the aging status
- $ bss template /path/to/subvol # make configuration files
- $ bss jobs     /path/to/subvol # check scheduled bss systemd jobs
- $ bss copy     /path/to/subvol /path/to           # make snapshot and rsync to /path/to
- $ bss copy     /path/to/subvol user@host.dom:foo  # make snapshot and rsync to user@host.dom:foo
- $ bss help                     # command help
+You can find the same contents in /usr/share/doc/bss.
 
-See examples files for how to set and use systemd timer unit and desktop file
-by placing them in your home directory accordingly.  Also, there is an example
-hook script for apt.  (Files needs to be adjusted for your local subvolume
-paths.)  The following may be handy to see how this working.
-
- $ journalctl -a -b -t bss
-
-You need to run
-
- $ cd ~/.config/systemd/user/
- $ systemctl --user enable bss-hour.timer
- $ systemctl --user enable bss-day.timer
-
-Normally, bss-hour.timer is used for "bss snapshot" and bss-day.timer is used
-for "bss process".
-
-File paths are:
-
- * /path/to/subvol/.bss.d/20*        --- readonly snapshots
- * /path/to/subvol/.bss.d/.bss.conf  --- configuration file
- * /path/to/subvol/.bss.d/.bss.fltr  --- filter script
-
-Please note that the subcommand can be shortened to a single character.
-
-Run luksimg new 10G to create ~/rsync/secret.img file.
-
-Update ~/.secretrc to suites one's need for secure backup
-
-Add cd ~/.config/autostart/mount_home_secret.desktop
-
- -- Osamu Aoki <osamu@debian.org>  Fri Aug 26 05:22:38 PM UTC 2022
+ -- Osamu Aoki <osamu@debian.org>  Mon Jan  8 11:43:32 PM UTC 2024

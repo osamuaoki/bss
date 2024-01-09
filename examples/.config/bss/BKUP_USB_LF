@@ -1,0 +1,24 @@
+########################################################################
+# make new backup copy (path are relative from $HOME)
+# * source is a btrfs subvolume at ~/SRC_SUBVOL
+#   * always ignore error from gather
+# * destination is auto-mountable partition on a USB drive:
+#   * formatted as btrfs and
+#   * labeled as 'DST_LABEL'
+########################################################################
+bss_usb_backup () {
+  # $1: SRC_SUBVOL
+  # $2: DST_LABEL
+  bss gather "$1" || true
+  bss copy   "$1" "/media/$(id -un)/$2" || $BSS_MAY
+  bss snap        "/media/$(id -un)/$2" || $BSS_MAY
+  bss process     "/media/$(id -un)/$2" || $BSS_MAY
+}
+
+# Backup to BKUP_USB_LF 250GB (medium frequency backup SSD device)
+bss_usb_backup Documents BKUP_USB_LF
+bss_usb_backup github    BKUP_USB_LF
+bss_usb_backup salsa     BKUP_USB_LF
+bss_usb_backup rsync     BKUP_USB_LF
+
+# vim:se sw=2 ts=2 sts=2 et ai tw=78:

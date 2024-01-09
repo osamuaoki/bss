@@ -1,0 +1,77 @@
+<!--
+vim:set ai si sts=2 sw=2 et tw=79:
+
+* 'README.md' is auto-generated file
+* Edit usr/bin/bss, README.md? and run 'make README.md'
+-->
+# "Btrfs Subvolume Snapshot" utility
+
+This is Osamu's "Btrfs Subvolume Snapshot" utility `bss` which is a shell
+wrapper program to execute `btrfs subvolume snapshot` command with required
+arguments to manage data on btrfs.  This `bss` is also a shell wrapper program
+to execute `rsync` with required arguments to make backups of the subvolume.
+
+This `bss` script is still in the early development stage and intended only for
+my personal usage.
+
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: @@@VERSION@@@
+
+## Design of `bss`
+
+In order to be absolutely sure to recover from accidental erase of important
+data, disastrous disk failure, or even loss of the workstation, this `bss`
+command is designed with following items in mind:
+
+* Keep it simple
+  * single file shell script
+  * simple to configure via `~/.config/bss/*` etc.
+  * automatic and easy to execute (no complicated options)
+  * flexible (no special subvolume name required: `@` or `@rootfs`)
+* Offer all basic features
+  * making snapshots on the local disk with time stamp
+  * aging and processing of older snapshots
+  * making easy backups to the plug-in USB storage
+  * making secure backups to the remote storage service (rsync.net)
+* Offer robust data recovery capability
+  * rely only on standard backend tools
+    * Btrfs support of Linux kernel
+    * `btrfs-progs`
+    * `systemd`
+    * `openssh-client`
+    * `rsync`
+    * `gnupg`
+    * `tar`
+    * `libsecret-tools` (Gnome)
+
+## Quick Guide to `bss`
+
+System backup and snapshot tasks can be performed automatically by the system
+timer and mount events using their associated systemd unit files or easily by
+clicking the GUI icon using its associated desktop file.  Please read the [bss:
+tutorial](bss_tutorial.md) to get started for the typical baseline
+configuration for the backup and snapshot with `bss`.
+
+When customizing this baseline configuration, `bss` is designed not to
+contaminate command name space and configuration files are mostly localized in
+`~/.config/bss/`, `~/.config/systemd/user/` or the root of the target
+subvolume.
+
+You can manually run `bss` command directly from the command line as:
+
+```
+ $ bss snapshot /path/to/sobvol # make snapshot
+ $ bss gather   /path/to/sobvol # gather files and directories based .gather.dir or .gather.gpg
+ $ bss overview /path/to/subvol # observe the aging status
+ $ bss process  /path/to/subvol # process snapshots according to the aging status
+ $ bss template /path/to/subvol # make configuration files
+ $ bss jobs     /path/to/subvol # check scheduled bss systemd jobs
+ $ bss copy     /path/to/subvol /path/to           # make snapshot and rsync to /path/to
+ $ bss copy     /path/to/subvol user@host.dom:foo  # make snapshot and rsync to user@host.dom:foo
+ $ bss batch    batchname       # execute shell script in ~/.config/bss/batchname 
+ $ bss help                     # command help
+```
+Please note that the subcommand of `bss` can be shortened to a single character.
+
+## Command reference: `bss`
+
+

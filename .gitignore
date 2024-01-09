@@ -2,7 +2,4 @@ bss.1.base
 bss.1.orig
 bss.1.rej
 bss.1.old
-luksimg.1.base
-luksimg.1.orig
-luksimg.1.rej
-luksimg.1.old
+bss.1.pre*

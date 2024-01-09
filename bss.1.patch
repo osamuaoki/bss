@@ -1,6 +1,14 @@
---- bss.1.orig	2024-01-03 21:53:09.953441647 +0900
-+++ bss.1	2024-01-03 21:53:10.285446000 +0900
-@@ -36,28 +36,38 @@
+--- bss.1.orig	2024-01-09 22:09:11.099349136 +0900
++++ bss.1	2024-01-09 22:10:04.704251977 +0900
+@@ -6,6 +6,7 @@
+ .SS "USAGE:"
+ .IP
+ bss [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
++.IP
+ bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
+ .PP
+ "bss" is basically a "btrfs subvolume ..." command wrapper to create and
+@@ -40,28 +41,38 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
  * Secure minimum required free blocks (minimum FMIN %).
@@ -41,54 +49,50 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -152,14 +162,15 @@
+@@ -137,6 +148,7 @@
+ gather local files and directories to based on:
+ .IP
+ * ".gather.dirrc" file to the ".gather.dir" directory
++.IP
+ * ".gather.gpgrc" file to the ".gather.gpg" encrypted archive
+ .TP
+ filter
+@@ -159,18 +171,19 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
 +.IP
- *  ".bss.fltr" (filtering rule)
+ *  ".bss.fltr[.disabled]" (filtering rule)
  .TP
  batch FNB
- execute bss in the batch mode (see BATCH MODE) using:
+ change the current working directory to the user's home directory
+ and source the shell script found at:
 -.TP
 +.IP
  *
- "~/.config/bss/FNB" (non\-root)
+ "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
+-.TP
++.IP
+ *
+ "~/.config/bss/FNB" (non\-root, $XDG_CONFIG_HOME unset)
 -.TP
 +.IP
  *
  "/etc/bss/FNB" (root)
  .TP
-@@ -266,19 +277,22 @@
+@@ -203,6 +216,7 @@
+ "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
- \f(CW$ journalctl -a -b -t bss\fR
- .PP
--BATCH MODE:
-+.SH BATCH MODE
- .PP
- When this "bss" command is executed in the batch mode with "batch FNB" ,
- "bss" reads "/etc/bss/FNB" file and parses it as:
- .IP
- * Empty lines are ignored.
+ * a subvolume if it is on btrfs or,
 +.IP
- * Lines starting with "#" are considered as comments and ignored.
-+.IP
- * Lines starting with "!" are sourced as shell code.
--* Lines starting with "\-" are executed after replacing "\-" with
- .IP
-+* Lines starting with "\-" are executed after replacing "\-" with
- "bss \fB\-\-may\fR " and always return SUCCESS.
- .IP
- * Other lines are executed as if "bss " is prefixed to each of them.
-+.IP
- * On error exit, this batch process stops at that line.
+ * a subdirectory if it is on ext4 filesystem.
  .PP
- .SH CAVEAT
-@@ -306,6 +320,7 @@
- template".
+ If "DEST_PATH" is a local relative path without the leading  "/", then it is
+@@ -301,6 +315,7 @@
+ template" which runs the "rsync" command as the backend of subcommands.
  .SH AUTHOR
  Written by Osamu Aoki.
 +.PP
  .SH COPYRIGHT
- Copyright \(co 2021\-2022 Osamu Aoki <osamu@debian.org>
+ Copyright \(co 2021\-2024 Osamu Aoki <osamu@debian.org>
  .PP

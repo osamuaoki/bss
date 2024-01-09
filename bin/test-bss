@@ -1,0 +1,84 @@
+#!/bin/sh -e
+# vim:se sw=2 ts=2 sts=2 et ai tw=78:
+# This is used for debugging bss manually
+BSS="../bss"
+SUBVOLUME_DIR=test
+
+setup () {
+  if [ -e $SUBVOLUME_DIR ] ; then
+    sudo chmod 777 "$SUBVOLUME_DIR"
+    sudo btrfs subvolume delete $SUBVOLUME_DIR
+  fi
+  sudo btrfs subvolume create $SUBVOLUME_DIR
+  sudo chmod 777 "$SUBVOLUME_DIR"
+}
+
+snap () {
+  $BSS template
+  echo "foo" >foo
+  echo "===== SNAP     ============================================="
+  faketime "2020-01-01T00:00:00+00:00" $BSS s
+  faketime "2020-01-02T00:00:00+00:00" $BSS s
+  faketime "2020-01-03T00:00:00+00:00" $BSS s
+  echo "bar" > bar
+  faketime "2021-01-01T00:00:00+00:00" $BSS s
+  faketime "2021-01-02T00:00:00+00:00" $BSS s
+  faketime "2021-01-03T00:00:00+00:00" $BSS s
+  faketime "2021-01-04T00:00:00+00:00" $BSS s
+  faketime "2021-02-01T00:00:00+00:00" $BSS s
+  faketime "2021-03-01T00:00:00+00:00" $BSS s
+  faketime "2021-12-01T00:00:00+00:00" $BSS s
+  faketime "2022-01-01T00:00:00+00:00" $BSS s
+  faketime "2023-01-01T00:00:00+00:00" $BSS s
+  faketime "2023-02-01T00:00:00+00:00" $BSS s
+  faketime "2023-03-01T00:00:00+00:00" $BSS s
+  faketime "2023-04-01T00:00:00+00:00" $BSS s
+  faketime "2023-04-01T00:00:01+00:00" $BSS s
+  faketime "2023-04-01T00:00:02+00:00" $BSS s
+  faketime "2023-04-01T00:00:03+00:00" $BSS s
+  faketime "2023-04-01T00:00:04+00:00" $BSS s
+  faketime "2023-04-01T00:00:05+00:00" $BSS s
+  faketime "2023-04-01T00:00:06+00:00" $BSS s
+  faketime "2023-04-01T00:00:07+00:00" $BSS s
+  faketime "2023-04-01T00:00:08+00:00" $BSS s
+  faketime "2023-04-01T00:00:09+00:00" $BSS s
+}
+
+process () {
+  echo "===== LIST     ============================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS l
+  echo "===== OVERVIEW ============================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS o
+  echo "===== AGE      ============================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS a
+  echo "===== PROCESS  ============================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS p
+  echo "===== LIST     ============================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS l
+}
+
+delete () {
+  echo "===== DELETE ==========================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS zap .bss.d/*T*00:00.*
+  echo "===== LIST       ==========================================="
+  faketime "2023-04-02T00:00:10+00:00" $BSS l
+}
+
+clean () {
+  echo "===== CLEAN  @ $(pwd)  ==========================================="
+  sudo btrfs subvolume delete "$SUBVOLUME_DIR"
+}
+
+
+##############################################################################
+### MAIN ###
+##############################################################################
+# Parse Command Line
+##############################################################################
+setup
+cd "$SUBVOLUME_DIR"
+snap
+process
+delete
+cd - >/dev/null
+clean

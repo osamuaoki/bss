@@ -1,0 +1,11 @@
+[Unit]
+Description=USB Disk backup
+Requires=media-osamu-BKUP_USB_LF.mount
+After=media-osamu-BKUP_USB_LF.mount
+
+[Service]
+#User=%i
+ExecStart=bss --may --type usb batch BKUP_USB_LF
+
+[Install]
+WantedBy=media-osamu-BKUP_USB_LF.mount

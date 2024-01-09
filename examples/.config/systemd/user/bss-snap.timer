@@ -1,11 +1,11 @@
-# activate by: systemctl --user enable bss-hour.timer
+# activate by: systemctl --user enable bss-snap.timer
 [Unit]
 Description=Run bss commands hourly
 Documentation=man:bss(1)
 
 [Timer]
 OnStartupSec=30
-OnUnitActiveSec=1h
+OnUnitInactiveSec=900
 
 [Install]
 WantedBy=timers.target

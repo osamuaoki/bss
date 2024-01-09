@@ -1,3 +1,11 @@
+bss (2.0.0) unstable; urgency=medium
+
+  * Simpler batch subcommand
+  * Encrypted gather subcommand
+  * Drop luksimg command
+
+ -- Osamu Aoki <osamu@debian.org>  Tue, 09 Jan 2024 23:58:37 +0900
+
 bss (1.4.1) unstable; urgency=medium
 
   * Logging to the systemd journal is default only for active subcommands

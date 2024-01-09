@@ -1,7 +1,6 @@
 # vim:set noet ts=8 sts=8 sw=8:
 DESTDIR =
-prefix = /
-#prefix = /usr/local
+prefix ?= /local
 
 ### When updating this source, update command first.  Manpage and README.md
 ### are updated using "make prep".
@@ -12,43 +11,36 @@ prefix = /
 all:
 	: # do nothing (it's a script system)
 
-install:
-	install -m 755 -D usr/bin/bss                                   $(DESTDIR)$(prefix)/usr/bin/bss
-	install -d $(DESTDIR)$(prefix)/usr/share/bss
-	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" < usr/share/bss/common.sh > $(DESTDIR)$(prefix)/usr/share/bss/common.sh
-	chown 644 $(DESTDIR)$(prefix)/usr/share/bss/common.sh
-	install -m 644 -D usr/share/bss/log.sh                          $(DESTDIR)$(prefix)/usr/share/bss/log.sh
-	install -m 644 -D usr/share/bash-completion/completions/bss     $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/bss
-	install -m 644 -D usr/share/man/man1/bss.1                      $(DESTDIR)$(prefix)/usr/share/man/man1/bss.1
-	install -m 755 -D usr/bin/luksimg                               $(DESTDIR)$(prefix)/usr/bin/luksimg
-	install -m 644 -D usr/share/bash-completion/completions/luksimg $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/luksimg
-	install -m 644 -D usr/share/man/man1/luksimg.1                  $(DESTDIR)$(prefix)/usr/share/man/man1/luksimg.1
-	install -m 644 -D README.md                                     $(DESTDIR)$(prefix)/usr/share/doc/bss/README
-	cp             -a examples/                                     $(DESTDIR)$(prefix)/usr/share/doc/bss/examples/
+bininstall:
+	install -m 755 -d $(DESTDIR)/usr$(prefix)/bin
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" < bin/bss > $(DESTDIR)/usr$(prefix)/bin/bss
+	chown 755 $(DESTDIR)/usr$(prefix)/bin/bss
+
+install: bininstall
+	install -m 644 -D share/bash-completion/completions/bss     $(DESTDIR)/usr$(prefix)/share/bash-completion/completions/bss
+	install -m 644 -D share/man/man1/bss.1                      $(DESTDIR)/usr$(prefix)/share/man/man1/bss.1
+	install -m 644 -D README.md                                 $(DESTDIR)/usr$(prefix)/share/doc/bss/README.md
+	install -m 644 -D bss_tips.md                               $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tips.md
+	install -m 644 -D bss_tutorial.md                           $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tutorial.md
+	cp             -a examples                                  $(DESTDIR)/usr$(prefix)/share/doc/bss/
 
 #### Run this to clean up source tree
 clean:
+	-rm -f README.pre*
 	-rm -f bss.1.orig bss.1.old bss.1.rej bss.1.base bss.pre*
-	-rm -f luksimg.1.orig luksimg.1.old luksimg.1.rej luksimg.1.base luksimg.pre*
 
 distclean: clean
 
 uninstall:
-	-rm -f $(DESTDIR)$(prefix)/usr/bin/bss
-	-rm -f $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/bss
-	-rm -f $(DESTDIR)$(prefix)/usr/share/man/man1/bss.1
-	-rm -f $(DESTDIR)$(prefix)/usr/bin/luksimg
-	-rm -f $(DESTDIR)$(prefix)/usr/share/bash-completion/completions/luksimg
-	-rm -f $(DESTDIR)$(prefix)/usr/share/man/man1/luksimg.1
-	-rm -rf $(DESTDIR)$(prefix)/usr/share/doc/bss
+	-rm -f $(DESTDIR)/usr$(prefix)/bin/bss
+	-rm -f $(DESTDIR)/usr$(prefix)/share/man/man1/bss.1
+	-rm -rf $(DESTDIR)/usr$(prefix)/share/doc/bss
 
 test:
 	# sanity check of shell code
-	sh -n usr/bin/bss
-	sh -n usr/bin/luksimg
-	sh -n usr/share/bss/common.sh
+	sh -n bin/bss
 
-.PHONY: all install clean distclean test uninstall
+.PHONY: all ibininstall install clean distclean test uninstall
 #############################################################################
 # These targets must be used only before package build.
 #############################################################################
@@ -66,8 +58,6 @@ test:
 prep:
 	$(MAKE) test
 	$(MAKE) bss.1
-	$(MAKE) luksimg.1
-	$(MAKE) usr/share/man/man1/bss.1 usr/share/man/man1/luksimg.1
 	$(MAKE) README.md
 
 %.help2man: FORCE
@@ -105,46 +95,37 @@ prep:
 usr/share/man/man1/%.1: %.1
 	cp -f $< $@
 
-bss.pre0: FORCE
+###########################################################################################
+README.pre0: FORCE
 	usr/bin/bss --help > $@
-
-luksimg.pre0: FORCE
-	usr/bin/luksimg --help > $@
 
 %.pre1: %.pre0
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" $< > $@
 
 %.pre2: %.pre1
+	# make subsection titles
+	sed -e 's/^\(\S*\):$$/### \1/' $< >$@
+
+%.pre3: %.pre2
 	# make list in markdown for "  " starting lines
 	sed -e '/^  [^ *]/s/^  /* /' $< >$@
 
-%.pre3: %.pre2
+%.pre4: %.pre3
 	# add ":" before first "  " in list
 	sed -e '/^\*/s/^\(\*.*\)  \(.*\)$$/\1: \2/' -e '/^\*/s/ *:/:/' $< >$@
 
-%.pre4: %.pre3
+%.pre5: %.pre4
 	# trim long leading spaces
 	sed -e '/^      *\*/s/^[ ]*\*/  \* /' $< >$@
 
-%.pre5: %.pre4
+%.pre6: %.pre5
 	# escape special characters
 	sed -e 's,~,\\~,g' -e 's,<,\\<,g'  $< >$@
 
-README.md: FORCE
-	$(MAKE) bss.pre5 luksimg.pre5
-	echo "<!-- This is auto-generated file.  Edit usr/bin/bss or README.tail and run 'make README.md' -->" > $@
-	echo "# Btrfs Subvolume Snapshot Utility (version: $$(dpkg-parsechangelog -S Version))" > $@
-	echo >>$@
-	echo "Original source repository: https://github.com/osamuaoki/bss" >>$@
-	echo >>$@
-	echo "This script is early development stage and intended for my personal usage.">>$@
-	echo "UI may change.  Use with care.">>$@
-	echo >>$@
-	echo '## `bss` command' >> $@
-	echo >>$@
-	cat bss.pre5 >> $@
-	cat README.tail >>$@
-	cat luksimg.pre5 >> $@
+README.md: README.md0 README.pre6 README.md1
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" README.md0 > $@
+	cat README.pre6 >> $@
+	cat README.md1 >> $@
 
 #############################################################################
 # These targets must be used only before package build to fix *.patch.
@@ -152,8 +133,8 @@ README.md: FORCE
 
 .PHONY: patch
 
-# run this when resulting bss.1 or luksimg.1 are manually updated
-patch: bss.1.patch luksimg.1.patch
+# run this when resulting bss.1 is manually updated
+patch: bss.1.patch
 
 %.1.patch: FORCE
 	if [ -r "$*.1.base" ] || [ -r "$*.1" ]; then \
