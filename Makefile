@@ -6,15 +6,20 @@ prefix ?= /local
 ### are updated using "make prep".
 
 #############################################################################
-# These targets are used during package build.
+# These targets are used during package build.  (assume prep is done)
 #############################################################################
 all:
-	: # do nothing (it's a script system)
+	test "$$(head -n 2 README.md | sed -n -e "/^version: /s/version: //p")" = "$$(dpkg-parsechangelog -S Version)"
+	test "$$(sed -n -e "/^.TH/s/^[^(]*(\([^)]*\)).*$$/\1/p" bss.1)" =         "$$(dpkg-parsechangelog -S Version)"
+	: source is ready for building deb package
 
 bininstall:
 	install -m 755 -d $(DESTDIR)/usr$(prefix)/bin
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" < bin/bss > $(DESTDIR)/usr$(prefix)/bin/bss
-	chown 755 $(DESTDIR)/usr$(prefix)/bin/bss
+	chmod 755 $(DESTDIR)/usr$(prefix)/bin/bss
+
+binuninstall:
+	-rm -f $(DESTDIR)/usr$(prefix)/bin/bss
 
 install: bininstall
 	install -m 644 -D share/bash-completion/completions/bss     $(DESTDIR)/usr$(prefix)/share/bash-completion/completions/bss
@@ -46,6 +51,7 @@ test:
 #############################################################################
 
 .SECONDARY:
+
 .PHONY: prep
 
 #### Since there is no guarantee how help2man output is consistently formatted and
@@ -60,15 +66,15 @@ prep:
 	$(MAKE) bss.1
 	$(MAKE) README.md
 
-%.help2man: FORCE
+# auto-generate man page
+%.help2man: bin/bss
 	if ! type help2man >/dev/null ; then echo "install 'help2man' package" ; fi
-	help2man usr/bin/$* > $@
+	help2man bin/$* > $@
 
-%.1.base: %.help2man
+%.1.base: %.help2man debian/changelog
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" \
 	    -e 's/^\([A-Z]*\):$$/.SH \1/' \
 	    -e 's/bss \\- manual page for bss/$* \\- btrfs subvolume snapshot utility/' \
-	    -e 's/luksimg \\- manual page for luksimg/luksimg \\-  LUKS encrypted disk image utility/' \
 	    -e '/^\.SH COPYRIGHT/,$$ d' $< > $@
 	cat $*.1.tail >> $@
 
@@ -96,8 +102,8 @@ usr/share/man/man1/%.1: %.1
 	cp -f $< $@
 
 ###########################################################################################
-README.pre0: FORCE
-	usr/bin/bss --help > $@
+README.pre0: bin/bss
+	bin/bss --help > $@
 
 %.pre1: %.pre0
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" $< > $@
@@ -122,7 +128,7 @@ README.pre0: FORCE
 	# escape special characters
 	sed -e 's,~,\\~,g' -e 's,<,\\<,g'  $< >$@
 
-README.md: README.md0 README.pre6 README.md1
+README.md: README.md0 README.pre6 README.md1 debian/changelog
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" README.md0 > $@
 	cat README.pre6 >> $@
 	cat README.md1 >> $@

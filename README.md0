@@ -1,4 +1,6 @@
 <!--
+version: @@@VERSION@@@
+
 vim:set ai si sts=2 sw=2 et tw=79:
 
 * 'README.md' is auto-generated file
@@ -28,15 +30,15 @@ command is designed with following items in mind:
   * automatic and easy to execute (no complicated options)
   * flexible (no special subvolume name required: `@` or `@rootfs`)
 * Offer all basic features
-  * making snapshots on the local disk with time stamp
-  * aging and processing of older snapshots
-  * making easy backups to the plug-in USB storage
-  * making secure backups to the remote storage service (rsync.net)
+  * enable snapshots on the local disk with time stamp
+  * enable aging and processing of older snapshots
+  * enable easy backups to the plug-in USB storage
+  * enable secure backups to the remote storage service (rsync.net)
 * Offer robust data recovery capability
   * rely only on standard backend tools
-    * Btrfs support of Linux kernel
-    * `btrfs-progs`
     * `systemd`
+    * Linux kernel (btrfs support)
+    * `btrfs-progs`
     * `openssh-client`
     * `rsync`
     * `gnupg`

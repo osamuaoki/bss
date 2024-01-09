@@ -1,0 +1,61 @@
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# systemd generates mount units based on this file, see systemd.mount(5).
+# Please run 'systemctl daemon-reload' after making changes here.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/nvme0n1p5 during installation
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /               btrfs   defaults,subvol=@rootfs 0       0
+# /boot/efi was on /dev/nvme0n1p1 during installation
+UUID=9665-1F19  /boot/efi       vfat    umask=0077      0       1
+# swap was on /dev/nvme0n1p6 during installation
+UUID=c696f7a4-599f-4521-8546-bd4c8cd38702 none            swap    sw              0       0
+
+####################################################################################################
+# user's home data
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/osamu              btrfs defaults,subvol=@osamu 0 1
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/osamu/Documents    btrfs defaults,subvol=@Documents 0 1
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/osamu/Downloads    btrfs defaults,subvol=@Downloads 0 1
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/osamu/Music        btrfs defaults,subvol=@Music 0 1
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/osamu/Pictures     btrfs defaults,subvol=@Pictures 0 1
+
+####################################################################################################
+# mount for snapshot/bss
+# manual mounting of /dev/nvme0n1p5 (LABEL=main)
+UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /disk_volume/main     btrfs  defaults 0 0
+# manual mounting of /dev/nvme0n1p7 (LABEL=data)
+UUID=d2692cc0-0727-4b94-bc69-ac62729ed62a /disk_volume/data     btrfs  defaults 0 1
+# manual mounting of /dev/nvme0n1p8 (LABEL=data_e)
+UUID=1fafdb8a-8024-403e-b729-2476f016e1cf /disk_volume/data_e   ext4   defaults 0 1
+# manual mounting of /dev/nvme1n1p1 (LABEL=sub)
+UUID=51f9cd11-30b3-4d99-b2ed-fe411fa22ee6 /disk_volume/sub      btrfs  defaults 0 1
+# manual mounting of /dev/nvme1n1p2 (LABEL=sub_data)
+UUID=0379a1bf-00e7-4120-afcb-b8e71929eb47 /disk_volume/sub_data btrfs  defaults 0 1
+
+# Partition names match FS label.
+
+# === 1st SSD === (2TB)
+# /dev/nvme0n1p1 during installation as EFI system 
+# /dev/nvme0n1p2 during installation as GUID partition
+# /dev/nvme0n1p3 during installation as Windows 10 (Bitlocker 2)
+# /dev/nvme0n1p4 during installation as NTFS
+# /dev/nvme0n1p5 during installation as btrfs
+# /dev/nvme0n1p7 during installation as btrfs
+# /dev/nvme0n1p8 during installation as ext4
+# /dev/nvme0n1p6 during installation as swap
+
+# === 2nd SSD === (128GB)
+# /dev/nvme1n1p1 during installation as btrfs
+# /dev/nvme1n1p2 during installation as btrfs
+#############################################################################
+# generic tmpfs data
+# application specific mount points for tmpfs
+# For speeding up host system and prevent SSD wear-out for volatile data (/run is taken care by systemd)
+tmpfs /tmp                            tmpfs uid=root,gid=root,mode=1777 0 0
+tmpfs /var/tmp                        tmpfs uid=root,gid=root,mode=1777 0 0
+
+

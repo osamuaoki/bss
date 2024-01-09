@@ -15,6 +15,8 @@ BSS_LOGGER_JOURNAL="${BSS_LOGGER_JOURNAL:--1}" # initial value
 BSS_NOOP="${BSS_NOPE:-}" # set to ":" for no-operation
 BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, hour, ...
 BSS_MAY="${BSS_MAY:-false}"
+# You can override the default gpg key to use
+BSS_GPG_RECIPIENT_ID=${BSS_GPG_RECIPIENT_ID:-$(id -un)}
 #############################################################################
 # system parameters
 #############################################################################
@@ -41,6 +43,7 @@ BSS="$PROG_NAME"
 BSV="$SUDO btrfs subvolume"
 TAR="tar"
 GPG="gpg"
+# rsync is run as root if local
 RSYNC="$SUDO rsync"
 # remote copy uses user account for ssh-key
 RSYNC_REMOTE="rsync"
@@ -68,11 +71,15 @@ EXT_COPY_POST="post_copy_script"
 BSS_STEM=".$BSS"
 BSS_CONF="$BSS_STEM.$EXT_CONF"
 BSS_FLTR="$BSS_STEM.$EXT_FLTR"
+# initial values used by help message
 BSS_GATHER=".gather"
-BSS_LIST_DIR="${BSS_GATHER}.dir"
-BSS_LIST_DIRRC="${BSS_LIST_DIR}rc"
-BSS_LIST_GPG="${BSS_GATHER}.gpg"
-BSS_LIST_GPGRC="${BSS_LIST_GPG}rc"
+BSS_GATHER_DIRRC="${BSS_GATHER}.dirrc"
+BSS_GATHER_DIR="${BSS_GATHER}.dir"
+BSS_GATHER_GPGRC="${BSS_GATHER}.gpgrc"
+BSS_GATHER_GPG="${BSS_DIR}/${BSS_GATHER}.gpg"
+BSS_GATHER_TAR="${BSS_DIR}/${BSS_GATHER}.tar"
+BSS_GATHER_TARGPG="${BSS_GATHER}.tar.gpg"
+#
 PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
 POST_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_POST"
 #############################################################################
@@ -302,8 +309,10 @@ SUBCOMMAND:
   copy       copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
   gather     gather local files and directories to based on:
-               * ".gather.dirrc" file to the ".gather.dir" directory
-               * ".gather.gpgrc" file to the ".gather.gpg" encrypted archive
+               * "$BSS_GATHER_DIRRC" file to the "$BSS_GATHER_DIR" directory
+               * "$BSS_GATHER_GPGRC" file to the "$BSS_GATHER_TARGPG" encrypted archive
+                 ("$BSS_GATHER_GPG" directory and "$BSS_GATHER_TAR" file are
+                 used and overwritten.)
   filter     create a filtered snapshot from the specified snapshot in
              "$BSS_DIR/" as "<specified_subvol_name>_filter"
   revert     make snapshot "<ISO_8601_date>.last" and replace the subvolume at
@@ -316,7 +325,7 @@ SUBCOMMAND:
              ("zap" is required to be typed in full text)
   template   make template files in the "$BSS_DIR/" directory:
                * "$BSS_CONF" (aging rule)
-               *  "$BSS_FLTR[.disabled]" (filtering rule)
+               * "$BSS_FLTR[.disabled]" (filtering rule)
   batch FNB  change the current working directory to the user's home directory
              and source the shell script found at:
                *  "\$XDG_CONFIG_HOME/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME set)
@@ -344,7 +353,10 @@ create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
 allow independent management of data using "$BSS" on both the BASE directory
 and "DEST_PATH". (The tailing "/" in "DEST_PATH" is removed.)
 
-If "DEST_PATH" is a local path such as "/srv/backup", then "$RSYNC $RSYNC_OPTA"
+If "DEST_PATH" is a local path such as "/srv/backup", then
+
+  "$RSYNC $RSYNC_OPTA"
+
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 
@@ -355,8 +367,11 @@ If "DEST_PATH" is a local relative path without the leading  "/", then it is
 treated as a relative path from the user's home directory.
 
 If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
-"$RSYNC_REMOTE $RSYNC_OPTR" is used to limit privilege and to save the network
-load. Also, this allows "$BSS copy" to use the SSH-key stored under "~/.ssh/".
+
+  "$RSYNC_REMOTE $RSYNC_OPTR"
+
+is used to limit privilege and to save the network load. Also, this allows
+"$BSS copy" to use the SSH-key stored under "~/.ssh/".
 
 "$BSS zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:
@@ -1250,28 +1265,29 @@ __rsync() {
 }
 ##############################################################################
 __rsync_gather_all() {
-  if [ -n "${1}" ]; then
-    BSS_GATHER="${1}"
-  fi
-  shift
-  BSS_LIST_DIR="${BSS_GATHER}.dir"
-  BSS_LIST_DIRRC="${BSS_LIST_DIR}rc"
-  BSS_LIST_GPG="${BSS_GATHER}.gpg"
-  BSS_LIST_GPGRC="${BSS_LIST_GPG}rc"
+  BSS_GATHER="${1:-${BSS_GATHER}}"
+  BSS_GATHER_DIRRC="$FS_BASE/${BSS_GATHER}.dirrc"
+  BSS_GATHER_DIR="$FS_BASE/${BSS_GATHER}.dir"
+  BSS_GATHER_GPGRC="$FS_BASE/${BSS_GATHER}.gpgrc"
+  BSS_GATHER_GPG="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.gpg"
+  BSS_GATHER_TAR="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.tar"
+  BSS_GATHER_TARGPG="$FS_BASE/${BSS_GATHER}.tar.gpg"
   #
-  if [ -r "$FS_BASE/$BSS_LIST_DIRRC" ]; then
-    __rsync_gather "$FS_BASE/$BSS_LIST_DIRRC" "$FS_BASE/$BSS_LIST_DIR" "$@"
+  if [ -r "$BSS_GATHER_DIRRC" ]; then
+    __rsync_gather "$BSS_GATHER_DIRRC" "$BSS_GATHER_DIR"
   fi
-  if [ -r "$FS_BASE/$BSS_LIST_GPGRC" ]; then
-    __rsync_gather "$FS_BASE/$BSS_LIST_GPGRC" "$FS_BASE/$BSS_DIR/$BSS_LIST_GPG" "$@"
-    $TAR -c $CMD_OPTV "$FS_BASE/$BSS_DIR/$BSS_LIST_GPG" | \
-      $GPG --encrypt > $BSS_LIST_GPG
-    $SUDO rm -rf "$FS_BASE/$BSS_DIR/$BSS_LIST_GPG"
+  if [ -r "$BSS_GATHER_GPGRC" ]; then
+    __rsync_gather "$BSS_GATHER_GPGRC" "$BSS_GATHER_GPG"
+    $SUDO $TAR -c $CMD_OPTV -f "$BSS_GATHER_TAR" "$BSS_GATHER_GPG"
+    $GPG --encrypt --recipient $BSS_GPG_RECIPIENT_ID -o "$BSS_GATHER_TARGPG" "$BSS_GATHER_TAR" 
+    $SUDO rm -rf "$BSS_GATHER_GPG"
+    $SUDO rm -f "$BSS_GATHER_TAR"
   fi
 }
 
 __rsync_gather() {
   BSS_GATHER_LIST="$1"
+  BSS_PREFIX="$2"
   DEST_DIR_R="$2/root"
   DEST_DIR_H="$2/home"
   shift
@@ -1286,7 +1302,7 @@ __rsync_gather() {
   RSYNC_OPTS="$RSYNC_OPTG $CMD_OPTV"
   # cd to user's home directory
   cd
-  __echo 2 "Gather using '$BSS_LIST' to '$FS_BASE/.${BSS_PREFIX}_{root,home}'"
+  __echo 2 "Gather using '$BSS_GATHER_LIST' to '$DEST_DIR_H' and '$DEST_DIR_R'"
   grep -v -e "^#" "$BSS_GATHER_LIST" | \
     while read -r GATHER_ITEM; do
       # normalize path by removing tailing / or similar

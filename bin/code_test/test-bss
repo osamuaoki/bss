@@ -1,7 +1,7 @@
 #!/bin/sh -e
 # vim:se sw=2 ts=2 sts=2 et ai tw=78:
 # This is used for debugging bss manually
-BSS="../bss"
+BSS="$(pwd)/../bss"
 SUBVOLUME_DIR=test
 
 setup () {

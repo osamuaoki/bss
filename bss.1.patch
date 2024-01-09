@@ -1,13 +1,20 @@
---- bss.1.orig	2024-01-09 22:09:11.099349136 +0900
-+++ bss.1	2024-01-09 22:10:04.704251977 +0900
-@@ -6,6 +6,7 @@
- .SS "USAGE:"
+--- bss.1.base	2024-01-10 14:53:48.927123005 +0900
++++ bss.1	2024-01-10 14:53:48.943123223 +0900
+@@ -2,11 +2,12 @@
+ .TH BSS "1" "January 2024" "bss  (2.0.1)" "User Commands"
+ .SH NAME
+ bss \- btrfs subvolume snapshot utility  (2.0.1)
+-.SH DESCRIPTION
+-.SS "USAGE:"
++.SH USAGE
  .IP
  bss [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
 +.IP
  bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
++.SH DESCRIPTION
  .PP
  "bss" is basically a "btrfs subvolume ..." command wrapper to create and
+ process historical snapshots with the intuitive snapshot subvolume name and
 @@ -40,28 +41,38 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
@@ -49,20 +56,22 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -137,6 +148,7 @@
+@@ -137,8 +148,8 @@
  gather local files and directories to based on:
  .IP
  * ".gather.dirrc" file to the ".gather.dir" directory
-+.IP
- * ".gather.gpgrc" file to the ".gather.gpg" encrypted archive
+-* ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
+ .IP
++* ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
+ (".bss.d/.gather.gpg" directory and ".bss.d/.gather.tar" file are
+ used and overwritten.)
  .TP
- filter
-@@ -159,18 +171,19 @@
+@@ -162,18 +173,19 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
 +.IP
- *  ".bss.fltr[.disabled]" (filtering rule)
+ * ".bss.fltr[.disabled]" (filtering rule)
  .TP
  batch FNB
  change the current working directory to the user's home directory
@@ -80,7 +89,7 @@
  *
  "/etc/bss/FNB" (root)
  .TP
-@@ -203,6 +216,7 @@
+@@ -209,6 +221,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs or,
@@ -88,7 +97,16 @@
  * a subdirectory if it is on ext4 filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -301,6 +315,7 @@
+@@ -280,7 +293,7 @@
+ its recent invocations with:
+ .IP
+ \f(CW$ journalctl -a -b -t bss\fR
+-.br
++.IP
+ \f(CW$ journalctl -f -t bss\fR
+ .PP
+ .SH CAVEAT
+@@ -310,6 +323,7 @@
  template" which runs the "rsync" command as the backend of subcommands.
  .SH AUTHOR
  Written by Osamu Aoki.

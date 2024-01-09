@@ -137,7 +137,10 @@ gather
 gather local files and directories to based on:
 .IP
 * ".gather.dirrc" file to the ".gather.dir" directory
-* ".gather.gpgrc" file to the ".gather.gpg" encrypted archive
+* ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
+.IP
+(".bss.d/.gather.gpg" directory and ".bss.d/.gather.tar" file are
+used and overwritten.)
 .TP
 filter
 create a filtered snapshot from the specified snapshot in
@@ -159,7 +162,7 @@ template
 make template files in the ".bss.d/" directory:
 .IP
 * ".bss.conf" (aging rule)
-*  ".bss.fltr[.disabled]" (filtering rule)
+* ".bss.fltr[.disabled]" (filtering rule)
 .TP
 batch FNB
 change the current working directory to the user's home directory
@@ -198,7 +201,10 @@ create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
 allow independent management of data using "bss" on both the BASE directory
 and "DEST_PATH". (The tailing "/" in "DEST_PATH" is removed.)
 .PP
-If "DEST_PATH" is a local path such as "/srv/backup", then "sudo rsync \fB\-aHxS\fR \fB\-\-delete\fR \fB\-\-mkpath\fR"
+If "DEST_PATH" is a local path such as "/srv/backup", then
+.IP
+"sudo rsync \fB\-aHxS\fR \fB\-\-delete\fR \fB\-\-mkpath\fR"
+.PP
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 .IP
@@ -209,8 +215,11 @@ If "DEST_PATH" is a local relative path without the leading  "/", then it is
 treated as a relative path from the user's home directory.
 .PP
 If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
-"rsync \fB\-aHxSz\fR \fB\-\-delete\fR \fB\-\-mkpath\fR" is used to limit privilege and to save the network
-load. Also, this allows "bss copy" to use the SSH\-key stored under "~/.ssh/".
+.IP
+"rsync \fB\-aHxSz\fR \fB\-\-delete\fR \fB\-\-mkpath\fR"
+.PP
+is used to limit privilege and to save the network load. Also, this allows
+"bss copy" to use the SSH\-key stored under "~/.ssh/".
 .PP
 "bss zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:

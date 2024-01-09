@@ -1,3 +1,10 @@
+bss (2.0.1) unstable; urgency=medium
+
+  * Build with version check for documentation.
+  * Support GPG archive for "bss gather"
+
+ -- Osamu Aoki <osamu@debian.org>  Wed, 10 Jan 2024 13:53:18 +0900
+
 bss (2.0.0) unstable; urgency=medium
 
   * Simpler batch subcommand

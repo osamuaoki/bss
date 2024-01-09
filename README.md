@@ -1,4 +1,6 @@
 <!--
+version: 2.0.1
+
 vim:set ai si sts=2 sw=2 et tw=79:
 
 * 'README.md' is auto-generated file
@@ -14,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.0~pre1
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.1
 
 ## Design of `bss`
 
@@ -28,15 +30,15 @@ command is designed with following items in mind:
   * automatic and easy to execute (no complicated options)
   * flexible (no special subvolume name required: `@` or `@rootfs`)
 * Offer all basic features
-  * making snapshots on the local disk with time stamp
-  * aging and processing of older snapshots
-  * making easy backups to the plug-in USB storage
-  * making secure backups to the remote storage service (rsync.net)
+  * enable snapshots on the local disk with time stamp
+  * enable aging and processing of older snapshots
+  * enable easy backups to the plug-in USB storage
+  * enable secure backups to the remote storage service (rsync.net)
 * Offer robust data recovery capability
   * rely only on standard backend tools
-    * Btrfs support of Linux kernel
-    * `btrfs-progs`
     * `systemd`
+    * Linux kernel (btrfs support)
+    * `btrfs-progs`
     * `openssh-client`
     * `rsync`
     * `gnupg`
@@ -161,7 +163,9 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
              (remote) destination (2nd argument) using rsync
 * gather: gather local files and directories to based on:
   *  ".gather.dirrc" file to the ".gather.dir" directory
-  *  ".gather.gpgrc" file to the ".gather.gpg" encrypted archive
+  *  ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
+                 (".bss.d/.gather.gpg" directory and ".bss.d/.gather.tar" file are
+                 used and overwritten.)
 * filter: create a filtered snapshot from the specified snapshot in
              ".bss.d/" as "\<specified_subvol_name>_filter"
 * revert: make snapshot "\<ISO_8601_date>.last" and replace the subvolume at
@@ -174,7 +178,7 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
              ("zap" is required to be typed in full text)
 * template: make template files in the ".bss.d/" directory:
   *  ".bss.conf" (aging rule)
-  *   ".bss.fltr[.disabled]" (filtering rule)
+  *  ".bss.fltr[.disabled]" (filtering rule)
 * batch FNB: change the current working directory to the user's home directory
              and source the shell script found at:
   *   "$XDG_CONFIG_HOME/bss/FNB" (non-root, $XDG_CONFIG_HOME set)
@@ -202,7 +206,10 @@ create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
 allow independent management of data using "bss" on both the BASE directory
 and "DEST_PATH". (The tailing "/" in "DEST_PATH" is removed.)
 
-If "DEST_PATH" is a local path such as "/srv/backup", then "sudo rsync -aHxS --delete --mkpath"
+If "DEST_PATH" is a local path such as "/srv/backup", then
+
+* "sudo rsync -aHxS --delete --mkpath"
+
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 
@@ -213,8 +220,11 @@ If "DEST_PATH" is a local relative path without the leading  "/", then it is
 treated as a relative path from the user's home directory.
 
 If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
-"rsync -aHxSz --delete --mkpath" is used to limit privilege and to save the network
-load. Also, this allows "bss copy" to use the SSH-key stored under "\~/.ssh/".
+
+* "rsync -aHxSz --delete --mkpath"
+
+is used to limit privilege and to save the network load. Also, this allows
+"bss copy" to use the SSH-key stored under "\~/.ssh/".
 
 "bss zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:

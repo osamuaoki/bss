@@ -10,11 +10,10 @@ SECRET_DIR="secret"
 # Verify rsync.net account name with:
 #   $ secret-tool lookup rsync.net account
 #   ab1234@ab1234.rsync.net
-RSYNC_ACCOUNT="$(secret-tool lookup rsync.net account)"
 # Source directory to copy to rsync.net
 RSYNC_DIR="rsync"
 
 # Creates encrypted archive in "$RSYNC_DIR" with .gsther.gpg
 bss gather "$RSYNC_DIR"
-bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR"
-__logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR"
+bss copy "$RSYNC_DIR" "$(secret-tool lookup rsync.net account):$RSYNC_DIR"
+__logger ssh "$(secret-tool lookup rsync.net account)" ls -lA "$RSYNC_DIR"

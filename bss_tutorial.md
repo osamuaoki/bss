@@ -13,7 +13,7 @@ Let's assume a few things.
 * The btrfs formatted partition `/dev/nvme0n1p5` was selected to be the root
   filesystem.
 * The installer automatically made subvolume `@rootfs` within this btrfs.
-* The UUID of this btrfs is fe3e1db5-6454-46d6-a14c-071208ebe4b1`.
+* The UUID of this btrfs is `fe3e1db5-6454-46d6-a14c-071208ebe4b1`.
 * The hostname of this new system is `newhost`.
 * The primary user (UID=1000, GID=1000) is `penguin`.
 * The primary user is a member of the `sudo` group.
@@ -98,60 +98,23 @@ Suites: sid
 Components: main
 Signed-By:
  -----BEGIN PGP PUBLIC KEY BLOCK-----
- Version: GnuPG v1.4.10 (GNU/Linux)
- . 
- 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
- xqPj8/NMvWK8mJoL07R52TxDk6k=
- =2eP9
+ .
+ mDMEZZpSFhYJKwYBBAHaRw8BAQdA9T6mXRx7Zc64kQC+dKB2RgxNHK0+KFlCT8b/
+ JtFAWRu0HU9zYW11IEFva2kgPG9zYW11QGRlYmlhbi5vcmc+iJIEExYIADsCGwMF
+ CwkIBwIGFQoJCAsCBBYCAwECHgECF4AWIQTYnmsJtCCYzq8IGrFtbTgJIV9yDQUC
+ ZZpXMAIZAQAKCRBtbTgJIV9yDc+YAQDhuq/q76qobfHKi8C2MT83u1qZkg2eCpEF
+ UkyvrE59fwD4+d+IbCls19F3MCRuEmyvYQr+sghC82lnUiFOxUq/DbQhT3NhbXUg
+ QW9raSA8b3NhbXUuYW9raUBnbWFpbC5jb20+iJAEExYIADgWIQTYnmsJtCCYzq8I
+ GrFtbTgJIV9yDQUCZZpVVQIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRBt
+ bTgJIV9yDehWAP9lG8DUBwUPl0kCTezQItOxQfDXgJ0Lyhv8dv4B1iWxjgEA8YBv
+ gCgDGby+pQmRX/STM7fu5LG62785oIj17HuMaQG4OARlmlIWEgorBgEEAZdVAQUB
+ AQdA+q2tgbmHC7MQv5bTHyawYrITRw7Gdg7M0p0+oSRtzS8DAQgHiHgEGBYIACAC
+ GwwWIQTYnmsJtCCYzq8IGrFtbTgJIV9yDQUCZZpU3QAKCRBtbTgJIV9yDdz6AQC8
+ yC8mQnwkj9D2x84oSdEpAckJ/e47kLDN3y/HIOwXbAD/ZCv2Ek1Exh/7SrxNL65J
+ ipPuCsH1vTsxbEE14mEs2Ag=
+ =IDSM
  -----END PGP PUBLIC KEY BLOCK-----
 # This is written in DEB822-STYLE FORMAT as described in sources.list (5)
-
 ```
 
 This adds my personal APT repository.  Then `bss` can be installed by
@@ -337,6 +300,13 @@ Unit /home/penguin/.config/systemd/user/bss-BKUP_USB.service is added as a depen
 Despite this warning, USB storage seems to be getting backup data when my workstation is powered up with USB drive plugged-in or when it get plugged-in.
 
 ## Snapshot upon each apt event
+
+For the filesystem containing the system data, such as `@rootfs`, it is easier
+to perform recovery operation if its snapshots reside in an absolute path
+outside of the original filesystem.  `BSS_SNAP_DEST` variable in
+`.bss.d/.bss.conf` can be used to enable system snapshot mode.
+
+Here is an example to make snapshot of system image for `@rootfs`.
 
 Create `/etc/apt/apt.conf.d/80bss` as:
 
