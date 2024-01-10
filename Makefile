@@ -32,7 +32,7 @@ install: bininstall
 #### Run this to clean up source tree
 clean:
 	-rm -f README.pre*
-	-rm -f bss.1.orig bss.1.old bss.1.rej bss.1.base bss.pre*
+	-rm -f bss.man0* bss.man1*
 
 distclean: clean
 
@@ -61,45 +61,58 @@ test:
 #### Run "make prep" and commit successful results to the git repo in advance.
 
 prep:
+	$(MAKE) clean
 	$(MAKE) test
 	$(MAKE) bss.1
 	$(MAKE) README.md
 
 # auto-generate man page
-%.help2man: bin/bss
+bss.help2man: bin/bss
 	if ! type help2man >/dev/null ; then echo "install 'help2man' package" ; fi
-	help2man bin/$* > $@
+	help2man bin/bss > $@
 
-%.1.base: %.help2man debian/changelog
-	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" \
-	    -e 's/^\([A-Z]*\):$$/.SH \1/' \
-	    -e 's/bss \\- manual page for bss/$* \\- btrfs subvolume snapshot utility/' \
-	    -e '/^\.SH COPYRIGHT/,$$ d' $< > $@
-	cat $*.1.tail >> $@
+bss.man0: bss.help2man
+	sed -e 's/^\([A-Z]*\):$$/.SH \1/' \
+	    -e 's/bss \\- manual page for bss/bss \\- btrfs subvolume snapshot utility/' \
+	    -e '/^\.SH COPYRIGHT/,$$ d' bss.help2man > bss.man0
+	cat bss.1.tail >> bss.man0
 
-%.1: %.1.base
+bss.man1: bss.man0 FORCE
+	-rm bss.man1.orig
 	cp $< $@
 	: ===============================================================================
-	: = If this fails, do the following:                                            =
-	:   * fix $*.1 by editing as 'vi $*.1'
-	:   * use older version as reference at 'usr/share/man/man1/$*.1'
-	:   * update $*.1.patch using 'make $*.1.patch'
+	: = If next patching fails, do the following:                                   =
+	:   * fix bss.man1 by editor
+	:   * update by 'make bss.1.patch'
 	: ===============================================================================
-	if [ -r "$*.1.patch" ]; then patch $@ <$*.1.patch ; fi
+	if [ -r "bss.1.patch" ]; then patch bss.man1 <bss.1.patch ; fi
 	: ===============================================================================
-	: = Successfully updated                                                        =
-	@if [ -r $*.1.orig ]; then \
-	echo ":   * Fuzz found, update $*.1.patch." ; \
-	diff -u $*.1.orig $*.1 >$*.1.patch || true; \
-	else \
-	echo ":   * No fuzz found." ; \
-	touch $*.1.patch ; \
+	: = Successfully updated to be here                                             =
+	@if [ -r bss.man1.orig ]; then \
+	echo ":   * Fuzz found, update patch !!!!!! " ; \
+	diff -u bss.man1.orig bss.man1 >bss.1.patch || true; \
 	fi
 	: ===============================================================================
 
-usr/share/man/man1/%.1: %.1
-	cp -f $< $@
 
+bss.1: bss.man1
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" \
+	$< > $@
+
+#############################################################################
+# These targets must be used only before package build to fix *.patch.
+#############################################################################
+
+.PHONY: patch
+
+# run this when resulting bss.1 is manually updated
+patch: bss.1.patch
+
+bss.1.patch: FORCE
+	if [ -r "bss.man0" ] || [ -r "bss.man1" ]; then \
+		diff -u bss.man0 bss.man1 >bss.1.patch || true ; \
+		echo "Patch updated for bss.1.patch" ; else \
+		echo "???? No patch generated for bss.1.patch"; fi
 ###########################################################################################
 README.pre0: bin/bss
 	bin/bss --help > $@
@@ -127,24 +140,10 @@ README.pre0: bin/bss
 	# escape special characters
 	sed -e 's,~,\\~,g' -e 's,<,\\<,g'  $< >$@
 
-README.md: README.md0 README.pre6 README.md1 debian/changelog
+README.md: README.md0 README.pre6 README.md1 debian/changelog FORCE
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" README.md0 > $@
 	cat README.pre6 >> $@
 	cat README.md1 >> $@
 
-#############################################################################
-# These targets must be used only before package build to fix *.patch.
-#############################################################################
-
-.PHONY: patch
-
-# run this when resulting bss.1 is manually updated
-patch: bss.1.patch
-
-%.1.patch: FORCE
-	if [ -r "$*.1.base" ] || [ -r "$*.1" ]; then \
-		diff -u $*.1.base $*.1 >$*.1.patch || true ; \
-		echo "patch updated for $*.1.patch" ; else \
-		echo "No patch generated for $*.1.patch"; fi
 .PHONY: FORCE
 FORCE:

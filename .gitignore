@@ -1,5 +1,6 @@
-bss.1.base
-bss.1.orig
-bss.1.rej
-bss.1.old
-bss.1.pre*
+bss.man0
+bss.man1.base
+bss.man1.orig
+bss.man1.rej
+bss.man1
+README.pre*

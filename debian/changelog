@@ -1,3 +1,9 @@
+bss (2.0.3) unstable; urgency=medium
+
+  * Fix regression on manpage etc. (retry) 
+
+ -- Osamu Aoki <osamu@debian.org>  Wed, 10 Jan 2024 17:25:24 +0900
+
 bss (2.0.2) unstable; urgency=medium
 
   * Fix regression on manpage etc. 

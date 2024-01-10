@@ -1,0 +1,93 @@
+--- bss.man0	2024-01-10 19:39:35.182853574 +0900
++++ bss.man1	2024-01-10 19:42:04.084717558 +0900
+@@ -2,11 +2,12 @@
+ .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
+ .SH NAME
+ bss \- btrfs subvolume snapshot utility  (@@@VERSION@@@)
+-.SH DESCRIPTION
+-.SS "USAGE:"
++.SH SYNOPSIS
+ .IP
+ bss [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
++.IP
+ bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
++.SH DESCRIPTION
+ .PP
+ "bss" is basically a "btrfs subvolume ..." command wrapper to create and
+ process historical snapshots with the intuitive snapshot subvolume name and
+@@ -40,28 +41,38 @@
+ ".bss.d/" directory.  This involves following actions:
+ .IP
+ * Secure minimum required free blocks (minimum FMIN %).
++.IP
+ * Keep initial few (NMIN) snapshots unconditionally.
++.IP
+ * Limit the maximum number of snapshots to NMAX.
++.RS 4
+ .IP
+ * NMAX=0 is the special case and means no limit for number of snapshots.
++.RE
+ .IP
+ * Before TMIN, keep snapshots unconditionally.
+-* Age snapshots with basically exponentially growing intervals with the
+ .IP
++* Age snapshots with basically exponentially growing intervals with the
+ specified ratio (STEP 2%\-90%).
+ .IP
+ * After TMID, age snapshots more aggressively.
++.RS 4
+ .IP
+ * Special handlings to keep some high priority snapshots stop.
+-* If TMID_ACTION=filter, content files of snapshots are filtered with the
+ .IP
++* If TMID_ACTION=filter, content files of snapshots are filtered with the
+ script ".bss.fltr" at the ".bss.d/" directory.
++.RE
+ .IP
+ * After TMAX, stop aging snapshots.
++.RS 4
+ .IP
+ * TMAX=0 is the special case and means no limit for aging.
++.IP
+ * If TMAX_ACTION=drop, drop subvolume after TMAX.
++.IP
+ * If TMAX_ACTION=keep, keep subvolume after TMAX.
++.RE
+ .PP
+ .SH OPTIONS
+ .TP
+@@ -137,8 +148,8 @@
+ gather local files and directories to based on:
+ .IP
+ * ".gather.dirrc" file to the ".gather.dir" directory
+-* ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
+ .IP
++* ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
+ (".bss.d/.gather.gpg" directory and ".bss.d/.gather.tar" file are
+ used and overwritten.)
+ .TP
+@@ -204,6 +215,7 @@
+ "DEST_PATH" doesn't exist, it is created in advance as:
+ .IP
+ * a subvolume if it is on btrfs or,
++.IP
+ * a subdirectory if it is on ext4 filesystem.
+ .PP
+ If "DEST_PATH" is a local relative path without the leading  "/", then it is
+@@ -275,7 +287,7 @@
+ its recent invocations with:
+ .IP
+ \f(CW$ journalctl -a -b -t bss\fR
+-.br
++.IP
+ \f(CW$ journalctl -f -t bss\fR
+ .PP
+ .SH CAVEAT
+@@ -305,6 +317,7 @@
+ template" which runs the "rsync" command as the backend of subcommands.
+ .SH AUTHOR
+ Written by Osamu Aoki.
++.PP
+ .SH COPYRIGHT
+ Copyright \(co 2021\-2024 Osamu Aoki <osamu@debian.org>
+ .PP
