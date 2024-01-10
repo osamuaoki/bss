@@ -1,15 +1,16 @@
---- bss.man0	2024-01-10 19:39:35.182853574 +0900
-+++ bss.man1	2024-01-10 19:42:04.084717558 +0900
+--- bss.man0	2024-01-10 21:00:57.309646472 +0900
++++ bss.man1	2024-01-10 21:04:05.704164390 +0900
 @@ -2,11 +2,12 @@
  .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
  bss \- btrfs subvolume snapshot utility  (@@@VERSION@@@)
 -.SH DESCRIPTION
 -.SS "USAGE:"
+-.IP
 +.SH SYNOPSIS
- .IP
++.PP
  bss [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
-+.IP
++.PP
  bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
 +.SH DESCRIPTION
  .PP
@@ -66,7 +67,25 @@
  (".bss.d/.gather.gpg" directory and ".bss.d/.gather.tar" file are
  used and overwritten.)
  .TP
-@@ -204,6 +215,7 @@
+@@ -162,6 +173,7 @@
+ make template files in the ".bss.d/" directory:
+ .IP
+ * ".bss.conf" (aging rule)
++.IP
+ * ".bss.fltr[.disabled]" (filtering rule)
+ .TP
+ batch FNB
+@@ -169,7 +181,9 @@
+ and source the shell script found at:
+ .IP
+ * "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
++.IP
+ * "~/.config/bss/FNB" (non\-root, $XDG_CONFIG_HOME unset)
++.IP
+ * "/etc/bss/FNB" (root)
+ .TP
+ BASE
+@@ -204,6 +218,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs or,
@@ -74,7 +93,7 @@
  * a subdirectory if it is on ext4 filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -275,7 +287,7 @@
+@@ -275,7 +290,7 @@
  its recent invocations with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
@@ -83,7 +102,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  .SH CAVEAT
-@@ -305,6 +317,7 @@
+@@ -305,6 +320,7 @@
  template" which runs the "rsync" command as the backend of subcommands.
  .SH AUTHOR
  Written by Osamu Aoki.

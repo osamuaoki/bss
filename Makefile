@@ -79,6 +79,7 @@ bss.man0: bss.help2man
 
 bss.man1: bss.man0 FORCE
 	-rm bss.man1.orig
+	touch bss.man1_need_to_edit
 	cp $< $@
 	: ===============================================================================
 	: = If next patching fails, do the following:                                   =
@@ -92,6 +93,7 @@ bss.man1: bss.man0 FORCE
 	echo ":   * Fuzz found, update patch !!!!!! " ; \
 	diff -u bss.man1.orig bss.man1 >bss.1.patch || true; \
 	fi
+	rm -f bss.man1_need_to_edit
 	: ===============================================================================
 
 
