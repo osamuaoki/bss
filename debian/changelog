@@ -1,3 +1,9 @@
+bss (2.0.6) unstable; urgency=medium
+
+  * Update tutorials (more) 
+
+ -- Osamu Aoki <osamu@debian.org>  Wed, 10 Jan 2024 22:36:43 +0900
+
 bss (2.0.5) unstable; urgency=medium
 
   * Update tutorials 

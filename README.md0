@@ -49,9 +49,11 @@ command is designed with following items in mind:
 
 System backup and snapshot tasks can be performed automatically by the system
 timer and mount events using their associated systemd unit files or easily by
-clicking the GUI icon using its associated desktop file.  Please read the [bss:
-tutorial](bss_tutorial.md) to get started for the typical baseline
-configuration for the backup and snapshot with `bss`.
+clicking the GUI icon using its associated desktop file.
+
+Please read the [bss: Tutorial](bss_tutorial.md) to get started for the typical
+baseline configuration for the backup and snapshot with `bss`.  It covers
+practical use cases with examples.
 
 When customizing this baseline configuration, `bss` is designed not to
 contaminate command name space and configuration files are mostly localized in
@@ -73,6 +75,7 @@ You can manually run `bss` command directly from the command line as:
  $ bss help                     # command help
 ```
 Please note that the subcommand of `bss` can be shortened to a single character.
+
 
 ## Command reference: `bss`
 

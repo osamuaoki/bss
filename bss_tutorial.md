@@ -31,11 +31,12 @@ Let's consider to setup a simple system using 2 subvolumes:
 * User data subvolume `@penguin` mounted on `~/`.
 
 (Actual system setup which I use is more complicated to handle many subvolumes
-and many USB storage devices.)
+and many USB storage devices.  See 
+[examples directory in this source](https://github.com/osamuaoki/bss/tree/main/examples) )
 
 I tend to forget to run snapshot and backup scripts.  So I want these backup
 and snapshot actions to be as automatic and easy as possible by using systemd
-features and Gnome featurs.
+features and Gnome features.
 
 Let's consider to setup followings:
 
@@ -303,7 +304,7 @@ Unit /home/penguin/.config/systemd/user/bss-BKUP_USB.service is added as a depen
 
 Despite this warning, USB storage seems to be getting backup data when my workstation is powered up with USB drive plugged-in or when it get plugged-in.
 
-## Snapshot upon each apt event
+## Snapshot upon each APT event
 
 For the filesystem containing the system data, such as `@rootfs`, it is easier
 to perform recovery operation if its snapshots reside in an absolute path
@@ -326,6 +327,12 @@ Here, `/bss.d/.bss.conf` has:
 ```
 BSS_SNAP_DEST="/btrfs_root/@rootfs-snapshots"
 ```
+
+If something goes wrong with the system with APT or anything, make a snapshot
+of `/` and reboot with rescue media into rescue environment.
+
+* remove `@rootfs` subvolume
+* make a read-write copy subvolume `@rootfs` from one of the older but good snapshot in `/btrfs/main/@rootfs-snapshots`
 
 ## GUI icon for remote backup
 

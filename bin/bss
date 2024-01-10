@@ -511,7 +511,7 @@ __load_config() {
   __echo 4 "C: BSS_NOOP            = '$BSS_NOOP'"
   __echo 4 "C: BSS_CONF            = '$BSS_CONF'"
   __echo 4 "C: BSS_FLTR            = '$BSS_FLTR'"
-  __echo 4 "C: BSS_LIST            = '$BSS_LIST'"
+  __echo 4 "C: BSS_GATHER          = '$BSS_GATHER'"
   __echo 4 "C: BSS_TYPE            = '$BSS_TYPE'"
   __echo 4 "C: BSS_LOGGER_LEVEL    = '$BSS_LOGGER_LEVEL'"
   __echo 4 "C: BSS_LOGGER_TERMINAL = '$BSS_LOGGER_TERMINAL'"
@@ -1875,6 +1875,7 @@ B*) # BASE (interactive use only)
     BSS_LOGGER_JOURNAL=0
   fi
   echo "$FS_BASE"
+  __load_config
   ;;
 *) # unknown
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then

@@ -21,33 +21,6 @@ of the filesystem containing it.
 
 Maybe the same goes with the actively used disk image file.
 
-### Customization of automatic snapshots of system data
-
-Automatic snapshot of system data in `/` can be enabled using examples in
-`/usr/share/doc/bss/examples/etc/apt/apt.conf.d/80bss`.  For these to be
-useful, you need to mount the root of the btrfs partion containing `/`
-somewhere like `/btrfs/main` and create `@rootfs-snapshots` directory next to
-`@rootfs` holding `/`.  Then, in `/.bss.d/.bss.conf` specify,
-`BSS_SNAP_DEST="/btrfs/main/@rootfs-snapshots`.
-
-If something goes wrong with the system, make snapshot of `/` and remove
-`@rootfs` subvolume and make read-write copy subvolume `@rootfs` from one of
-the older snapshot in `/btrfs/main/@rootfs-snapshots`.
-
-# Examples
-
-This examples/ directory contains a set of configuration examples and scripts
-on my note PC.
-
-## bss: system files
-
-In order to make roll back of the whole system file easier, `bss` now supports
-system mode.
-
-Files under "examples/etc/apt/apt.conf.d/80bss" is meant to be installed to
-"/etc/apt/apt.conf.d/80bss" for making snapshots of system data for every APT
-operations.
-
 ## rsync.net
 
 To use rsync.net, we need to set up ssh keys.

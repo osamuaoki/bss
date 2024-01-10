@@ -1,5 +1,5 @@
 <!--
-version: 2.0.5
+version: 2.0.6
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.5
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.6
 
 ## Design of `bss`
 
@@ -49,9 +49,11 @@ command is designed with following items in mind:
 
 System backup and snapshot tasks can be performed automatically by the system
 timer and mount events using their associated systemd unit files or easily by
-clicking the GUI icon using its associated desktop file.  Please read the [bss:
-tutorial](bss_tutorial.md) to get started for the typical baseline
-configuration for the backup and snapshot with `bss`.
+clicking the GUI icon using its associated desktop file.
+
+Please read the [bss: Tutorial](bss_tutorial.md) to get started for the typical
+baseline configuration for the backup and snapshot with `bss`.  It covers
+practical use cases with examples.
 
 When customizing this baseline configuration, `bss` is designed not to
 contaminate command name space and configuration files are mostly localized in
@@ -73,6 +75,7 @@ You can manually run `bss` command directly from the command line as:
  $ bss help                     # command help
 ```
 Please note that the subcommand of `bss` can be shortened to a single character.
+
 
 ## Command reference: `bss`
 
