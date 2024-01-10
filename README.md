@@ -1,5 +1,5 @@
 <!--
-version: 2.0.4
+version: 2.0.5
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.4
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.5
 
 ## Design of `bss`
 

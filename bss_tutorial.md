@@ -3,6 +3,8 @@ vim:set ai si sts=2 sw=2 et tw=79:
 -->
 # Tutorial for `bss`
 
+## Example system
+
 Let me present a simple system setup case of data snapshot and backup for the
 Gnome desktop system (Debian Bookworm 12) with UEFI PC hardware with the NVMe
 SSD GPT disk as an example for tutorial.
@@ -239,6 +241,8 @@ Prepare subvolumes as:
  $ sudo bss template /
 ```
 
+Update `/bss.d/.bss.conf` if you want to optimize aging behavior to your needs.
+
 Then, activate this timer unit as:
 ```sh
  $ systemcrl --user enable bss-snap.timer
@@ -325,270 +329,8 @@ BSS_SNAP_DEST="/btrfs_root/@rootfs-snapshots"
 
 ## GUI icon for remote backup
 
-Create `~/.local/share/applications/bss-rsync.desktop` as:
-
-```
-[Desktop Entry]
-Categories=Office;
-Comment=Simple environment checker
-Exec=bss batch rsyncnet
-Name=Backup to Rsync.net
-Type=Application
-```
-
-
-## Getting started
-
-### Console basics
-
-* Install bss Debian package
-* Move the current working directory to a btrfs managed by `bss`
-* Get help with `bss h`.
-* Manually create a snapshot with `bss s` or just by `bss`
-* Manually process snapshots with `bss p`
-* Check existing snapshots with `bss l`.
-* Check aging status of existing snapshots with `bss o`.
-* Check automatic jobs with `bss j`.
-* Manipulate non-current directory by providing PATH after subcommands.
-
-Use of `-v` option gives verbose information.
-
-### Customization of aging behavior
-
-* Create template configuration and filter by `bss t`
-  * Adjust configuration by editing `.bss.d/.bss.conf`
-  * Adjust filter by editing `.bss.d/.bss.conf`
-
-
-See examples files for how to set and use systemd unit and desktop file by
-placing them under your home directory accordingly.  Also, there is an example
-hook script for apt.  (Files needs to be adjusted for your local subvolume
-paths.)  The following may be handy to see how this working.
-
-```
- $ journalctl -a -b -t bss
-```
-
-You need to run following commands to enable systemd service files.
-
-```
- $ cd ~/.config/systemd/user/
- $ systemctl --user enable bss-snap.timer
- $ systemctl --user enable bss-BKUP_USB.service
-```
-
-Here:
-
-* `bss-snap.timer` is for the timer induced execution of `bss` commands.
-* `bss-BKUP_USB.service` is for the mount event induced execution of `bss` commands.
-* Batch files in `~/.config/bss/` are used to define actual execution of `bss` commands.
-
-File paths are:
-
- * `/path/to/subvol/.bss.d/20???????`  --- read-only (RO) snapshots
- * `/path/to/subvol/.bss.d/.bss.conf`  --- configuration file
- * `/path/to/subvol/.bss.d/.bss.fltr`  --- filter script
-
-### Customization of aging behavior
-
-* Create template configuration and filter by `bss t`
-  * Adjust configuration by editing `.bss.d/.bss.conf`
-  * Adjust filter by editing `.bss.d/.bss.conf`
-
-## Consideration and strategy to secure data
-
-In order to be absolutely sure to recover from accidental erase of important
-data, disastrous disk failure, or even loss of the workstation, it's nice to
-have followings readily available:
-
-* RO snapshots on the local disk
-* RO backup snapshots on the plug-in USB disk
-* RO backup snapshots on the [rsync.net](https://rsync.net) host
-
-I tend to forget to run snapshot and backup scripts.  So I want these to be as
-automatic and easy as possible.  Considering my usage, I plan to set up as follows:
-
-* Private data (`~/`) needs the best protection:
-  * make *automatic* btrfs local on-disk snapshots with 15 minute interval timer
-  * make *automatic* rsync backup to local USB storage media upon each mount event
-  * make *easy* rsync backup to remote backup server upon single click of a GUI icon
-* System data (`/`) 
-  * make *automatic* btrfs local on-disk snapshots of system data upon each apt operation
-
-The backup and snapshot action is realized by the `bss` command which is
-essentially a shell wrapper of `btrfs` and `rsync` commands.
-
-Remote backup site such as [rsync.net](https://rsync.net) on which one doesn't
-have full control has the inherent security concern.  Date send to the such
-service must be encrypted.
-
-The *automatic* functionality is accommodated by the systemd functionality.
-
-The easy program is realized by the GUI icon by creating its desktop file.
-
-Let me describe key points to secure data on the desktop workstation.
-
-## Snapshot with 15 minute interval timer
-
-This is realized by using systemd timer unit.
-
-Create `~/.config/systemd/user/bss-snap.timer` as:
-```
-# activate by: systemctl --user enable bss-snap.timer
-[Unit]
-Description=Run bss commands hourly
-Documentation=man:bss(1)
-
-[Timer]
-OnStartupSec=30
-OnUnitInactiveSec=900
-
-[Install]
-WantedBy=timers.target
-```
-This is a time unit for `bss-snap.service`.  `bss-snap.service` is started 30
-seconds after the start of the system and 300 seconds after its last execution.
-
-Create `~/.config/systemd/user/bss-snap.service` as:
-```
-[Unit]
-Description=Run bss commands to make snapshots
-Documentation=man:bss(1)
-# journalctl -a -b -t bss
-
-[Service]
-Type=oneshot
-Nice=15
-ExecStart=bss --type snap batch snapshots
-IOSchedulingClass=idle
-CPUSchedulingPolicy=idle
-StandardInput=null
-# No logging (use systemd logging)
-StandardOutput=null
-StandardError=null
-#StandardOutput=append:%h/.cache/systemd-bss.log
-#StandardError=append:%h/.cache/systemd-bss.log
-```
-
-Create `~/.config/bss/snapshots`
-```
-# make new snapshots
-bss snapshot           || "$BSS_MAY"
-bss gather   Documents || "$BSS_MAY"
-bss snapshot Documents || "$BSS_MAY"
-# clean up old snapshots
-bss process            || "$BSS_MAY"
-bss process  Documents || "$BSS_MAY"
-```
-
-Here, the use of `"$BSS_MAY"` allows `bss batch --may ...` to force execution
-of all lines without stopping in the middle even when they return error.
-
-Prepare each subvolumes as:
-
-```
- $ bss template ~
- $ bss template ~/Documents
- $ mount 
- $ sudo bss template /btrfs_root/@rootfs
-```
-
-Then, activate this timer unit as:
-```sh
- $ systemcrl --user enable bss-snap.timer
-```
-
-## Example USB storage setup
-
-Prepare a USB storage media for backup by:
-* partitioning your USB storage media
-* (optionally) making its partition as LUKS encrypted) one
-* formatting it with btrfs
-* labeling this btrfs filesystem as `BKUP_USB`
-
-Then this USB storage media can be auto-mounted by the Gnome desktop
-environment to `/media/penguin/BKUP_USB` by `udisks2` package.
-
-Let's find out its systemd unit for mounting it.
-
-```
- $ systemctl list-units -t mount | fgrep -e '/media/penguin/BKUP_USB'
-  media-penguin-BKUP_USB.mount    loaded active mounted /media/penguin/BKUP_USB
-```
-
-## Backup upon each mount event 
-
-Create `~/.config/systemd/user/bss-BKUP_USB.service` as:
-```
-[Unit]
-Description=USB Disk backup
-Requires=media-penguin-BKUP_USB.mount
-After=media-penguin-BKUP_USB.mount
-
-[Service]
-ExecStart=bss --may --type usb batch BKUP_USB
-
-[Install]
-WantedBy=media-penguin-BKUP_USB.mount
-```
-
-Create `~/.config/bss/BKUP_USB`
-```
-########################################################################
-# make new backup copy (path are relative from $HOME)
-# * source is a btrfs subvolume at ~/SRC_SUBVOL
-#   * always ignore error from gather
-# * destination is auto-mountable partition on a USB drive:
-#   * formatted as btrfs and
-#   * labeled as 'DST_LABEL'
-########################################################################
-bss_usb_backup () {
-  # $1: SRC_SUBVOL
-  # $2: DST_LABEL
-  bss gather "$1" || true
-  bss copy   "$1" "/media/$(id -un)/$2/$1" || $BSS_MAY
-  bss snap        "/media/$(id -un)/$2/$1" || $BSS_MAY
-  bss process     "/media/$(id -un)/$2/$1" || $BSS_MAY
-}
-
-# Backup to BKUP_USB (high frequency backup SSD device)
-bss_usb_backup Documents BKUP_USB
-
-# vim:se sw=2 ts=2 sts=2 et ai tw=78:
-```
-
-Then, activate this service unit as:
-
-```sh
- $ systemctl --user enable bss-BKUP_USB.service
-```
-
-Somehow, I get the following unexpected spurious yellow warning.
-
-```
-Unit /home/penguin/.config/systemd/user/bss-BKUP_USB.service is added as a dependency to a non-existent unit media-penguin-BKUP_USB.mount.
-```
-
-Despite this warning, USB storage seems to be getting backup data when my workstation is powered up with USB drive plugged-in or when it get plugged-in.
-
-## Snapshot upon each apt event
-
-Create `/etc/apt/apt.conf.d/80bss` as:
-
-```
-  DPkg::Pre-Invoke  { "/usr/bin/bss snapshot --logger --type=pre  / || true" ; } ;
-  DPkg::Post-Invoke { "/usr/bin/bss snapshot --logger --type=post / || true" ; } ;
-```
-
-Then `bss snapshot ...` for root filesystem is invoked for every APT event.
-
-Here, `/bss.d/.bss.conf` needs to be modified to enable system snapshot mode as:
-
-```
-BSS_SNAP_DEST="/btrfs_root/@rootfs-snapshots"
-```
-
-## GUI icon for remote backup
+Since remote network backup needs fast and cheap network connection, it is best
+realized by offering clickable GUI icon for its trigger.
 
 Create `~/.local/share/applications/bss-rsync.desktop` as:
 
@@ -608,8 +350,6 @@ Create `~/.config/bss/rsyncnet` as:
 # Backup to the rsync.net
 ########################################################################
 # SSH access to rsync.net with SSH key needs to be enabled
-# Source directory of secret data to create LUKS encrypted image
-SECRET_DIR="secret"
 # Store rsync.net account name with:
 #   $ secret-tool store --label 'Rsync.net account name' rsync.net account
 #   Password:<type full account name e.g.: ab1234@ab1234.rsync.net>
@@ -625,4 +365,5 @@ bss gather "$RSYNC_DIR"
 bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR"
 __logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR"
 ```
+
 
