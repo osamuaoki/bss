@@ -13,10 +13,8 @@ BSS_LOGGER_LEVEL="${BSS_LOGGER_LEVEL:-2}"
 BSS_LOGGER_TERMINAL="${BSS_LOGGER_TERMINAL:-1}" # initial value
 BSS_LOGGER_JOURNAL="${BSS_LOGGER_JOURNAL:--1}" # initial value
 BSS_NOOP="${BSS_NOPE:-}" # set to ":" for no-operation
-BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, hour, ...
+BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, snap, ...
 BSS_MAY="${BSS_MAY:-false}"
-# You can override the default gpg key to use
-BSS_GPG_RECIPIENT_ID=${BSS_GPG_RECIPIENT_ID:-$(id -un)}
 #############################################################################
 # system parameters
 #############################################################################
@@ -280,8 +278,8 @@ OPTIONS:
   -t,--type TYPE  use TYPE instead of the default "single" for the snapshot
                   type.  If \$BSS_TYPE is exported to $BSS, its value is used
                   as the default for TYPE instead. The automatic snapshot uses
-                  "pre" (before APT), "post (after APT), "hour" (on boot and
-                  every hour). If "keep" is specified, the snapshot with it
+                  "pre" (before APT), "post (after APT), "snap" (on systemd
+                  timer), etc.. If "keep" is specified, the snapshot with it
                   will be kept forever under the normal aging process.
   -c,--conf RC    use "RC.$EXT_CONF", "RC.$EXT_FLTR" etc. instead of their
                   default "$BSS_CONF", "$BSS_FLTR" etc.
@@ -308,11 +306,10 @@ SUBCOMMAND:
   process    process snapshots according to their aging status
   copy       copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
-  gather     gather local files and directories to based on:
-               * "$BSS_GATHER_DIRRC" file to the "$BSS_GATHER_DIR" directory
-               * "$BSS_GATHER_GPGRC" file to the "$BSS_GATHER_TARGPG" encrypted archive
-                 ("$BSS_GATHER_GPG" directory and "$BSS_GATHER_TAR" file are
-                 used and overwritten.)
+  gather     gather listed local files and directories to:
+               * the "$BSS_GATHER_DIR" directory based on "$BSS_GATHER_DIRRC"
+               * the "$BSS_GATHER_TARGPG" encrypted archive based on
+                 "$BSS_GATHER_GPGRC"
   filter     create a filtered snapshot from the specified snapshot in
              "$BSS_DIR/" as "<specified_subvol_name>_filter"
   revert     make snapshot "<ISO_8601_date>.last" and replace the subvolume at
@@ -343,8 +340,8 @@ For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" may
 be specified to provide arguments to them.
 
 For "$BSS list", you may add the second argument to match snapshot "<TYPE>".
-"$BSS list . '(s.*|h.*)' " should list snapshots with both "single" and "hour"
-types.
+"$BSS list . '(s.*|u.*)' " should list snapshots with "single", "snap" and
+"usb" types.
 
 For "$BSS copy BASE DEST_PATH", this is a combination of "$BSS snapshot" to
 create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
@@ -360,7 +357,7 @@ If "DEST_PATH" is a local path such as "/srv/backup", then
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 
- * a subvolume if it is on btrfs or, 
+ * a subvolume if it is on btrfs or,
  * a subdirectory if it is on ext4 filesystem.
 
 If "DEST_PATH" is a local relative path without the leading  "/", then it is
@@ -396,12 +393,13 @@ to enable automatic "snapshot" operations.  This "$BSS" command also comes with
 examples for systemd scripts to enable automatic daily "process" operation.
 
 For some snapshots, different "TYPE" values may be used instead of its default
-"single".
+"single".  Notable ones are:
 
   TYPE="pre"   automatic "snapshot" operation just before APT update
   TYPE="post"  automatic "snapshot" operation just after  APT update
   TYPE="copy"  automatic "snapshot" operation just before "$BSS copy"
-  TYPE="hour"  automatic "snapshot" operation on boot and every hour
+  TYPE="snap"  automatic "snapshot" operation on timer event
+  TYPE="usb"   automatic "snapshot" operation on mount event (USB Storage)
   TYPE="last"  automatic "snapshot" operation just before "$BSS revert"
 
 This "$BSS" calculates time values related to age in the second and prints them
@@ -423,6 +421,13 @@ CAVEAT:
 The source filesystem must be btrfs for many subcommands.
 
 The non-root user who executes this command must be a member of "sudo".
+
+"bss gather" may generate encrypted archive using GnuPG with the default key
+normally set by "~/.gnupg/gpg.conf".  This GnuPG configuration file location
+may be changed by the value of environment variable "\$GNUPGHOME". You need to
+have access to the corresponding secret key to decrypt such archived data.
+Please ensure that you can decrypt the archive in advance.  Failing to do so
+may cause you to lose data.  See gpg(1).
 
 Running filter script "$BSS_FLTR" drains CPU and SSD resources but it may save
 SSD usage size significantly.  If you are not interested in reducing SSD usage
@@ -508,15 +513,15 @@ __set_fs_base() {
 # load parameters
 ##############################################################################
 __load_config() {
-  __echo 4 "C: BSS_NOOP            = '$BSS_NOOP'"
+  __echo 3 "Run '$BSS $BSS_COMMAND' on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
+  __echo 4 "C: BSS_TYPE            = '$BSS_TYPE'"
   __echo 4 "C: BSS_CONF            = '$BSS_CONF'"
   __echo 4 "C: BSS_FLTR            = '$BSS_FLTR'"
   __echo 4 "C: BSS_GATHER          = '$BSS_GATHER'"
-  __echo 4 "C: BSS_TYPE            = '$BSS_TYPE'"
+  __echo 4 "C: BSS_NOOP            = '$BSS_NOOP'"
   __echo 4 "C: BSS_LOGGER_LEVEL    = '$BSS_LOGGER_LEVEL'"
   __echo 4 "C: BSS_LOGGER_TERMINAL = '$BSS_LOGGER_TERMINAL'"
   __echo 4 "C: BSS_LOGGER_JOURNAL  = '$BSS_LOGGER_JOURNAL'"
-  __echo 3 "Run '$BSS $BSS_COMMAND' on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
   if [ -r "$BSS_CONF_BASE" ]; then
     __echo 3 "    configuration at    $BSS_CONF_BASE"
   else
@@ -1265,45 +1270,55 @@ __rsync() {
 }
 ##############################################################################
 __rsync_gather_all() {
-  BSS_GATHER="${1:-${BSS_GATHER}}"
+  if [ -n "$1" ];then
+    BSS_GATHER="${1}"
+    shift
+  fi
+  # cd to user's home directory
+  cd
+  __echo 3 "Gather for FS_BASE='$FS_BASE'"
   BSS_GATHER_DIRRC="$FS_BASE/${BSS_GATHER}.dirrc"
-  BSS_GATHER_DIR="$FS_BASE/${BSS_GATHER}.dir"
+  BSS_GATHER_DIR_DEST="$FS_BASE/${BSS_GATHER}.dir"
   BSS_GATHER_GPGRC="$FS_BASE/${BSS_GATHER}.gpgrc"
-  BSS_GATHER_GPG="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.gpg"
+  BSS_GATHER_GPG_DEST="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.gpg"
   BSS_GATHER_TAR="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.tar"
   BSS_GATHER_TARGPG="$FS_BASE/${BSS_GATHER}.tar.gpg"
-  #
+  __echo 4 "BSS_GATHER_DIRRC=$BSS_GATHER_DIRRC"
+  __echo 4 "BSS_GATHER_DIR_DEST=$BSS_GATHER_DIR_DEST"
+  __echo 4 "BSS_GATHER_GPGRC=$BSS_GATHER_GPGRC"
+  __echo 4 "BSS_GATHER_GPG_DEST=$BSS_GATHER_GPG_DEST"
+  __echo 4 "BSS_GATHER_TAR=$BSS_GATHER_TAR"
+  __echo 4 "BSS_GATHER_TARGPG=$BSS_GATHER_TARGPG"
   if [ -r "$BSS_GATHER_DIRRC" ]; then
-    __rsync_gather "$BSS_GATHER_DIRRC" "$BSS_GATHER_DIR"
+    __rsync_gather "$BSS_GATHER_DIRRC" "$BSS_GATHER_DIR_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_GPGRC" ]; then
-    __rsync_gather "$BSS_GATHER_GPGRC" "$BSS_GATHER_GPG"
-    $SUDO $TAR -c $CMD_OPTV -f "$BSS_GATHER_TAR" "$BSS_GATHER_GPG"
-    $GPG --encrypt --recipient $BSS_GPG_RECIPIENT_ID -o "$BSS_GATHER_TARGPG" "$BSS_GATHER_TAR" 
-    $SUDO rm -rf "$BSS_GATHER_GPG"
-    $SUDO rm -f "$BSS_GATHER_TAR"
+    __rsync_gather "$BSS_GATHER_GPGRC" "$BSS_GATHER_GPG_DEST" "$@"
+    __echo 2 "Generate $BSS_GATHER_TARGPG (overwritten)"
+    $SUDO $TAR -c $CMD_OPTV -C "$BSS_GATHER_GPG_DEST" "." | \
+      $GPG --encrypt -o "-" --default-recipient-self "-" > "${BSS_GATHER_TARGPG}"
+    $SUDO rm -rf "$BSS_GATHER_GPG_DEST"
   fi
 }
 
 __rsync_gather() {
-  BSS_GATHER_LIST="$1"
-  BSS_PREFIX="$2"
-  DEST_DIR_R="$2/root"
-  DEST_DIR_H="$2/home"
+  BSS_GATHER_RC="$1"
   shift
+  BSS_GATHER_DEST="$1"
   shift
-  $SUDO mkdir -p "$DEST_DIR_H"
-  $SUDO mkdir -p "$DEST_DIR_R"
-  __echo 3 "Set owner to $FS_BASE_UID:$FS_BASE_GID for $DEST_DIR_H and $DEST_DIR_R"
+  __echo 4 "BSS_GATHER_RC=$BSS_GATHER_RC"
+  __echo 4 "BSS_GATHER_DEST=$BSS_GATHER_DEST"
+  BSS_GATHER_DEST_REL="$BSS_GATHER_DEST/_rel"
+  BSS_GATHER_DEST_ABS="$BSS_GATHER_DEST/_abs"
+  $SUDO mkdir -p "$BSS_GATHER_DEST_REL"
+  $SUDO mkdir -p "$BSS_GATHER_DEST_ABS"
   # match owner with the parent directory
-  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$DEST_DIR_H"
-  __logger $SUDO chmod "$FS_BASE_MOD" "$DEST_DIR_H"
-  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$DEST_DIR_R"
+  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_GATHER_DEST_REL"
+  __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_GATHER_DEST_REL"
+  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_GATHER_DEST_ABS"
   RSYNC_OPTS="$RSYNC_OPTG $CMD_OPTV"
-  # cd to user's home directory
-  cd
-  __echo 2 "Gather using '$BSS_GATHER_LIST' to '$DEST_DIR_H' and '$DEST_DIR_R'"
-  grep -v -e "^#" "$BSS_GATHER_LIST" | \
+  __echo 2 "Gather using '$BSS_GATHER_RC' to '$BSS_GATHER_DEST' (overwritten)"
+  grep -v -e "^#" "$BSS_GATHER_RC" | \
     while read -r GATHER_ITEM; do
       # normalize path by removing tailing / or similar
       while true; do
@@ -1324,10 +1339,10 @@ __rsync_gather() {
       done
       if [ "${GATHER_ITEM}" = "${GATHER_ITEM#/}" ]; then
         # relative path started without /
-        DEST_DIR="$DEST_DIR_H/$GATHER_ITEM"
+        DEST_DIR="$BSS_GATHER_DEST_REL/$GATHER_ITEM"
       else
         # absolute path started with /
-        DEST_DIR="$DEST_DIR_R$GATHER_ITEM"
+        DEST_DIR="$BSS_GATHER_DEST_ABS$GATHER_ITEM"
       fi
       # --filter to exclude $BSS directory
       # --mkpath to create path $GATHER_ITEM containing / in it
@@ -1398,8 +1413,8 @@ BSS_FMIN="$BSS_FMIN"  # FMIN: minimum required free disk % for snapshot
 ##   snapshots are filtered.
 ## * BSS_TMIN:
 ##   If the age of a snapshot is older than BSS_TMIN, snapshots with type 'post' are
-##   dropped, snapshots with type 'single' and 'hour' are aged using BSS_STEP,
-##   snapshots with type 'boot', and 'pre' are kept unconditionally.
+##   dropped, snapshots with other types are aged using BSS_STEP,  snapshots with
+##   type 'boot', and 'pre' are kept unconditionally.
 ## * BSS_TMAX_ACTION:
 ##   Determine the action at TMAX.  Default is 'keep'.  Set this to 'drop' to
 ##   remove snapshots at TMAX.
@@ -1841,7 +1856,7 @@ g*) # gather
     BSS_LOGGER_JOURNAL=1
   fi
   __load_config
-  __rsync_gather "$@"
+  __rsync_gather_all "$@"
   ;;
 f*) # filter
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then

@@ -1,5 +1,5 @@
 <!--
-version: 2.0.6
+version: 2.0.7
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.6
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.7
 
 ## Design of `bss`
 
@@ -136,8 +136,8 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
 * -t,--type TYPE: use TYPE instead of the default "single" for the snapshot
                   type.  If $BSS_TYPE is exported to bss, its value is used
                   as the default for TYPE instead. The automatic snapshot uses
-                  "pre" (before APT), "post (after APT), "hour" (on boot and
-                  every hour). If "keep" is specified, the snapshot with it
+                  "pre" (before APT), "post (after APT), "snap" (on systemd
+                  timer), etc.. If "keep" is specified, the snapshot with it
                   will be kept forever under the normal aging process.
 * -c,--conf RC: use "RC.conf", "RC.fltr" etc. instead of their
                   default ".bss.conf", ".bss.fltr" etc.
@@ -164,11 +164,10 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
 * process: process snapshots according to their aging status
 * copy: copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
-* gather: gather local files and directories to based on:
-  *  ".gather.dirrc" file to the ".gather.dir" directory
-  *  ".gather.gpgrc" file to the ".gather.tar.gpg" encrypted archive
-                 (".bss.d/.gather.gpg" directory and ".bss.d/.gather.tar" file are
-                 used and overwritten.)
+* gather: gather listed local files and directories to:
+  *  the ".gather.dir" directory based on ".gather.dirrc"
+  *  the ".gather.tar.gpg" encrypted archive based on
+                 ".gather.gpgrc"
 * filter: create a filtered snapshot from the specified snapshot in
              ".bss.d/" as "\<specified_subvol_name>_filter"
 * revert: make snapshot "\<ISO_8601_date>.last" and replace the subvolume at
@@ -199,8 +198,8 @@ For some SUBCOMMANDs, enxtra optional arguments after the explicit "PATH" may
 be specified to provide arguments to them.
 
 For "bss list", you may add the second argument to match snapshot "\<TYPE>".
-"bss list . '(s.*|h.*)' " should list snapshots with both "single" and "hour"
-types.
+"bss list . '(s.*|u.*)' " should list snapshots with "single", "snap" and
+"usb" types.
 
 For "bss copy BASE DEST_PATH", this is a combination of "bss snapshot" to
 create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
@@ -216,7 +215,7 @@ If "DEST_PATH" is a local path such as "/srv/backup", then
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 
- * a subvolume if it is on btrfs or, 
+ * a subvolume if it is on btrfs or,
  * a subdirectory if it is on ext4 filesystem.
 
 If "DEST_PATH" is a local relative path without the leading  "/", then it is
@@ -252,12 +251,13 @@ to enable automatic "snapshot" operations.  This "bss" command also comes with
 examples for systemd scripts to enable automatic daily "process" operation.
 
 For some snapshots, different "TYPE" values may be used instead of its default
-"single".
+"single".  Notable ones are:
 
 * TYPE="pre": automatic "snapshot" operation just before APT update
 * TYPE="post"  automatic "snapshot" operation just after: APT update
 * TYPE="copy": automatic "snapshot" operation just before "bss copy"
-* TYPE="hour": automatic "snapshot" operation on boot and every hour
+* TYPE="snap": automatic "snapshot" operation on timer event
+* TYPE="usb": automatic "snapshot" operation on mount event (USB Storage)
 * TYPE="last": automatic "snapshot" operation just before "bss revert"
 
 This "bss" calculates time values related to age in the second and prints them
@@ -279,6 +279,13 @@ its recent invocations with:
 The source filesystem must be btrfs for many subcommands.
 
 The non-root user who executes this command must be a member of "sudo".
+
+"bss gather" may generate encrypted archive using GnuPG with the default key
+normally set by "\~/.gnupg/gpg.conf".  This GnuPG configuration file location
+may be changed by the value of environment variable "$GNUPGHOME". You need to
+have access to the corresponding secret key to decrypt such archived data.
+Please ensure that you can decrypt the archive in advance.  Failing to do so
+may cause you to lose data.  See gpg(1).
 
 Running filter script ".bss.fltr" drains CPU and SSD resources but it may save
 SSD usage size significantly.  If you are not interested in reducing SSD usage
