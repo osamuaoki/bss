@@ -343,10 +343,9 @@ Create `~/.local/share/applications/bss-rsync.desktop` as:
 
 ```
 [Desktop Entry]
-Categories=Office;
-Comment=Simple environment checker
+Name=bss remote backup
+Comment=rsync from ~/rsync to rsync.net
 Exec=bss batch rsyncnet
-Name=Backup to Rsync.net
 Type=Application
 ```
 
@@ -356,21 +355,29 @@ Create `~/.config/bss/rsyncnet` as:
 ########################################################################
 # Backup to the rsync.net
 ########################################################################
-# SSH access to rsync.net with SSH key needs to be enabled
-# Store rsync.net account name with:
-#   $ secret-tool store --label 'Rsync.net account name' rsync.net account
-#   Password:<type full account name e.g.: ab1234@ab1234.rsync.net>
-# Verify rsync.net account name with:
-#   $ secret-tool lookup rsync.net account
-#   ab1234@ab1234.rsync.net
-RSYNC_ACCOUNT="$(secret-tool lookup rsync.net account)"
-# Source directory to copy to rsync.net
+# You need to set your account here.  (This is fake one):
+RSYNC_ACCOUNT="ab1234@ab1234.rsync.net"
+# Source directory to copy to rsync.net:
 RSYNC_DIR="rsync"
 
+# SSH access to rsync.net with SSH key needs to be enabled
+
 # Creates encrypted archive in "$RSYNC_DIR" with .gather.gpg
-bss gather "$RSYNC_DIR"
-bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR"
-__logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR"
+bss gather "$RSYNC_DIR" || true
+
+bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR" || $BSS_MAY
+__logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR" || $BSS_MAY
 ```
 
+## Tips
+
+You can expand and customize above examples to your local needs.
+
+Please see examples/ directory in the source code repository of this bss.
+
+  https://github.com/osamuaoki/bss/tree/main/examples
+
+There I use `secret-tool` to avoid including unnecessary information hard-coded
+into source code and `notify-send` to help user with the situation awareness of
+the slow background processes.
 

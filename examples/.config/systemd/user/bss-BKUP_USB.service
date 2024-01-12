@@ -4,7 +4,6 @@ Requires=media-osamu-BKUP_USB.mount
 After=media-osamu-BKUP_USB.mount
 
 [Service]
-#User=%i
 ExecStart=bss --may --type usb batch BKUP_USB
 
 [Install]

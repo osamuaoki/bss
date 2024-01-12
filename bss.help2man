@@ -172,7 +172,7 @@ and source the shell script found at:
 * "/etc/bss/FNB" (root)
 .TP
 BASE
-print the BASE directory for "bss"
+print the BASE directory and its filesystem type for "bss"
 .TP
 jobs
 list all systemd timer schedule jobs for bss
@@ -202,8 +202,8 @@ If "DEST_PATH" is a local path such as "/srv/backup", then
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 .IP
-* a subvolume if it is on btrfs or,
-* a subdirectory if it is on ext4 filesystem.
+* a subvolume if it is on btrfs filesystem or,
+* a subdirectory if it is on non\-btrfs filesystem.
 .PP
 If "DEST_PATH" is a local relative path without the leading  "/", then it is
 treated as a relative path from the user's home directory.
@@ -280,6 +280,13 @@ its recent invocations with:
 .br
 \f(CW$ journalctl -f -t bss\fR
 .PP
+Although "bss" is focused on the snapshot operation for btrfs, subcommands
+related to "rsync" operations are still available for backup operation.  For
+"bss template PATH" on non\-btrfs, ".bss.d" directory and related
+configuration files are created on "PATH" itself.  For "bss copy PATH ..." and
+"bss gather PATH" on non\-btrfs, the BASE directory (internal variable
+"$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+.PP
 CAVEAT:
 .PP
 The source filesystem must be btrfs for many subcommands.
@@ -308,10 +315,6 @@ accessed by other processes. You should manually mount using "/etc/fstab" for
 all subvolumes under the subvolume to run "revert" operation and manage them
 separately to keep the system recoverable since the snapshot operation isn't
 recursive.
-.PP
-Although this "bss" focuses on btrfs, there is minimal support for ext2/ext3
-(this includes ext4) for "bss copy ...", "bss gather ...", and "bss
-template" which runs the "rsync" command as the backend of subcommands.
 .SH AUTHOR
 Written by Osamu Aoki.
 .SH COPYRIGHT

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=bss remote backup
+Comment=rsync from ~/rsync to rsync.net
+Exec=bss batch rsyncnet
+Type=Application
+

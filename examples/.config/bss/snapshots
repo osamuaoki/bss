@@ -1,5 +1,5 @@
 # make new snapshots (path are relative from $HOME)
-bss snapshot . || "$BSS_MAY"
+bss snapshot || "$BSS_MAY"
 # always ignore error from gather
 bss gather   Documents || true
 bss snapshot Documents || "$BSS_MAY"
@@ -7,7 +7,7 @@ bss snapshot github || "$BSS_MAY"
 bss snapshot salsa || "$BSS_MAY"
 bss snapshot tmp || "$BSS_MAY"
 # clean up old snapshots
-bss process . || "$BSS_MAY"
+bss process || "$BSS_MAY"
 bss process Documents || "$BSS_MAY"
 bss process github || "$BSS_MAY"
 bss process salsa || "$BSS_MAY"

@@ -328,7 +328,7 @@ SUBCOMMAND:
                * "\$XDG_CONFIG_HOME/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME set)
                * "~/.config/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME unset)
                * "/etc/$BSS/FNB" (root)
-  BASE       print the BASE directory for "$BSS"
+  BASE       print the BASE directory and its filesystem type for "$BSS"
   jobs       list all systemd timer schedule jobs for $BSS
 
 
@@ -357,8 +357,8 @@ If "DEST_PATH" is a local path such as "/srv/backup", then
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 
- * a subvolume if it is on btrfs or,
- * a subdirectory if it is on ext4 filesystem.
+ * a subvolume if it is on btrfs filesystem or,
+ * a subdirectory if it is on non-btrfs filesystem.
 
 If "DEST_PATH" is a local relative path without the leading  "/", then it is
 treated as a relative path from the user's home directory.
@@ -416,6 +416,13 @@ its recent invocations with:
   $ journalctl -a -b -t bss
   $ journalctl -f -t bss
 
+Although "$BSS" is focused on the snapshot operation for btrfs, subcommands
+related to "rsync" operations are still available for backup operation.  For
+"$BSS template PATH" on non-btrfs, "$BSS_DIR" directory and related
+configuration files are created on "PATH" itself.  For "$BSS copy PATH ..." and
+"$BSS gather PATH" on non-btrfs, the BASE directory (internal variable
+"\$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+
 CAVEAT:
 
 The source filesystem must be btrfs for many subcommands.
@@ -444,10 +451,6 @@ accessed by other processes. You should manually mount using "/etc/fstab" for
 all subvolumes under the subvolume to run "revert" operation and manage them
 separately to keep the system recoverable since the snapshot operation isn't
 recursive.
-
-Although this "$BSS" focuses on btrfs, there is minimal support for ext2/ext3
-(this includes ext4) for "$BSS copy ...", "$BSS gather ...", and "$BSS
-template" which runs the "rsync" command as the backend of subcommands.
 
 Copyright 2022 - 2024 Osamu Aoki <osamu@debian.org>, GPL 2+
 END_OF_HELP
@@ -486,36 +489,70 @@ age_string() {
 }
 
 ##############################################################################
-# This is basically executed from this host
-##############################################################################
-# set FS_BASE, FS_TYPE, FS_BASE_*, BSS_* parameters
+# set FS_BASE related parameters
 ##############################################################################
 __set_fs_base() {
-  FS_BASE="$($SUDO stat -c %m "$FS_BASE0")"
-  FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE")"
-  if [ "$FS_TYPE" != "btrfs" ] && [ "$FS_TYPE" != "ext2/ext3" ]; then
-    __echo 0 "S: unsupported filesystem $FS_TYPE: $FS_BASE0 (mounted at $FS_BASE)"
-    exit $EXIT_ERROR
+  # Input
+  #   * BSS_COMMAND: subcommand specified in the command line
+  #   * FS_BASE0: PATH specified in the command line
+  # Internal
+  #   * FS_BASE1: base of FS
+  # Output
+  #   * FS_BASE:  PATH to be used as the base of bss subcommnds
+  #   * FS_TYPE: Filesystem type of FS_BASE0 and FS_BASE
+  #   * FS_BASE_*, BSS_*, ...
+  FS_BASE0="$($SUDO realpath "$FS_BASE0")"
+  __echo 4 "_: FS_BASE0            = '$FS_BASE0'"
+  FS_BASE1="$($SUDO stat -c %m "$FS_BASE0")"
+  __echo 4 "_: FS_BASE1            = '$FS_BASE1'"
+  FS_BASE="$FS_BASE1"
+  FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE0")"
+  __echo 4 "_: FS_TYPE             = '$FS_TYPE'"
+  if [ "$FS_TYPE" != "btrfs" ]; then
+    case "$BSS_COMMAND" in
+      t*)
+        FS_BASE="$FS_BASE0"
+        ;;
+      *)
+        FS_BASE="$FS_BASE0"
+        while true; do
+          __echo 4 "Check BASE=$FS_BASE on FS=$FS_TYPE (root of FS: $FS_BASE1)"
+          if [ "$FS_BASE" = "$FS_BASE1" ]; then
+            # reached root of FS
+            break
+          fi
+          if [ -e "$FS_BASE/$BSS_DIR" ]; then
+            # Treat directory with .bss.d/ as FS_BASE for non-btrfs
+            break
+          fi
+          FS_BASE="$($SUDO realpath "$FS_BASE/..")"
+        done
+        ;;
+    esac
   fi
+  __echo 4 "_: FS_BASE             = '$FS_BASE'"
 # FS_BASE is clean canonical absolute path pointing to the root of filesystem
-# containing FS_BASE0
+# containing FS_BASE0 (For non-btrfs, this may be where .bss.d/ exists.)
   FS_BASE_MOD="755"
   FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
   FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
+  __echo 4 "_: FS_BASE_UID         = '$FS_BASE_UID'"
+  __echo 4 "_: FS_BASE_GID         = '$FS_BASE_GID'"
 # derivative parameters
   BSS_DIR_BASE="$FS_BASE/$BSS_DIR"
+  BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
+  __echo 4 "_: BSS_CONF_BASE       = '$BSS_CONF_BASE'"
   BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
   BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
   BSS_PRE_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$PRE_COPY_SCRIPT"
   BSS_POST_COPY_SCRIPT="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
+# 
 }
 ##############################################################################
 # load parameters
 ##############################################################################
 __load_config() {
   __echo 3 "Run '$BSS $BSS_COMMAND' on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
-  __echo 4 "C: BSS_TYPE            = '$BSS_TYPE'"
-  __echo 4 "C: BSS_CONF            = '$BSS_CONF'"
   __echo 4 "C: BSS_FLTR            = '$BSS_FLTR'"
   __echo 4 "C: BSS_GATHER          = '$BSS_GATHER'"
   __echo 4 "C: BSS_NOOP            = '$BSS_NOOP'"
@@ -1248,7 +1285,7 @@ __rsync() {
       "$BSS_COPY_DEST/" || $BSS_MAY
     # Since this could be slow long process, record ending
     __echo 2 "... Successfully made copy: BASE=$FS_BASE TIME=${NOW_TSTR} DEST=$BSS_COPY_DEST/ FS=$FS_TYPE"
-  elif [ "$FS_TYPE" = "ext2/ext3" ]; then
+  else
     __echo 2 "Make copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/ FS=$FS_TYPE "
     # --filter to exclude $BSS directory
     # Hidden undocumented argument handling: $@ (after source)
@@ -1258,9 +1295,6 @@ __rsync() {
       "$BSS_COPY_DEST/" || $BSS_MAY
     # Since this could be slow long process, record ending
     __echo 2 "... Successfully made copy: BASE=$FS_BASE DEST=$BSS_COPY_DEST/ FS=$FS_TYPE "
-  else
-    __echo 0 "C: copy for unknown FS=$FS_TYPE requested."
-    exit $EXIT_ERROR
   fi
   if [ -x "$BSS_POST_COPY_SCRIPT_BASE" ]; then
     __echo 2 "Run $POST_COPY_SCRIPT after copy for BASE=$FS_BASE FS=$FS_TYPE"
@@ -1799,7 +1833,7 @@ else
   FS_BASE0=$($SUDO realpath "${1}")
   shift
 fi
-# Set FS_BASE
+# Set FS_BASE, FS_TYPE, ...
 __set_fs_base
 # execute subcommands with PATH argument
 case "$BSS_COMMAND" in
@@ -1889,7 +1923,8 @@ B*) # BASE (interactive use only)
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=0
   fi
-  echo "$FS_BASE"
+  echo "FS_BASE=$FS_BASE"
+  echo "FS_TYPE=$FS_TYPE"
   __load_config
   ;;
 *) # unknown

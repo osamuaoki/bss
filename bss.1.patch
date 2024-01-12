@@ -1,5 +1,5 @@
---- bss.man0	2024-01-11 20:23:32.370730725 +0900
-+++ bss.man1	2024-01-11 20:25:20.544053709 +0900
+--- bss.man0	2024-01-12 16:30:03.412404466 +0900
++++ bss.man1	2024-01-12 16:30:46.957021759 +0900
 @@ -2,11 +2,12 @@
  .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
@@ -88,9 +88,9 @@
 @@ -203,6 +217,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
- * a subvolume if it is on btrfs or,
+ * a subvolume if it is on btrfs filesystem or,
 +.IP
- * a subdirectory if it is on ext4 filesystem.
+ * a subdirectory if it is on non\-btrfs filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
 @@ -277,7 +292,7 @@
@@ -101,9 +101,9 @@
 +.IP
  \f(CW$ journalctl -f -t bss\fR
  .PP
- .SH CAVEAT
-@@ -314,6 +329,7 @@
- template" which runs the "rsync" command as the backend of subcommands.
+ Although "bss" is focused on the snapshot operation for btrfs, subcommands
+@@ -317,6 +332,7 @@
+ recursive.
  .SH AUTHOR
  Written by Osamu Aoki.
 +.PP

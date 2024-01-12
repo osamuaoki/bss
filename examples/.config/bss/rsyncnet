@@ -2,18 +2,21 @@
 # Backup to the rsync.net
 ########################################################################
 # SSH access to rsync.net with SSH key needs to be enabled
-# Source directory of secret data to create LUKS encrypted image
-SECRET_DIR="secret"
 # Store rsync.net account name with:
 #   $ secret-tool store --label 'Rsync.net account name' rsync.net account
 #   Password:<type full account name e.g.: ab1234@ab1234.rsync.net>
 # Verify rsync.net account name with:
 #   $ secret-tool lookup rsync.net account
 #   ab1234@ab1234.rsync.net
+# or rewrite the following with account name
+RSYNC_ACCOUNT="$(secret-tool lookup rsync.net account)"
 # Source directory to copy to rsync.net
 RSYNC_DIR="rsync"
 
-# Creates encrypted archive in "$RSYNC_DIR" with .gsther.tar.gpg
-bss gather "$RSYNC_DIR"
-bss copy "$RSYNC_DIR" "$(secret-tool lookup rsync.net account):$RSYNC_DIR"
-__logger ssh "$(secret-tool lookup rsync.net account)" ls -lA "$RSYNC_DIR"
+MSGID=$(notify-send -p "bss: rsyncnet" "gather data ...") || true
+bss gather "$RSYNC_DIR" || true
+MSGID=$(notify-send -p -r $MSGID "bss: rsyncnet" "remote backup in progress ...") || true
+bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR"  || $BSS_MAY
+MSGID=$(notify-send -p -r $MSGID "bss: rsyncnet" "check results ...") || true
+__logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR"  || $BSS_MAY
+notify-send -p -r $MSGID "bss: rsyncnet" "finished!" || true

@@ -1,5 +1,5 @@
 <!--
-version: 2.0.7
+version: 2.0.8
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.7
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.8
 
 ## Design of `bss`
 
@@ -186,7 +186,7 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
   *  "$XDG_CONFIG_HOME/bss/FNB" (non-root, $XDG_CONFIG_HOME set)
   *  "\~/.config/bss/FNB" (non-root, $XDG_CONFIG_HOME unset)
   *  "/etc/bss/FNB" (root)
-* BASE: print the BASE directory for "bss"
+* BASE: print the BASE directory and its filesystem type for "bss"
 * jobs: list all systemd timer schedule jobs for bss
 
 
@@ -215,8 +215,8 @@ If "DEST_PATH" is a local path such as "/srv/backup", then
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
 
- * a subvolume if it is on btrfs or,
- * a subdirectory if it is on ext4 filesystem.
+ * a subvolume if it is on btrfs filesystem or,
+ * a subdirectory if it is on non-btrfs filesystem.
 
 If "DEST_PATH" is a local relative path without the leading  "/", then it is
 treated as a relative path from the user's home directory.
@@ -274,6 +274,13 @@ its recent invocations with:
 * $ journalctl -a -b -t bss
 * $ journalctl -f -t bss
 
+Although "bss" is focused on the snapshot operation for btrfs, subcommands
+related to "rsync" operations are still available for backup operation.  For
+"bss template PATH" on non-btrfs, ".bss.d" directory and related
+configuration files are created on "PATH" itself.  For "bss copy PATH ..." and
+"bss gather PATH" on non-btrfs, the BASE directory (internal variable
+"$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+
 ### CAVEAT
 
 The source filesystem must be btrfs for many subcommands.
@@ -302,10 +309,6 @@ accessed by other processes. You should manually mount using "/etc/fstab" for
 all subvolumes under the subvolume to run "revert" operation and manage them
 separately to keep the system recoverable since the snapshot operation isn't
 recursive.
-
-Although this "bss" focuses on btrfs, there is minimal support for ext2/ext3
-(this includes ext4) for "bss copy ...", "bss gather ...", and "bss
-template" which runs the "rsync" command as the backend of subcommands.
 
 Copyright 2022 - 2024 Osamu Aoki \<osamu@debian.org>, GPL 2+
 <!--

@@ -10,9 +10,9 @@ bss_usb_backup () {
   # $1: SRC_SUBVOL
   # $2: DST_LABEL
   bss gather "$1" || true
-  bss copy   "$1" "/media/$(id -un)/$2" || $BSS_MAY
-  bss snap        "/media/$(id -un)/$2" || $BSS_MAY
-  bss process     "/media/$(id -un)/$2" || $BSS_MAY
+  bss copy   "$1" "/media/$(id -un)/$2/$1" || $BSS_MAY
+  bss snap        "/media/$(id -un)/$2/$1" || $BSS_MAY
+  bss process     "/media/$(id -un)/$2/$1" || $BSS_MAY
 }
 
 # Backup to WD2.0TB (low frequency backup HDD device)

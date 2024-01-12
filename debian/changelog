@@ -1,3 +1,10 @@
+bss (2.0.8) unstable; urgency=medium
+
+  * Improve non-btrfs support
+  * Update Tutorial and examples
+
+ -- Osamu Aoki <osamu@debian.org>  Fri, 12 Jan 2024 17:26:16 +0900
+
 bss (2.0.7) unstable; urgency=medium
 
   * Fix regression of "bss gather" and enable GPG archiving.
