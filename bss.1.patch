@@ -1,5 +1,5 @@
---- bss.man0	2024-01-12 16:30:03.412404466 +0900
-+++ bss.man1	2024-01-12 16:30:46.957021759 +0900
+--- bss.man1.orig	2024-01-13 16:16:24.046642758 +0900
++++ bss.man1	2024-01-13 16:16:24.050642814 +0900
 @@ -2,11 +2,12 @@
  .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
@@ -57,17 +57,7 @@
  .PP
  .SH OPTIONS
  .TP
-@@ -137,8 +148,8 @@
- gather listed local files and directories to:
- .IP
- * the ".gather.dir" directory based on ".gather.dirrc"
--* the ".gather.tar.gpg" encrypted archive based on
- .IP
-+* the ".gather.tar.gpg" encrypted archive based on
- ".gather.gpgrc"
- .TP
- filter
-@@ -161,6 +172,7 @@
+@@ -158,6 +169,7 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
@@ -75,7 +65,7 @@
  * ".bss.fltr[.disabled]" (filtering rule)
  .TP
  batch FNB
-@@ -168,7 +180,9 @@
+@@ -165,7 +177,9 @@
  and source the shell script found at:
  .IP
  * "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
@@ -85,7 +75,7 @@
  * "/etc/bss/FNB" (root)
  .TP
  BASE
-@@ -203,6 +217,7 @@
+@@ -200,6 +214,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs filesystem or,
@@ -93,7 +83,27 @@
  * a subdirectory if it is on non\-btrfs filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -277,7 +292,7 @@
+@@ -219,19 +234,15 @@
+ This list should be sorted.  No globbing nor comment allowed in them.
+ .IP
+ * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
+-.IP
+ ".gather.dir" directory in the BASE directory.
+ .IP
+ * ".gather.gpg.absrc" and ".gather.gpg.relrc" gather files to the
+-.IP
+ ".gather.tar.gpg" encrypted archive in the BASE directory.
+ .IP
+ * ".gather.dir.absrc" and ".gather.gpg.absrc" are for "/" directory
+-.IP
+ as the source.
+ .IP
+ * ".gather.dir.relrc" and ".gather.gpg.relrc" use the home
+-.IP
+ directory as the source.
+ .PP
+ "bss zap" always operates on the current working directory as "PATH".  Thus
+@@ -296,7 +307,7 @@
  its recent invocations with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
@@ -102,7 +112,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  Although "bss" is focused on the snapshot operation for btrfs, subcommands
-@@ -317,6 +332,7 @@
+@@ -336,6 +347,7 @@
  recursive.
  .SH AUTHOR
  Written by Osamu Aoki.

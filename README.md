@@ -1,5 +1,5 @@
 <!--
-version: 2.0.8
+version: 2.1.1
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.0.8
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.1
 
 ## Design of `bss`
 
@@ -64,7 +64,7 @@ You can manually run `bss` command directly from the command line as:
 
 ```
  $ bss snapshot /path/to/sobvol # make snapshot
- $ bss gather   /path/to/sobvol # gather files and directories based .gather.dir or .gather.gpg
+ $ bss gather   /path/to/sobvol # gather files and directories
  $ bss overview /path/to/subvol # observe the aging status
  $ bss process  /path/to/subvol # process snapshots according to the aging status
  $ bss template /path/to/subvol # make configuration files
@@ -164,10 +164,9 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
 * process: process snapshots according to their aging status
 * copy: copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
-* gather: gather listed local files and directories to:
-  *  the ".gather.dir" directory based on ".gather.dirrc"
-  *  the ".gather.tar.gpg" encrypted archive based on
-                 ".gather.gpgrc"
+* gather: gather listed local files in configuration files to the
+             ".gather.dir" directory or to the ".gather.tar.gpg"
+             encrypted archive.
 * filter: create a filtered snapshot from the specified snapshot in
              ".bss.d/" as "\<specified_subvol_name>_filter"
 * revert: make snapshot "\<ISO_8601_date>.last" and replace the subvolume at
@@ -227,6 +226,21 @@ If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
 
 is used to limit privilege and to save the network load. Also, this allows
 "bss copy" to use the SSH-key stored under "\~/.ssh/".
+
+For "bss gather BASE", this is a wrapper for "rsync -r --files-from=..."
+command to gather files and directories recursively using 4 configuration files
+found in the BASE directory (or more precisely in the "$FS_BASE" directory).
+These configuration files must specify the exact list of files or directories.
+This list should be sorted.  No globbing nor comment allowed in them.
+
+  * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
+    ".gather.dir" directory in the BASE directory.
+  * ".gather.gpg.absrc" and ".gather.gpg.relrc" gather files to the
+    ".gather.tar.gpg" encrypted archive in the BASE directory.
+  * ".gather.dir.absrc" and ".gather.gpg.absrc" are for "/" directory
+    as the source.
+  * ".gather.dir.relrc" and ".gather.gpg.relrc" use the home
+    directory as the source.
 
 "bss zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:

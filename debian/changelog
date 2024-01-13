@@ -1,3 +1,10 @@
+bss (2.1.1) unstable; urgency=medium
+
+  * Simplify internal logic of "bss gather" using "rsync -r --files-from"
+    while breaking previous behavior.
+
+ -- Osamu Aoki <osamu@debian.org>  Sat, 13 Jan 2024 16:20:27 +0900
+
 bss (2.0.8) unstable; urgency=medium
 
   * Improve non-btrfs support

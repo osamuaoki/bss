@@ -134,12 +134,9 @@ copy subvolume at the BASE directory (1st argument) to the
 (remote) destination (2nd argument) using rsync
 .TP
 gather
-gather listed local files and directories to:
-.IP
-* the ".gather.dir" directory based on ".gather.dirrc"
-* the ".gather.tar.gpg" encrypted archive based on
-.IP
-".gather.gpgrc"
+gather listed local files in configuration files to the
+".gather.dir" directory or to the ".gather.tar.gpg"
+encrypted archive.
 .TP
 filter
 create a filtered snapshot from the specified snapshot in
@@ -214,6 +211,28 @@ If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
 .PP
 is used to limit privilege and to save the network load. Also, this allows
 "bss copy" to use the SSH\-key stored under "~/.ssh/".
+.PP
+For "bss gather BASE", this is a wrapper for "rsync \fB\-r\fR \fB\-\-files\-from=\fR..."
+command to gather files and directories recursively using 4 configuration files
+found in the BASE directory (or more precisely in the "$FS_BASE" directory).
+These configuration files must specify the exact list of files or directories.
+This list should be sorted.  No globbing nor comment allowed in them.
+.IP
+* ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
+.IP
+".gather.dir" directory in the BASE directory.
+.IP
+* ".gather.gpg.absrc" and ".gather.gpg.relrc" gather files to the
+.IP
+".gather.tar.gpg" encrypted archive in the BASE directory.
+.IP
+* ".gather.dir.absrc" and ".gather.gpg.absrc" are for "/" directory
+.IP
+as the source.
+.IP
+* ".gather.dir.relrc" and ".gather.gpg.relrc" use the home
+.IP
+directory as the source.
 .PP
 "bss zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:

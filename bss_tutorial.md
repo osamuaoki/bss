@@ -362,7 +362,8 @@ RSYNC_DIR="rsync"
 
 # SSH access to rsync.net with SSH key needs to be enabled
 
-# Creates encrypted archive in "$RSYNC_DIR" with .gather.gpg
+# Creates encrypted archive in "$RSYNC_DIR" with .gather.gpg.relrc and
+# .gather.gpg.absrc
 bss gather "$RSYNC_DIR" || true
 
 bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR" || $BSS_MAY

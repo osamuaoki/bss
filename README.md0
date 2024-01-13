@@ -64,7 +64,7 @@ You can manually run `bss` command directly from the command line as:
 
 ```
  $ bss snapshot /path/to/sobvol # make snapshot
- $ bss gather   /path/to/sobvol # gather files and directories based .gather.dir or .gather.gpg
+ $ bss gather   /path/to/sobvol # gather files and directories
  $ bss overview /path/to/subvol # observe the aging status
  $ bss process  /path/to/subvol # process snapshots according to the aging status
  $ bss template /path/to/subvol # make configuration files

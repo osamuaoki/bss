@@ -56,8 +56,8 @@ RSYNC_REMOTE="rsync"
 RSYNC_OPTA="-aHxS --delete --mkpath"
 # less communication bandwidth
 RSYNC_OPTR="-aHxSz --delete --mkpath"
-# local and --mkpath for gather
-RSYNC_OPTG="-aHxS --delete --mkpath"
+# local and --mkpath for gather (uses --files-from so needs explicit -r)
+RSYNC_OPTG="-arHxS --delete --mkpath"
 # rsync /tar verbosity
 CMD_OPTV="" # set to "-v" for verbose (BSS_LOGGER_LEVEL=3,4)
 #
@@ -69,13 +69,19 @@ EXT_COPY_POST="post_copy_script"
 BSS_STEM=".$BSS"
 BSS_CONF="$BSS_STEM.$EXT_CONF"
 BSS_FLTR="$BSS_STEM.$EXT_FLTR"
-# initial values used by help message
+# initial value
 BSS_GATHER=".gather"
-BSS_GATHER_DIRRC="${BSS_GATHER}.dirrc"
-BSS_GATHER_DIR="${BSS_GATHER}.dir"
-BSS_GATHER_GPGRC="${BSS_GATHER}.gpgrc"
-BSS_GATHER_GPG="${BSS_DIR}/${BSS_GATHER}.gpg"
-BSS_GATHER_TAR="${BSS_DIR}/${BSS_GATHER}.tar"
+# initial values used by help message
+BSS_GATHER_DIR_ABS_RC="${BSS_GATHER}.dir.absrc"
+BSS_GATHER_DIR_REL_RC="${BSS_GATHER}.dir.relrc"
+BSS_GATHER_DIR_DEST="${BSS_GATHER}.dir"
+BSS_GATHER_DIR_ABS_DEST="${BSS_GATHER}.dir/_abs"
+BSS_GATHER_DIR_REL_DEST="${BSS_GATHER}.dir/_rel"
+BSS_GATHER_GPG_ABS_RC="${BSS_GATHER}.gpg.absrc"
+BSS_GATHER_GPG_REL_RC="${BSS_GATHER}.gpg.relrc"
+BSS_GATHER_GPG_DEST="${BSS_DIR}/${BSS_GATHER}.gpg"
+BSS_GATHER_GPG_ABS_DEST="${BSS_DIR}/${BSS_GATHER}.gpg/_abs"
+BSS_GATHER_GPG_REL_DEST="${BSS_DIR}/${BSS_GATHER}.gpg/_rel"
 BSS_GATHER_TARGPG="${BSS_GATHER}.tar.gpg"
 #
 PRE_COPY_SCRIPT="$BSS_STEM.$EXT_COPY_PRE"
@@ -306,10 +312,9 @@ SUBCOMMAND:
   process    process snapshots according to their aging status
   copy       copy subvolume at the BASE directory (1st argument) to the
              (remote) destination (2nd argument) using rsync
-  gather     gather listed local files and directories to:
-               * the "$BSS_GATHER_DIR" directory based on "$BSS_GATHER_DIRRC"
-               * the "$BSS_GATHER_TARGPG" encrypted archive based on
-                 "$BSS_GATHER_GPGRC"
+  gather     gather listed local files in configuration files to the
+             "$BSS_GATHER_DIR_DEST" directory or to the "$BSS_GATHER_TARGPG"
+             encrypted archive.
   filter     create a filtered snapshot from the specified snapshot in
              "$BSS_DIR/" as "<specified_subvol_name>_filter"
   revert     make snapshot "<ISO_8601_date>.last" and replace the subvolume at
@@ -369,6 +374,21 @@ If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
 
 is used to limit privilege and to save the network load. Also, this allows
 "$BSS copy" to use the SSH-key stored under "~/.ssh/".
+
+For "$BSS gather BASE", this is a wrapper for "rsync -r --files-from=..."
+command to gather files and directories recursively using 4 configuration files
+found in the BASE directory (or more precisely in the "\$FS_BASE" directory).
+These configuration files must specify the exact list of files or directories.
+This list should be sorted.  No globbing nor comment allowed in them.
+
+  * "$BSS_GATHER_DIR_ABS_RC" and "$BSS_GATHER_DIR_REL_RC" gather files to the
+    "$BSS_GATHER_DIR_DEST" directory in the BASE directory.
+  * "$BSS_GATHER_GPG_ABS_RC" and "$BSS_GATHER_GPG_REL_RC" gather files to the
+    "$BSS_GATHER_TARGPG" encrypted archive in the BASE directory.
+  * "$BSS_GATHER_DIR_ABS_RC" and "$BSS_GATHER_GPG_ABS_RC" are for "/" directory
+    as the source.
+  * "$BSS_GATHER_DIR_REL_RC" and "$BSS_GATHER_GPG_REL_RC" use the home
+    directory as the source.
 
 "$BSS zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:
@@ -1303,7 +1323,7 @@ __rsync() {
   fi
 }
 ##############################################################################
-__rsync_gather_all() {
+__gather_all() {
   if [ -n "$1" ];then
     BSS_GATHER="${1}"
     shift
@@ -1311,23 +1331,46 @@ __rsync_gather_all() {
   # cd to user's home directory
   cd
   __echo 3 "Gather for FS_BASE='$FS_BASE'"
-  BSS_GATHER_DIRRC="$FS_BASE/${BSS_GATHER}.dirrc"
+  BSS_GATHER_DIR_ABS_RC="$FS_BASE/${BSS_GATHER}.dir.absrc"
+  BSS_GATHER_DIR_REL_RC="$FS_BASE/${BSS_GATHER}.dir.relrc"
   BSS_GATHER_DIR_DEST="$FS_BASE/${BSS_GATHER}.dir"
-  BSS_GATHER_GPGRC="$FS_BASE/${BSS_GATHER}.gpgrc"
+  BSS_GATHER_DIR_ABS_DEST="$FS_BASE/${BSS_GATHER}.dir/_abs"
+  BSS_GATHER_DIR_REL_DEST="$FS_BASE/${BSS_GATHER}.dir/_rel"
+  BSS_GATHER_GPG_ABS_RC="$FS_BASE/${BSS_GATHER}.gpg.absrc"
+  BSS_GATHER_GPG_REL_RC="$FS_BASE/${BSS_GATHER}.gpg.relrc"
   BSS_GATHER_GPG_DEST="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.gpg"
-  BSS_GATHER_TAR="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.tar"
+  BSS_GATHER_GPG_ABS_DEST="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.gpg/_abs"
+  BSS_GATHER_GPG_REL_DEST="$FS_BASE/${BSS_DIR}/${BSS_GATHER}.gpg/_rel"
   BSS_GATHER_TARGPG="$FS_BASE/${BSS_GATHER}.tar.gpg"
-  __echo 4 "BSS_GATHER_DIRRC=$BSS_GATHER_DIRRC"
-  __echo 4 "BSS_GATHER_DIR_DEST=$BSS_GATHER_DIR_DEST"
-  __echo 4 "BSS_GATHER_GPGRC=$BSS_GATHER_GPGRC"
-  __echo 4 "BSS_GATHER_GPG_DEST=$BSS_GATHER_GPG_DEST"
-  __echo 4 "BSS_GATHER_TAR=$BSS_GATHER_TAR"
-  __echo 4 "BSS_GATHER_TARGPG=$BSS_GATHER_TARGPG"
-  if [ -r "$BSS_GATHER_DIRRC" ]; then
-    __rsync_gather "$BSS_GATHER_DIRRC" "$BSS_GATHER_DIR_DEST" "$@"
+  __echo 4 "BSS_GATHER_DIR_ABS_RC   = $BSS_GATHER_DIR_ABS_RC"
+  __echo 4 "BSS_GATHER_DIR_REL_RC   = $BSS_GATHER_DIR_REL_RC"
+  __echo 4 "BSS_GATHER_DIR_DEST     = $BSS_GATHER_DIR_DEST"
+  __echo 4 "BSS_GATHER_DIR_ABS_DEST = $BSS_GATHER_DIR_ABS_DEST"
+  __echo 4 "BSS_GATHER_DIR_REL_DEST = $BSS_GATHER_DIR_REL_DEST"
+  __echo 4 "BSS_GATHER_GPG_ABS_RC   = $BSS_GATHER_GPG_ABS_RC"
+  __echo 4 "BSS_GATHER_GPG_REL_RC   = $BSS_GATHER_GPG_REL_RC"
+  __echo 4 "BSS_GATHER_GPG_DEST     = $BSS_GATHER_GPG_DEST"
+  __echo 4 "BSS_GATHER_GPG_ABS_DEST = $BSS_GATHER_GPG_ABS_DEST"
+  __echo 4 "BSS_GATHER_GPG_REL_DEST = $BSS_GATHER_GPG_REL_DEST"
+  __echo 4 "BSS_GATHER_TARGPG       = $BSS_GATHER_TARGPG"
+  if [ -r "$BSS_GATHER_DIR_ABS_RC" ]; then
+    __echo 4 "gather 10"
+    __gather "$BSS_GATHER_DIR_ABS_RC" / "$BSS_GATHER_DIR_ABS_DEST" "$@"
   fi
-  if [ -r "$BSS_GATHER_GPGRC" ]; then
-    __rsync_gather "$BSS_GATHER_GPGRC" "$BSS_GATHER_GPG_DEST" "$@"
+  if [ -r "$BSS_GATHER_DIR_REL_RC" ]; then
+    __echo 4 "gather 11"
+    __gather "$BSS_GATHER_DIR_REL_RC" ~ "$BSS_GATHER_DIR_REL_DEST" "$@"
+  fi
+  if [ -r "$BSS_GATHER_GPG_ABS_RC" ]; then
+    __echo 4 "gather 20"
+    __gather "$BSS_GATHER_GPG_ABS_RC" / "$BSS_GATHER_GPG_ABS_DEST" "$@"
+  fi
+  if [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
+    __echo 4 "gather 21"
+    __gather "$BSS_GATHER_GPG_REL_RC" ~ "$BSS_GATHER_GPG_REL_DEST" "$@"
+  fi
+  if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
+    __echo 4 "gather 22"
     __echo 2 "Generate $BSS_GATHER_TARGPG (overwritten)"
     $SUDO $TAR -c $CMD_OPTV -C "$BSS_GATHER_GPG_DEST" "." | \
       $GPG --encrypt -o "-" --default-recipient-self "-" > "${BSS_GATHER_TARGPG}"
@@ -1335,64 +1378,26 @@ __rsync_gather_all() {
   fi
 }
 
-__rsync_gather() {
+##############################################################################
+__gather() {
   BSS_GATHER_RC="$1"
+  shift
+  BSS_GATHER_BASE="$1"
   shift
   BSS_GATHER_DEST="$1"
   shift
   __echo 4 "BSS_GATHER_RC=$BSS_GATHER_RC"
+  __echo 4 "BSS_GATHER_BASE=$BSS_GATHER_BASE"
   __echo 4 "BSS_GATHER_DEST=$BSS_GATHER_DEST"
-  BSS_GATHER_DEST_REL="$BSS_GATHER_DEST/_rel"
-  BSS_GATHER_DEST_ABS="$BSS_GATHER_DEST/_abs"
-  $SUDO mkdir -p "$BSS_GATHER_DEST_REL"
-  $SUDO mkdir -p "$BSS_GATHER_DEST_ABS"
+  $SUDO mkdir -p "$BSS_GATHER_DEST"
   # match owner with the parent directory
-  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_GATHER_DEST_REL"
-  __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_GATHER_DEST_REL"
-  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_GATHER_DEST_ABS"
+  __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_GATHER_DEST"
+  __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_GATHER_DEST"
   RSYNC_OPTS="$RSYNC_OPTG $CMD_OPTV"
   __echo 2 "Gather using '$BSS_GATHER_RC' to '$BSS_GATHER_DEST' (overwritten)"
-  grep -v -e "^#" "$BSS_GATHER_RC" | \
-    while read -r GATHER_ITEM; do
-      # normalize path by removing tailing / or similar
-      while true; do
-        if [ "$GATHER_ITEM" = "/" ]; then
-          break
-        elif [ "$GATHER_ITEM" != "${GATHER_ITEM%/..}" ]; then
-          # ignore tailing /..
-          GATHER_ITEM="${GATHER_ITEM%/..}"
-        elif [ "$GATHER_ITEM" != "${GATHER_ITEM%/.}" ]; then
-          # ignore tailing /.
-          GATHER_ITEM="${GATHER_ITEM%/.}"
-        elif [ "$GATHER_ITEM" != "${GATHER_ITEM%/}" ]; then
-          # ignore tailing /
-          GATHER_ITEM="${GATHER_ITEM%/}"
-        else
-          break
-        fi
-      done
-      if [ "${GATHER_ITEM}" = "${GATHER_ITEM#/}" ]; then
-        # relative path started without /
-        DEST_DIR="$BSS_GATHER_DEST_REL/$GATHER_ITEM"
-      else
-        # absolute path started with /
-        DEST_DIR="$BSS_GATHER_DEST_ABS$GATHER_ITEM"
-      fi
-      # --filter to exclude $BSS directory
-      # --mkpath to create path $GATHER_ITEM containing / in it
-      # Hidden undocumented argument handling: $@ (after source)
-      if [ -d "$GATHER_ITEM" ]; then
-        __echo 3 "Gather '$GATHER_ITEM/' -> '$DEST_DIR'"
-        # shellcheck disable=SC2086
-        __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
-          $GATHER_ITEM/ "$DEST_DIR" || $BSS_MAY
-      else # file, symlink, ...
-        __echo 3 "Gather '$GATHER_ITEM' -> '$DEST_DIR'"
-        # shellcheck disable=SC2086
-        __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
-          $GATHER_ITEM "$DEST_DIR" || $BSS_MAY
-      fi
-    done
+  __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" \
+    --files-from="$BSS_GATHER_RC" "$BSS_GATHER_BASE" \
+    "$BSS_GATHER_DEST" || $BSS_MAY
 }
 ##############################################################################
 __template_conf_btrfs() {
@@ -1890,7 +1895,7 @@ g*) # gather
     BSS_LOGGER_JOURNAL=1
   fi
   __load_config
-  __rsync_gather_all "$@"
+  __gather_all "$@"
   ;;
 f*) # filter
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
