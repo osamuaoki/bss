@@ -1,5 +1,5 @@
 <!--
-version: 2.1.1
+version: 2.1.2
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.1
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.2
 
 ## Design of `bss`
 
@@ -230,8 +230,11 @@ is used to limit privilege and to save the network load. Also, this allows
 For "bss gather BASE", this is a wrapper for "rsync -r --files-from=..."
 command to gather files and directories recursively using 4 configuration files
 found in the BASE directory (or more precisely in the "$FS_BASE" directory).
-These configuration files must specify the exact list of files or directories.
-This list should be sorted.  No globbing nor comment allowed in them.
+If any of these configuration files are missing, corresponding gather actions
+are skipped without error.  These configuration files must specify the exact
+list of files or directories.  These lists should be sorted.  No globbing nor
+comment allowed in them.  Even when any of the listed files are missing on the
+system, "bss" only emits logging messages but exits as success.
 
   * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
     ".gather.dir" directory in the BASE directory.

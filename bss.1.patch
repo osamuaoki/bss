@@ -1,5 +1,5 @@
---- bss.man1.orig	2024-01-13 16:16:24.046642758 +0900
-+++ bss.man1	2024-01-13 16:16:24.050642814 +0900
+--- bss.man1.orig	2024-01-14 00:07:00.352338146 +0900
++++ bss.man1	2024-01-14 00:07:00.360338232 +0900
 @@ -2,11 +2,12 @@
  .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
@@ -83,8 +83,8 @@
  * a subdirectory if it is on non\-btrfs filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -219,19 +234,15 @@
- This list should be sorted.  No globbing nor comment allowed in them.
+@@ -222,19 +237,15 @@
+ system, "bss" only emits logging messages but exits as success.
  .IP
  * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
 -.IP
@@ -103,7 +103,7 @@
  directory as the source.
  .PP
  "bss zap" always operates on the current working directory as "PATH".  Thus
-@@ -296,7 +307,7 @@
+@@ -299,7 +310,7 @@
  its recent invocations with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
@@ -112,7 +112,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  Although "bss" is focused on the snapshot operation for btrfs, subcommands
-@@ -336,6 +347,7 @@
+@@ -339,6 +350,7 @@
  recursive.
  .SH AUTHOR
  Written by Osamu Aoki.

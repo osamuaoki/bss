@@ -10,7 +10,7 @@
 # Inheriting parameters (batch subcommand)
 ##############################################################################
 BSS_LOGGER_LEVEL="${BSS_LOGGER_LEVEL:-2}"
-BSS_LOGGER_TERMINAL="${BSS_LOGGER_TERMINAL:-1}" # initial value
+BSS_LOGGER_TERMINAL="${BSS_LOGGER_TERMINAL:--1}" # initial value
 BSS_LOGGER_JOURNAL="${BSS_LOGGER_JOURNAL:--1}" # initial value
 BSS_NOOP="${BSS_NOPE:-}" # set to ":" for no-operation
 BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, snap, ...
@@ -378,8 +378,11 @@ is used to limit privilege and to save the network load. Also, this allows
 For "$BSS gather BASE", this is a wrapper for "rsync -r --files-from=..."
 command to gather files and directories recursively using 4 configuration files
 found in the BASE directory (or more precisely in the "\$FS_BASE" directory).
-These configuration files must specify the exact list of files or directories.
-This list should be sorted.  No globbing nor comment allowed in them.
+If any of these configuration files are missing, corresponding gather actions
+are skipped without error.  These configuration files must specify the exact
+list of files or directories.  These lists should be sorted.  No globbing nor
+comment allowed in them.  Even when any of the listed files are missing on the
+system, "$BSS" only emits logging messages but exits as success.
 
   * "$BSS_GATHER_DIR_ABS_RC" and "$BSS_GATHER_DIR_REL_RC" gather files to the
     "$BSS_GATHER_DIR_DEST" directory in the BASE directory.
@@ -1354,27 +1357,26 @@ __gather_all() {
   __echo 4 "BSS_GATHER_GPG_REL_DEST = $BSS_GATHER_GPG_REL_DEST"
   __echo 4 "BSS_GATHER_TARGPG       = $BSS_GATHER_TARGPG"
   if [ -r "$BSS_GATHER_DIR_ABS_RC" ]; then
-    __echo 4 "gather 10"
     __gather "$BSS_GATHER_DIR_ABS_RC" / "$BSS_GATHER_DIR_ABS_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_DIR_REL_RC" ]; then
-    __echo 4 "gather 11"
     __gather "$BSS_GATHER_DIR_REL_RC" ~ "$BSS_GATHER_DIR_REL_DEST" "$@"
   fi
+  if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
+    $SUDO rm -rf "$BSS_GATHER_GPG_DEST"
+  fi
   if [ -r "$BSS_GATHER_GPG_ABS_RC" ]; then
-    __echo 4 "gather 20"
     __gather "$BSS_GATHER_GPG_ABS_RC" / "$BSS_GATHER_GPG_ABS_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
-    __echo 4 "gather 21"
     __gather "$BSS_GATHER_GPG_REL_RC" ~ "$BSS_GATHER_GPG_REL_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
-    __echo 4 "gather 22"
     __echo 2 "Generate $BSS_GATHER_TARGPG (overwritten)"
     $SUDO $TAR -c $CMD_OPTV -C "$BSS_GATHER_GPG_DEST" "." | \
       $GPG --encrypt -o "-" --default-recipient-self "-" > "${BSS_GATHER_TARGPG}"
     $SUDO rm -rf "$BSS_GATHER_GPG_DEST"
+    echo "This is a $BSS managed file.  Don't use this." > "$BSS_GATHER_GPG_DEST"
   fi
 }
 
@@ -1386,9 +1388,9 @@ __gather() {
   shift
   BSS_GATHER_DEST="$1"
   shift
-  __echo 4 "BSS_GATHER_RC=$BSS_GATHER_RC"
-  __echo 4 "BSS_GATHER_BASE=$BSS_GATHER_BASE"
-  __echo 4 "BSS_GATHER_DEST=$BSS_GATHER_DEST"
+  __echo 4 "BSS_GATHER_RC   = $BSS_GATHER_RC"
+  __echo 4 "BSS_GATHER_BASE = $BSS_GATHER_BASE"
+  __echo 4 "BSS_GATHER_DEST = $BSS_GATHER_DEST"
   $SUDO mkdir -p "$BSS_GATHER_DEST"
   # match owner with the parent directory
   __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_GATHER_DEST"
@@ -1397,7 +1399,7 @@ __gather() {
   __echo 2 "Gather using '$BSS_GATHER_RC' to '$BSS_GATHER_DEST' (overwritten)"
   __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" \
     --files-from="$BSS_GATHER_RC" "$BSS_GATHER_BASE" \
-    "$BSS_GATHER_DEST" || $BSS_MAY
+    "$BSS_GATHER_DEST" || true
 }
 ##############################################################################
 __template_conf_btrfs() {
