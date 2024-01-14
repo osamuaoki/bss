@@ -1,5 +1,5 @@
 <!--
-version: 2.1.3
+version: 2.1.4
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.3
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.4
 
 ## Design of `bss`
 
@@ -131,8 +131,7 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
     * If TMAX_ACTION=keep, keep subvolume after TMAX.
 
 Subcommands such as "bss copy ...", "bss gather ..." which use "rsync" as
-their backend tool work with non-btrfs filesystem.  These subcommands copy
-specified data recursively within filesystem boundaries.
+their backend tool work with non-btrfs filesystem.
 
 ### OPTIONS
 
@@ -208,9 +207,11 @@ For "bss list", you may add the second argument to match snapshot "\<TYPE>".
 For "bss copy BASE DEST_PATH", this is a combination of "bss snapshot" to
 create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
 "sudo rsync" command with its first argument "SOURCE_PATH" and the second argument
-"DEST_PATH".  This command is smart enough to skip the ".bss.d/" directory to
-allow independent management of data using "bss" on both the BASE directory
-and "DEST_PATH". (The tailing "/" in "DEST_PATH" is removed.)
+"DEST_PATH".  This command copy specified data recursively within filesystem
+boundaries.  Thus subvolumes and mounted filesystems are excluded. This command
+is smart enough to skip the ".bss.d/" directory to allow independent
+management of data using "bss" on both the BASE directory and "DEST_PATH".
+(The tailing "/" in "DEST_PATH" is removed.)
 
 If "DEST_PATH" is a local path such as "/srv/backup", then
 
@@ -230,9 +231,10 @@ If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
 * "rsync -aHxSz --delete --mkpath"
 
 is used to limit privilege and to save the network load. Also, this allows
-"bss copy" to use the SSH-key stored under "\~/.ssh/".
+"bss copy" to use the SSH-key stored by the user's home directory under
+"\~/.ssh/".
 
-For "bss gather BASE", this is a wrapper for "rsync -r --files-from=..."
+For "bss gather BASE", this is a wrapper for "rsync -arHS --files-from=..."
 command to gather files and directories recursively using 4 configuration files
 found in the BASE directory (or more precisely in the "$FS_BASE" directory).
 If any of these configuration files are missing, corresponding gather actions

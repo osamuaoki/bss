@@ -57,7 +57,7 @@ RSYNC_OPTA="-aHxS --delete --mkpath"
 # less communication bandwidth
 RSYNC_OPTR="-aHxSz --delete --mkpath"
 # local and --mkpath for gather (uses --files-from so needs explicit -r)
-RSYNC_OPTG="-arHxS --delete --mkpath"
+RSYNC_OPTG="-arHS --delete --mkpath"
 # rsync /tar verbosity
 CMD_OPTV="" # set to "-v" for verbose (BSS_LOGGER_LEVEL=3,4)
 #
@@ -281,8 +281,7 @@ the older ones by removing some of them using parameters in "$BSS_CONF" in the
     * If TMAX_ACTION=keep, keep subvolume after TMAX.
 
 Subcommands such as "$BSS copy ...", "$BSS gather ..." which use "rsync" as
-their backend tool work with non-btrfs filesystem.  These subcommands copy
-specified data recursively within filesystem boundaries.
+their backend tool work with non-btrfs filesystem.
 
 OPTIONS:
 
@@ -358,9 +357,11 @@ For "$BSS list", you may add the second argument to match snapshot "<TYPE>".
 For "$BSS copy BASE DEST_PATH", this is a combination of "$BSS snapshot" to
 create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
 "$RSYNC" command with its first argument "SOURCE_PATH" and the second argument
-"DEST_PATH".  This command is smart enough to skip the "$BSS_DIR/" directory to
-allow independent management of data using "$BSS" on both the BASE directory
-and "DEST_PATH". (The tailing "/" in "DEST_PATH" is removed.)
+"DEST_PATH".  This command copy specified data recursively within filesystem
+boundaries.  Thus subvolumes and mounted filesystems are excluded. This command
+is smart enough to skip the "$BSS_DIR/" directory to allow independent
+management of data using "$BSS" on both the BASE directory and "DEST_PATH".
+(The tailing "/" in "DEST_PATH" is removed.)
 
 If "DEST_PATH" is a local path such as "/srv/backup", then
 
@@ -380,9 +381,10 @@ If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
   "$RSYNC_REMOTE $RSYNC_OPTR"
 
 is used to limit privilege and to save the network load. Also, this allows
-"$BSS copy" to use the SSH-key stored under "~/.ssh/".
+"$BSS copy" to use the SSH-key stored by the user's home directory under
+"~/.ssh/".
 
-For "$BSS gather BASE", this is a wrapper for "rsync -r --files-from=..."
+For "$BSS gather BASE", this is a wrapper for "rsync -arHS --files-from=..."
 command to gather files and directories recursively using 4 configuration files
 found in the BASE directory (or more precisely in the "\$FS_BASE" directory).
 If any of these configuration files are missing, corresponding gather actions

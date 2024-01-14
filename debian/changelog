@@ -1,3 +1,9 @@
+bss (2.1.4) unstable; urgency=medium
+
+  * Update "bss gather" to run "rsync" without "-x" option.
+
+ -- Osamu Aoki <osamu@debian.org>  Sun, 14 Jan 2024 23:51:21 +0900
+
 bss (2.1.3) unstable; urgency=medium
 
   * Reorganize around systemd journal and terminal echo.

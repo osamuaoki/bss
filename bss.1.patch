@@ -1,5 +1,5 @@
---- bss.man1.orig	2024-01-14 22:12:28.751683833 +0900
-+++ bss.man1	2024-01-14 22:12:28.763683981 +0900
+--- bss.man1.orig	2024-01-14 23:50:42.050257837 +0900
++++ bss.man1	2024-01-14 23:50:42.058257921 +0900
 @@ -2,11 +2,12 @@
  .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
@@ -56,8 +56,8 @@
 +.RE
  .PP
  Subcommands such as "bss copy ...", "bss gather ..." which use "rsync" as
- their backend tool work with non\-btrfs filesystem.  These subcommands copy
-@@ -167,6 +178,7 @@
+ their backend tool work with non\-btrfs filesystem.
+@@ -166,6 +177,7 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
@@ -65,7 +65,7 @@
  * ".bss.fltr[.disabled]" (filtering rule)
  .TP
  batch FNB
-@@ -174,7 +186,9 @@
+@@ -173,7 +185,9 @@
  and source the shell script found at:
  .IP
  * "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
@@ -75,7 +75,7 @@
  * "/etc/bss/FNB" (root)
  .TP
  BASE
-@@ -209,6 +223,7 @@
+@@ -210,6 +224,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs filesystem or,
@@ -83,7 +83,7 @@
  * a subdirectory if it is on non\-btrfs filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -231,19 +246,15 @@
+@@ -233,19 +248,15 @@
  system, "bss" only emits logging messages but exits as success.
  .IP
  * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
@@ -103,7 +103,7 @@
  directory as the source.
  .PP
  "bss zap" always operates on the current working directory as "PATH".  Thus
-@@ -308,7 +319,7 @@
+@@ -310,7 +321,7 @@
  its recent invocations with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
@@ -112,7 +112,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  Although "bss" is focused on the snapshot operation for btrfs, subcommands
-@@ -350,6 +361,7 @@
+@@ -352,6 +363,7 @@
  recursive.
  .SH AUTHOR
  Written by Osamu Aoki.
