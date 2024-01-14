@@ -3,4 +3,5 @@ Name=bss remote backup
 Comment=rsync from ~/rsync to rsync.net
 Exec=bss batch rsyncnet
 Type=Application
+Keywords=btrfs;backup;snapshot;rsync;gpg;remote;encryption
 

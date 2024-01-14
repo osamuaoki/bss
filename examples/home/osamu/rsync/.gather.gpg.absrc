@@ -1,0 +1,5 @@
+/etc
+/var/lib/apt/extended_states
+/var/lib/dpkg/diversions
+/var/lib/dpkg/statoverride
+/var/lib/dpkg/status

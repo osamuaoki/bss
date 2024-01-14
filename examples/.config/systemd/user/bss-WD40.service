@@ -1,0 +1,11 @@
+# activate by: systemctl --user enable bss-WD40.service
+[Unit]
+Description=USB Disk backup
+Requires=media-osamu-WD40.mount
+After=media-osamu-WD40.mount
+
+[Service]
+ExecStart=bss --may --type usb batch WD40
+
+[Install]
+WantedBy=media-osamu-WD40.mount

@@ -1,0 +1,11 @@
+# activate by: systemctl --user enable bss-WD20.service
+[Unit]
+Description=USB Disk backup
+Requires=media-osamu-WD20.mount
+After=media-osamu-WD20.mount
+
+[Service]
+ExecStart=bss --may --type usb batch WD20
+
+[Install]
+WantedBy=media-osamu-WD20.mount

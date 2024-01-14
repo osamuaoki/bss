@@ -1,0 +1,8 @@
+/etc/apt
+/etc/hostname
+/etc/hosts
+/etc/network
+/etc/nsswitch.conf
+/etc/ssh
+/etc/sudoers
+/etc/sudoers.d

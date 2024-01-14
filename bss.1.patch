@@ -1,5 +1,5 @@
---- bss.man1.orig	2024-01-14 00:07:00.352338146 +0900
-+++ bss.man1	2024-01-14 00:07:00.360338232 +0900
+--- bss.man1.orig	2024-01-14 22:12:28.751683833 +0900
++++ bss.man1	2024-01-14 22:12:28.763683981 +0900
 @@ -2,11 +2,12 @@
  .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
@@ -16,7 +16,7 @@
  .PP
  "bss" is basically a "btrfs subvolume ..." command wrapper to create and
  process historical snapshots with the intuitive snapshot subvolume name and
-@@ -40,28 +41,38 @@
+@@ -39,28 +40,38 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
  * Secure minimum required free blocks (minimum FMIN %).
@@ -55,9 +55,9 @@
  * If TMAX_ACTION=keep, keep subvolume after TMAX.
 +.RE
  .PP
- .SH OPTIONS
- .TP
-@@ -158,6 +169,7 @@
+ Subcommands such as "bss copy ...", "bss gather ..." which use "rsync" as
+ their backend tool work with non\-btrfs filesystem.  These subcommands copy
+@@ -167,6 +178,7 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
@@ -65,7 +65,7 @@
  * ".bss.fltr[.disabled]" (filtering rule)
  .TP
  batch FNB
-@@ -165,7 +177,9 @@
+@@ -174,7 +186,9 @@
  and source the shell script found at:
  .IP
  * "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
@@ -75,7 +75,7 @@
  * "/etc/bss/FNB" (root)
  .TP
  BASE
-@@ -200,6 +214,7 @@
+@@ -209,6 +223,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs filesystem or,
@@ -83,7 +83,7 @@
  * a subdirectory if it is on non\-btrfs filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -222,19 +237,15 @@
+@@ -231,19 +246,15 @@
  system, "bss" only emits logging messages but exits as success.
  .IP
  * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
@@ -103,7 +103,7 @@
  directory as the source.
  .PP
  "bss zap" always operates on the current working directory as "PATH".  Thus
-@@ -299,7 +310,7 @@
+@@ -308,7 +319,7 @@
  its recent invocations with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
@@ -112,7 +112,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  Although "bss" is focused on the snapshot operation for btrfs, subcommands
-@@ -339,6 +350,7 @@
+@@ -350,6 +361,7 @@
  recursive.
  .SH AUTHOR
  Written by Osamu Aoki.

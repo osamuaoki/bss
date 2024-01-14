@@ -2,13 +2,13 @@
 bss snapshot || "$BSS_MAY"
 # always ignore error from gather
 bss gather   Documents || true
-bss snapshot Documents || "$BSS_MAY"
-bss snapshot github || "$BSS_MAY"
-bss snapshot salsa || "$BSS_MAY"
-bss snapshot tmp || "$BSS_MAY"
+bss snapshot Documents || true
+bss snapshot github || true
+bss snapshot salsa || true
+bss snapshot tmp || true
 # clean up old snapshots
-bss process || "$BSS_MAY"
-bss process Documents || "$BSS_MAY"
-bss process github || "$BSS_MAY"
-bss process salsa || "$BSS_MAY"
-bss process tmp || "$BSS_MAY"
+bss process || true
+bss process Documents || true
+bss process github || true
+bss process salsa || true
+bss process tmp || true

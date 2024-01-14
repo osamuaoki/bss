@@ -10,8 +10,7 @@ bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
 .PP
 "bss" is basically a "btrfs subvolume ..." command wrapper to create and
 process historical snapshots with the intuitive snapshot subvolume name and
-flexible data aging capabilities.  (Some subcommands can work with ext2/3/4fs,
-too.)
+flexible data aging capabilities.
 .PP
 "bss" operates mostly on the btrfs subvolume pointed by the first optional
 argument "PATH".  "PATH" can point to anywhere within this source btrfs
@@ -63,6 +62,10 @@ script ".bss.fltr" at the ".bss.d/" directory.
 * If TMAX_ACTION=drop, drop subvolume after TMAX.
 * If TMAX_ACTION=keep, keep subvolume after TMAX.
 .PP
+Subcommands such as "bss copy ...", "bss gather ..." which use "rsync" as
+their backend tool work with non\-btrfs filesystem.  These subcommands copy
+specified data recursively within filesystem boundaries.
+.PP
 OPTIONS:
 .TP
 \fB\-t\fR,\-\-type TYPE
@@ -89,6 +92,12 @@ show this help
 .TP
 \fB\-\-version\fR
 show version
+.TP
+\fB\-e\fR,\-\-echo
+enable screen echo (default)
+.TP
+\fB\-E\fR,\-\-noecho
+disable screen echo (default for bss under batch)
 .TP
 \fB\-l\fR,\-\-logger
 enable systemd logger (default for active subcommands)
@@ -303,11 +312,13 @@ its recent invocations with:
 \f(CW$ journalctl -f -t bss\fR
 .PP
 Although "bss" is focused on the snapshot operation for btrfs, subcommands
-related to "rsync" operations are still available for backup operation.  For
-"bss template PATH" on non\-btrfs, ".bss.d" directory and related
-configuration files are created on "PATH" itself.  For "bss copy PATH ..." and
-"bss gather PATH" on non\-btrfs, the BASE directory (internal variable
-"$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+related to "rsync" operations are still available for backup operation.  This
+design allows us to create nice snapshot backups on btrfs formatted USB storage
+device even for data on non\-btrfs storage. For "bss template PATH" on
+non\-btrfs, ".bss.d" directory and related configuration files are created on
+"PATH" itself.  For "bss copy PATH ..." and "bss gather PATH" on non\-btrfs,
+the BASE directory (internal variable "$FS_BASE") is searched from "PATH" and
+set when "BSS_DIR" is found.
 .PP
 CAVEAT:
 .PP

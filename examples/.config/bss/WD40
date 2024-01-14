@@ -10,12 +10,13 @@ bss_usb_backup () {
   # $1: SRC_SUBVOL
   # $2: DST_LABEL
   bss gather "$1" || true
-  bss copy   "$1" "/media/$(id -un)/$2/$1" || $BSS_MAY
-  bss snap        "/media/$(id -un)/$2/$1" || $BSS_MAY
-  bss process     "/media/$(id -un)/$2/$1" || $BSS_MAY
+  bss copy   "$1" "/media/$(id -un)/$2/$1" || true
+  bss snap        "/media/$(id -un)/$2/$1" || true
+  bss process     "/media/$(id -un)/$2/$1" || true
 }
 
 # Backup to WD4.0TB (low frequency backup HDD device)
+MSGID=$(notify-send -p "bss: WD40" "backup in progress ...")
 bss_usb_backup .         WD40
 bss_usb_backup Pictures  WD40
 bss_usb_backup Music     WD40
@@ -25,3 +26,4 @@ bss_usb_backup github    WD40
 bss_usb_backup salsa     WD40
 bss_usb_backup rsync     WD40
 bss_usb_backup Keep      WD40
+notify-send -r "$MSGID" "bss: WD40" "backup finished!"

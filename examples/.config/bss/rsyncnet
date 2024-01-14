@@ -8,7 +8,7 @@
 # Verify rsync.net account name with:
 #   $ secret-tool lookup rsync.net account
 #   ab1234@ab1234.rsync.net
-# or rewrite the following with account name
+# or rewrite the following with the account name
 RSYNC_ACCOUNT="$(secret-tool lookup rsync.net account)"
 # Source directory to copy to rsync.net
 RSYNC_DIR="rsync"
@@ -16,7 +16,7 @@ RSYNC_DIR="rsync"
 MSGID=$(notify-send -p "bss: rsyncnet" "gather data ...") || true
 bss gather "$RSYNC_DIR" || true
 MSGID=$(notify-send -p -r $MSGID "bss: rsyncnet" "remote backup in progress ...") || true
-bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR"  || $BSS_MAY
+bss copy "$RSYNC_DIR" "$RSYNC_ACCOUNT:$RSYNC_DIR"  || true
 MSGID=$(notify-send -p -r $MSGID "bss: rsyncnet" "check results ...") || true
-__logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR"  || $BSS_MAY
+__logger ssh "$RSYNC_ACCOUNT" ls -lA "$RSYNC_DIR"  || true
 notify-send -p -r $MSGID "bss: rsyncnet" "finished!" || true

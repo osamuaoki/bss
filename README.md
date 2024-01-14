@@ -1,5 +1,5 @@
 <!--
-version: 2.1.2
+version: 2.1.3
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -16,7 +16,7 @@ to execute `rsync` with required arguments to make backups of the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.2
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.3
 
 ## Design of `bss`
 
@@ -86,8 +86,7 @@ Please note that the subcommand of `bss` can be shortened to a single character.
 
 "bss" is basically a "btrfs subvolume ..." command wrapper to create and
 process historical snapshots with the intuitive snapshot subvolume name and
-flexible data aging capabilities.  (Some subcommands can work with ext2/3/4fs,
-too.)
+flexible data aging capabilities.
 
 "bss" operates mostly on the btrfs subvolume pointed by the first optional
 argument "PATH".  "PATH" can point to anywhere within this source btrfs
@@ -131,6 +130,10 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
     * If TMAX_ACTION=drop, drop subvolume after TMAX.
     * If TMAX_ACTION=keep, keep subvolume after TMAX.
 
+Subcommands such as "bss copy ...", "bss gather ..." which use "rsync" as
+their backend tool work with non-btrfs filesystem.  These subcommands copy
+specified data recursively within filesystem boundaries.
+
 ### OPTIONS
 
 * -t,--type TYPE: use TYPE instead of the default "single" for the snapshot
@@ -146,6 +149,8 @@ the older ones by removing some of them using parameters in ".bss.conf" in the
                   internal commands with "echo __"
 * -h,--help: show this help
 * --version: show version
+* -e,--echo: enable screen echo (default)
+* -E,--noecho: disable screen echo (default for bss under batch)
 * -l,--logger: enable systemd logger (default for active subcommands)
 * -L,--nologger: disable systemd logger (default for passive subcommands)
 * -m,--may: may execute snapshot or gather if possible
@@ -292,11 +297,13 @@ its recent invocations with:
 * $ journalctl -f -t bss
 
 Although "bss" is focused on the snapshot operation for btrfs, subcommands
-related to "rsync" operations are still available for backup operation.  For
-"bss template PATH" on non-btrfs, ".bss.d" directory and related
-configuration files are created on "PATH" itself.  For "bss copy PATH ..." and
-"bss gather PATH" on non-btrfs, the BASE directory (internal variable
-"$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+related to "rsync" operations are still available for backup operation.  This
+design allows us to create nice snapshot backups on btrfs formatted USB storage
+device even for data on non-btrfs storage. For "bss template PATH" on
+non-btrfs, ".bss.d" directory and related configuration files are created on
+"PATH" itself.  For "bss copy PATH ..." and "bss gather PATH" on non-btrfs,
+the BASE directory (internal variable "$FS_BASE") is searched from "PATH" and
+set when "BSS_DIR" is found.
 
 ### CAVEAT
 

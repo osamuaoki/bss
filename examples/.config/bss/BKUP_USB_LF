@@ -10,15 +10,17 @@ bss_usb_backup () {
   # $1: SRC_SUBVOL
   # $2: DST_LABEL
   bss gather "$1" || true
-  bss copy   "$1" "/media/$(id -un)/$2/$1" || $BSS_MAY
-  bss snap        "/media/$(id -un)/$2/$1" || $BSS_MAY
-  bss process     "/media/$(id -un)/$2/$1" || $BSS_MAY
+  bss copy   "$1" "/media/$(id -un)/$2/$1" || true
+  bss snap        "/media/$(id -un)/$2/$1" || true
+  bss process     "/media/$(id -un)/$2/$1" || true
 }
 
 # Backup to BKUP_USB_LF 250GB (medium frequency backup SSD device)
+MSGID=$(notify-send -p "bss: BKUP_USB_LF" "backup in progress ...")
 bss_usb_backup Documents BKUP_USB_LF
 bss_usb_backup github    BKUP_USB_LF
 bss_usb_backup salsa     BKUP_USB_LF
 bss_usb_backup rsync     BKUP_USB_LF
+notify-send -r "$MSGID" "bss: BKUP_USB_LF" "backup finished!"
 
 # vim:se sw=2 ts=2 sts=2 et ai tw=78:

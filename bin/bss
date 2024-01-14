@@ -10,7 +10,7 @@
 # Inheriting parameters (batch subcommand)
 ##############################################################################
 BSS_LOGGER_LEVEL="${BSS_LOGGER_LEVEL:-2}"
-BSS_LOGGER_TERMINAL="${BSS_LOGGER_TERMINAL:--1}" # initial value
+BSS_LOGGER_ECHO="${BSS_LOGGER_ECHO:--1}" # initial value
 BSS_LOGGER_JOURNAL="${BSS_LOGGER_JOURNAL:--1}" # initial value
 BSS_NOOP="${BSS_NOPE:-}" # set to ":" for no-operation
 BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, snap, ...
@@ -184,8 +184,25 @@ __echo () {
   BSS_MSG_LEVEL="$1"
   shift
   if [ "$BSS_LOGGER_LEVEL" -ge "$BSS_MSG_LEVEL" ]; then
-    # BSS_LOGGER_JOURNAL == -1 or 0 : disable the systemd journal logging
-    # BSS_LOGGER_JOURNAL == 1       : enable the systemd journal logging
+    # BSS_LOGGER_ECHO == -1 : enable terminal logging (initial)
+    # BSS_LOGGER_ECHO ==  0 : disable terminal logging
+    # BSS_LOGGER_ECHO ==  1 : enable terminal logging
+    if [ "$BSS_LOGGER_ECHO" != "0" ]; then
+      case $BSS_MSG_LEVEL in
+	0) echo "E: $*" >&2
+	  ;;
+	1) echo "W: $*" >&2
+	  ;;
+	2) echo "N: $*" >&2
+	  ;;
+	3) echo "I: $*" >&2
+	  ;;
+	4|5|6|7) echo "D: $*" >&2
+	  ;;
+      esac
+    # BSS_LOGGER_JOURNAL == -1 : disable the systemd journal logging (initial)
+    # BSS_LOGGER_JOURNAL ==  0 : disable the systemd journal logging
+    # BSS_LOGGER_JOURNAL ==  1 : enable the systemd journal logging
     if [ "$BSS_LOGGER_JOURNAL" = "1" ]; then
       case $BSS_MSG_LEVEL in
         0) systemd-cat -p 3 -t "$PROG_NAME" echo "$*"
@@ -200,21 +217,6 @@ __echo () {
           ;;
       esac
     fi
-    # BSS_LOGGER_TERMINAL == -1 or 0 : disable terminal logging
-    # BSS_LOGGER_TERMINAL == 1       : enable terminal logging
-    if [ "$BSS_LOGGER_TERMINAL" = "1" ]; then
-      case $BSS_MSG_LEVEL in
-	0) echo "E: $*" >&2
-	  ;;
-	1) echo "W: $*" >&2
-	  ;;
-	2) echo "N: $*" >&2
-	  ;;
-	3) echo "I: $*" >&2
-	  ;;
-	4|5|6|7) echo "D: $*" >&2
-	  ;;
-      esac
     fi
   fi
   $SETX_ON
@@ -234,8 +236,7 @@ USAGE:
 
 "$BSS" is basically a "btrfs subvolume ..." command wrapper to create and
 process historical snapshots with the intuitive snapshot subvolume name and
-flexible data aging capabilities.  (Some subcommands can work with ext2/3/4fs,
-too.)
+flexible data aging capabilities.
 
 "$BSS" operates mostly on the btrfs subvolume pointed by the first optional
 argument "PATH".  "PATH" can point to anywhere within this source btrfs
@@ -279,6 +280,10 @@ the older ones by removing some of them using parameters in "$BSS_CONF" in the
     * If TMAX_ACTION=drop, drop subvolume after TMAX.
     * If TMAX_ACTION=keep, keep subvolume after TMAX.
 
+Subcommands such as "$BSS copy ...", "$BSS gather ..." which use "rsync" as
+their backend tool work with non-btrfs filesystem.  These subcommands copy
+specified data recursively within filesystem boundaries.
+
 OPTIONS:
 
   -t,--type TYPE  use TYPE instead of the default "single" for the snapshot
@@ -294,6 +299,8 @@ OPTIONS:
                   internal commands with "echo __"
   -h,--help       show this help
   --version       show version
+  -e,--echo       enable screen echo (default)
+  -E,--noecho     disable screen echo (default for $BSS under batch)
   -l,--logger     enable systemd logger (default for active subcommands)
   -L,--nologger   disable systemd logger (default for passive subcommands)
   -m,--may        may execute snapshot or gather if possible
@@ -440,11 +447,13 @@ its recent invocations with:
   $ journalctl -f -t bss
 
 Although "$BSS" is focused on the snapshot operation for btrfs, subcommands
-related to "rsync" operations are still available for backup operation.  For
-"$BSS template PATH" on non-btrfs, "$BSS_DIR" directory and related
-configuration files are created on "PATH" itself.  For "$BSS copy PATH ..." and
-"$BSS gather PATH" on non-btrfs, the BASE directory (internal variable
-"\$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+related to "rsync" operations are still available for backup operation.  This
+design allows us to create nice snapshot backups on btrfs formatted USB storage
+device even for data on non-btrfs storage. For "$BSS template PATH" on
+non-btrfs, "$BSS_DIR" directory and related configuration files are created on
+"PATH" itself.  For "$BSS copy PATH ..." and "$BSS gather PATH" on non-btrfs,
+the BASE directory (internal variable "\$FS_BASE") is searched from "PATH" and
+set when "BSS_DIR" is found.
 
 CAVEAT:
 
@@ -580,7 +589,7 @@ __load_config() {
   __echo 4 "C: BSS_GATHER          = '$BSS_GATHER'"
   __echo 4 "C: BSS_NOOP            = '$BSS_NOOP'"
   __echo 4 "C: BSS_LOGGER_LEVEL    = '$BSS_LOGGER_LEVEL'"
-  __echo 4 "C: BSS_LOGGER_TERMINAL = '$BSS_LOGGER_TERMINAL'"
+  __echo 4 "C: BSS_LOGGER_ECHO     = '$BSS_LOGGER_ECHO'"
   __echo 4 "C: BSS_LOGGER_JOURNAL  = '$BSS_LOGGER_JOURNAL'"
   if [ -r "$BSS_CONF_BASE" ]; then
     __echo 3 "    configuration at    $BSS_CONF_BASE"
@@ -1779,6 +1788,14 @@ while [ -n "$1" ]; do
     __help
     exit $EXIT_SUCCESS
     ;;
+  -e | --echo)
+    # force to enable screen echo
+    BSS_LOGGER_=1
+    ;;
+  -E | --noecho)
+    # force to disable screen echo
+    BSS_LOGGER_ECHO=0
+    ;;
   -l | --logger)
     # force to enable the systemd journal
     BSS_LOGGER_JOURNAL=1
@@ -1815,9 +1832,6 @@ fi
 # execute subcommands without PATH argument
 case "$BSS_COMMAND" in
 j*) # jobs
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   __jobs
   exit $EXIT_SUCCESS
   ;;
@@ -1826,8 +1840,8 @@ b*) # batch (Always change PWD to ~/)
   # batch mode: systend logger ON as default
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
+    BSS_LOGGER_ECHO=0
   fi
-  BSS_LOGGER_TERMINAL=0
   __batch "$@"
   exit $EXIT_SUCCESS
   ;;
@@ -1845,6 +1859,7 @@ __set_fs_base
 # execute subcommands with PATH argument
 case "$BSS_COMMAND" in
 s*) #snapshot
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1852,22 +1867,17 @@ s*) #snapshot
   __snapshot
   ;;
 a*) # assess aging status and report age data lines to STDOUT
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   __load_config
   __age
   ;;
 o*) # overview (for human check)
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   __load_config
   # Logging outputs use STDERR, drop normal __age outputs to STDOUT
   BSS_LOGGER_LEVEL=3
   __age >/dev/null
   ;;
 p*) # process
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1875,6 +1885,7 @@ p*) # process
   __process
   ;;
 c*) # copy
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1882,9 +1893,6 @@ c*) # copy
   __rsync "$@"
   ;;
 l*) # list (report match in STDOUT)
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   __load_config
   if [ -z "$1" ]; then
     __list '.*'
@@ -1893,6 +1901,7 @@ l*) # list (report match in STDOUT)
   fi
   ;;
 g*) # gather
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1900,6 +1909,7 @@ g*) # gather
   __gather_all "$@"
   ;;
 f*) # filter
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1907,6 +1917,7 @@ f*) # filter
   __filter "$1"
   ;;
 r*) # revert
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1914,6 +1925,7 @@ r*) # revert
   __revert "$1"
   ;;
 zap) # zap
+  # active command
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
   fi
@@ -1921,23 +1933,14 @@ zap) # zap
   __zap "$@"
   ;;
 t*) # template
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   __template "$@"
   ;;
 B*) # BASE (interactive use only)
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   echo "FS_BASE=$FS_BASE"
   echo "FS_TYPE=$FS_TYPE"
   __load_config
   ;;
 *) # unknown
-  if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
-    BSS_LOGGER_JOURNAL=0
-  fi
   __echo 0 "Unknown command: '$*'   ---   See more 'bss --help'"
   exit $EXIT_ERROR
   ;;

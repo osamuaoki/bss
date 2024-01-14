@@ -1,0 +1,9 @@
+.config/autostart
+.config/bss
+.config/nvim
+.config/systemd/user
+.gnupg
+.local/share/keyrings
+.sbuildrc
+.sbuildrc.d
+.ssh
