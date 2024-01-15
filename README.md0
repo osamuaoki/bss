@@ -26,8 +26,9 @@ command is designed with following items in mind:
 
 * Keep it simple
   * single file shell script
-  * simple to configure via `~/.config/bss/*` etc.
-  * automatic and easy to execute (no complicated options)
+  * simple to configure via batch files `~/.config/bss/*` etc.
+  * automatic and easy to execute (integration via `*.desktop` and
+    `systemd.unit`(5) files)
   * flexible (no special subvolume name required: `@` or `@rootfs`)
 * Offer all basic features
   * enable snapshots on the local disk with time stamp
@@ -51,9 +52,16 @@ System backup and snapshot tasks can be performed automatically by the system
 timer and mount events using their associated systemd unit files or easily by
 clicking the GUI icon using its associated desktop file.
 
-Please read the [bss: Tutorial](bss_tutorial.md) to get started for the typical
-baseline configuration for the backup and snapshot with `bss`.  It covers
-practical use cases with examples.
+Please read the followings:
+
+* [Debian Reference: 10.2. Backup and
+  recovery](https://www.debian.org/doc/manuals/debian-reference/ch10.en.html#_backup_and_recovery)
+  -- generic concepts
+* [bss: Tutorial 1](bss_tutorial1.md) -- for a basic Debian system on ext4
+* [bss: Tutorial 2](bss_tutorial2.md) -- for an advanced Debian system on btrfs
+
+Please read these to get started for the backup and snapshot with `bss`.  These
+cover practical use cases with examples.
 
 When customizing this baseline configuration, `bss` is designed not to
 contaminate command name space and configuration files are mostly localized in

@@ -7,7 +7,6 @@ vim:set ai si sts=2 sw=2 et tw=79:
 
 ## References
 
-* [bss: tutorial](bss_tutorial.md)
 * [bss: tips](bss_tips.md)
 * [Btrfs migration tips](https://wiki.debian.org/Btrfs%20migration)
 

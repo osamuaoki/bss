@@ -1,7 +1,7 @@
 <!--
 vim:set ai si sts=2 sw=2 et tw=79:
 -->
-# Tutorial for `bss`
+# Tutorial for `bss` on btrfs
 
 ## Example system
 

@@ -26,8 +26,9 @@ command is designed with following items in mind:
 
 * Keep it simple
   * single file shell script
-  * simple to configure via `~/.config/bss/*` etc.
-  * automatic and easy to execute (no complicated options)
+  * simple to configure via batch files `~/.config/bss/*` etc.
+  * automatic and easy to execute (integration via `*.desktop` and
+    `systemd.unit`(5) files)
   * flexible (no special subvolume name required: `@` or `@rootfs`)
 * Offer all basic features
   * enable snapshots on the local disk with time stamp
@@ -51,9 +52,16 @@ System backup and snapshot tasks can be performed automatically by the system
 timer and mount events using their associated systemd unit files or easily by
 clicking the GUI icon using its associated desktop file.
 
-Please read the [bss: Tutorial](bss_tutorial.md) to get started for the typical
-baseline configuration for the backup and snapshot with `bss`.  It covers
-practical use cases with examples.
+Please read the followings:
+
+* [Debian Reference: 10.2. Backup and
+  recovery](https://www.debian.org/doc/manuals/debian-reference/ch10.en.html#_backup_and_recovery)
+  -- generic concepts
+* [bss: Tutorial 1](bss_tutorial1.md) -- for a basic Debian system on ext4
+* [bss: Tutorial 2](bss_tutorial2.md) -- for an advanced Debian system on btrfs
+
+Please read these to get started for the backup and snapshot with `bss`.  These
+cover practical use cases with examples.
 
 When customizing this baseline configuration, `bss` is designed not to
 contaminate command name space and configuration files are mostly localized in
@@ -299,13 +307,13 @@ its recent invocations with:
 * $ journalctl -f -t bss
 
 Although "bss" is focused on the snapshot operation for btrfs, subcommands
-related to "rsync" operations are still available for backup operation.  This
-design allows us to create nice snapshot backups on btrfs formatted USB storage
-device even for data on non-btrfs storage. For "bss template PATH" on
-non-btrfs, ".bss.d" directory and related configuration files are created on
-"PATH" itself.  For "bss copy PATH ..." and "bss gather PATH" on non-btrfs,
-the BASE directory (internal variable "$FS_BASE") is searched from "PATH" and
-set when "BSS_DIR" is found.
+which use "rsync" as their backend can be used for backup operations from any
+filesystem.  This design allows us to create nice snapshot backups to a btrfs
+partition on USB or remote storage from any filesystem to ensure data
+redundancies. For "bss template PATH" on non-btrfs, ".bss.d" directory and
+related configuration files are created on "PATH" itself.  For "bss copy PATH
+..." and "bss gather PATH" on non-btrfs, the BASE directory (internal variable
+"$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
 
 ### CAVEAT
 
@@ -346,7 +354,6 @@ vim:set ai si sts=2 sw=2 et tw=79:
 
 ## References
 
-* [bss: tutorial](bss_tutorial.md)
 * [bss: tips](bss_tips.md)
 * [Btrfs migration tips](https://wiki.debian.org/Btrfs%20migration)
 

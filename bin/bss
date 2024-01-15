@@ -449,13 +449,13 @@ its recent invocations with:
   $ journalctl -f -t bss
 
 Although "$BSS" is focused on the snapshot operation for btrfs, subcommands
-related to "rsync" operations are still available for backup operation.  This
-design allows us to create nice snapshot backups on btrfs formatted USB storage
-device even for data on non-btrfs storage. For "$BSS template PATH" on
-non-btrfs, "$BSS_DIR" directory and related configuration files are created on
-"PATH" itself.  For "$BSS copy PATH ..." and "$BSS gather PATH" on non-btrfs,
-the BASE directory (internal variable "\$FS_BASE") is searched from "PATH" and
-set when "BSS_DIR" is found.
+which use "rsync" as their backend can be used for backup operations from any
+filesystem.  This design allows us to create nice snapshot backups to a btrfs
+partition on USB or remote storage from any filesystem to ensure data
+redundancies. For "$BSS template PATH" on non-btrfs, "$BSS_DIR" directory and
+related configuration files are created on "PATH" itself.  For "$BSS copy PATH
+..." and "$BSS gather PATH" on non-btrfs, the BASE directory (internal variable
+"\$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
 
 CAVEAT:
 
