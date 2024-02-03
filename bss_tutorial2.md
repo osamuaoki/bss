@@ -155,6 +155,9 @@ Run following commands to setup configuration files for `bss`:
  $ bss template ~
 ```
 
+This sets the base directories of recursive backups with `rsync -rx` operations
+executed by bss`.
+
 Update `/bss.d/.bss.conf` with `BSS_SNAP_DEST="/btrfs_root/root_snapshots"`.
 
 If you don't want to run filter at TMID for `/`, you can optionally update

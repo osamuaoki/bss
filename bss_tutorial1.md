@@ -96,6 +96,9 @@ Run following commands to setup configuration files for `bss`:
  $ bss template ~
 ```
 
+This sets the base directory of the recursive backup with `rsync -rx` executed
+by `bss`.
+
 ## Preparation of USB storage `BKUP_USB`
 
 Prepare a USB storage media for backup by:

@@ -11,7 +11,8 @@ vim:set ai si sts=2 sw=2 et tw=79:
 This is Osamu's "Btrfs Subvolume Snapshot" utility `bss` which is a shell
 wrapper program to execute `btrfs subvolume snapshot` command with required
 arguments to manage data on btrfs.  This `bss` is also a shell wrapper program
-to execute `rsync` with required arguments to make backups of the subvolume.
+to execute `rsync` with required arguments containing `-rx` to make backups of
+the subvolume.
 
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
