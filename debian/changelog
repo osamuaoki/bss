@@ -1,3 +1,12 @@
+bss (2.1.5) unstable; urgency=medium
+
+  * Split and add btrfs example
+  * Minor update of docs
+  * Adjust path for install
+  * Add d/gbp.conf
+
+ -- Osamu Aoki <osamu@debian.org>  Tue, 19 Mar 2024 13:10:14 +0900
+
 bss (2.1.4) unstable; urgency=medium
 
   * Update "bss gather" to run "rsync" without "-x" option.
