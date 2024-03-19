@@ -26,7 +26,8 @@ install: bininstall
 	install -m 644 -D bss.1                                     $(DESTDIR)/usr$(prefix)/share/man/man1/bss.1
 	install -m 644 -D README.md                                 $(DESTDIR)/usr$(prefix)/share/doc/bss/README.md
 	install -m 644 -D bss_tips.md                               $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tips.md
-	install -m 644 -D bss_tutorial.md                           $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tutorial.md
+	install -m 644 -D bss_tutorial1.md                           $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tutorial1.md
+	install -m 644 -D bss_tutorial2.md                           $(DESTDIR)/usr$(prefix)/share/doc/bss/bss_tutorial2.md
 	cp             -a examples                                  $(DESTDIR)/usr$(prefix)/share/doc/bss/
 
 #### Run this to clean up source tree
