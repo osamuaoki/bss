@@ -10,17 +10,17 @@
 # Inheriting parameters (batch subcommand)
 ##############################################################################
 BSS_LOGGER_LEVEL="${BSS_LOGGER_LEVEL:-2}"
-BSS_LOGGER_ECHO="${BSS_LOGGER_ECHO:--1}" # initial value
+BSS_LOGGER_ECHO="${BSS_LOGGER_ECHO:--1}"       # initial value
 BSS_LOGGER_JOURNAL="${BSS_LOGGER_JOURNAL:--1}" # initial value
-BSS_NOOP="${BSS_NOPE:-}" # set to ":" for no-operation
-BSS_TYPE="${BSS_TYPE:-single}" # single, pre, post, snap, ...
+BSS_NOOP="${BSS_NOPE:-}"                       # set to ":" for no-operation
+BSS_TYPE="${BSS_TYPE:-single}"                 # single, pre, post, snap, ...
 BSS_MAY="${BSS_MAY:-false}"
 #############################################################################
 # system parameters
 #############################################################################
 PROG_VERSION="@@@VERSION@@@"
 PROG_NAME="${0##*/}"
-SETX_ON="" # set to "set -x" for trace
+SETX_ON=""  # set to "set -x" for trace
 SETX_OFF="" # set to "set +x" for trace
 EXIT_SUCCESS=0
 EXIT_ERROR=1
@@ -101,7 +101,7 @@ BSS_TMIN="3*60*60"                 # 3 hours (time to start aging)
 BSS_STEP="20"                      # 20 % as aging step
 BSS_FMIN="10"                      # minimum required free disk % for snapshot
 BSS_COPY_DEST=""
-BSS_SNAP_DEST=""                   # normally null
+BSS_SNAP_DEST="" # normally null
 BSS_ZAP_ACTIVE="false"
 BSS_FORCE=""
 #
@@ -109,17 +109,17 @@ BSS_FORCE=""
 # System Functions (trap)
 ##############################################################################
 # traps
-__term_exit () {
+__term_exit() {
   __echo 0 "Process externally interrupted.  Terminating $PROG_NAME."
   exit $EXIT_ERROR
 }
 trap '__term_exit' HUP INT QUIT TERM
 # dash: EXIT (but no ERR)
-__err_exit () {
+__err_exit() {
   __echo 0 "Internal process returned an error exit.  Terminating $PROG_NAME."
   exit $EXIT_ERROR
 }
-__exit_exit () {
+__exit_exit() {
   # No error exit
   exit $EXIT_SUCCESS
 }
@@ -128,7 +128,7 @@ trap '[ $? -eq 0 ] && __exit_exit || __err_exit' EXIT
 #############################################################################
 # System Variables (CMD_OPTV, BSS_LOGGER_CMD)
 ##############################################################################
-__set_logger () {
+__set_logger() {
   case $BSS_LOGGER_LEVEL in
   0)
     CMD_OPTV="-q"
@@ -154,16 +154,21 @@ __set_logger () {
   esac
   if [ "$BSS_LOGGER_JOURNAL" = "1" ]; then
     case $BSS_LOGGER_LEVEL in
-      0) BSS_LOGGER_CMD="systemd-cat -p 3 -t $PROG_NAME"
-        ;;
-      1) BSS_LOGGER_CMD="systemd-cat -p 4 -t $PROG_NAME"
-        ;;
-      2) BSS_LOGGER_CMD="systemd-cat -p 5 -t $PROG_NAME"
-        ;;
-      3) BSS_LOGGER_CMD="systemd-cat -p 6 -t $PROG_NAME"
-        ;;
-      4|5|6|7) BSS_LOGGER_CMD="systemd-cat -p 7 -t $PROG_NAME"
-        ;;
+    0)
+      BSS_LOGGER_CMD="systemd-cat -p 3 -t $PROG_NAME"
+      ;;
+    1)
+      BSS_LOGGER_CMD="systemd-cat -p 4 -t $PROG_NAME"
+      ;;
+    2)
+      BSS_LOGGER_CMD="systemd-cat -p 5 -t $PROG_NAME"
+      ;;
+    3)
+      BSS_LOGGER_CMD="systemd-cat -p 6 -t $PROG_NAME"
+      ;;
+    4 | 5 | 6 | 7)
+      BSS_LOGGER_CMD="systemd-cat -p 7 -t $PROG_NAME"
+      ;;
     esac
   else
     BSS_LOGGER_CMD=""
@@ -179,7 +184,7 @@ __set_logger () {
 # 2 5 N:   Notice    Print notice only    (normal)
 # 3 6 I:   Info      Print verbose output (-v)
 # 4 7 D:   Debug     Print Debug output   (-vv)
-__echo () {
+__echo() {
   $SETX_OFF
   BSS_MSG_LEVEL="$1"
   shift
@@ -189,39 +194,49 @@ __echo () {
     # BSS_LOGGER_ECHO ==  1 : enable terminal logging
     if [ "$BSS_LOGGER_ECHO" != "0" ]; then
       case $BSS_MSG_LEVEL in
-	0) echo "E: $*" >&2
-	  ;;
-	1) echo "W: $*" >&2
-	  ;;
-	2) echo "N: $*" >&2
-	  ;;
-	3) echo "I: $*" >&2
-	  ;;
-	4|5|6|7) echo "D: $*" >&2
-	  ;;
+      0)
+        echo "E: $*" >&2
+        ;;
+      1)
+        echo "W: $*" >&2
+        ;;
+      2)
+        echo "N: $*" >&2
+        ;;
+      3)
+        echo "I: $*" >&2
+        ;;
+      4 | 5 | 6 | 7)
+        echo "D: $*" >&2
+        ;;
       esac
-    # BSS_LOGGER_JOURNAL == -1 : disable the systemd journal logging (initial)
-    # BSS_LOGGER_JOURNAL ==  0 : disable the systemd journal logging
-    # BSS_LOGGER_JOURNAL ==  1 : enable the systemd journal logging
-    if [ "$BSS_LOGGER_JOURNAL" = "1" ]; then
-      case $BSS_MSG_LEVEL in
-        0) systemd-cat -p 3 -t "$PROG_NAME" echo "$*"
+      # BSS_LOGGER_JOURNAL == -1 : disable the systemd journal logging (initial)
+      # BSS_LOGGER_JOURNAL ==  0 : disable the systemd journal logging
+      # BSS_LOGGER_JOURNAL ==  1 : enable the systemd journal logging
+      if [ "$BSS_LOGGER_JOURNAL" = "1" ]; then
+        case $BSS_MSG_LEVEL in
+        0)
+          systemd-cat -p 3 -t "$PROG_NAME" echo "$*"
           ;;
-        1) systemd-cat -p 4 -t "$PROG_NAME" echo "$*"
+        1)
+          systemd-cat -p 4 -t "$PROG_NAME" echo "$*"
           ;;
-        2) systemd-cat -p 5 -t "$PROG_NAME" echo "$*"
+        2)
+          systemd-cat -p 5 -t "$PROG_NAME" echo "$*"
           ;;
-        3) systemd-cat -p 6 -t "$PROG_NAME" echo "$*"
+        3)
+          systemd-cat -p 6 -t "$PROG_NAME" echo "$*"
           ;;
-        4|5|6|7) systemd-cat -p 7 -t "$PROG_NAME" echo "$*"
+        4 | 5 | 6 | 7)
+          systemd-cat -p 7 -t "$PROG_NAME" echo "$*"
           ;;
-      esac
-    fi
+        esac
+      fi
     fi
   fi
   $SETX_ON
 }
-__logger () {
+__logger() {
   $BSS_NOOP $BSS_LOGGER_CMD "$@"
 }
 #############################################################################
@@ -544,35 +559,35 @@ __set_fs_base() {
   __echo 4 "_: FS_TYPE             = '$FS_TYPE'"
   if [ "$FS_TYPE" != "btrfs" ]; then
     case "$BSS_COMMAND" in
-      t*)
-        FS_BASE="$FS_BASE0"
-        ;;
-      *)
-        FS_BASE="$FS_BASE0"
-        while true; do
-          __echo 4 "Check BASE=$FS_BASE on FS=$FS_TYPE (root of FS: $FS_BASE1)"
-          if [ "$FS_BASE" = "$FS_BASE1" ]; then
-            # reached root of FS
-            break
-          fi
-          if [ -e "$FS_BASE/$BSS_DIR" ]; then
-            # Treat directory with .bss.d/ as FS_BASE for non-btrfs
-            break
-          fi
-          FS_BASE="$($SUDO realpath "$FS_BASE/..")"
-        done
-        ;;
+    t*)
+      FS_BASE="$FS_BASE0"
+      ;;
+    *)
+      FS_BASE="$FS_BASE0"
+      while true; do
+        __echo 4 "Check BASE=$FS_BASE on FS=$FS_TYPE (root of FS: $FS_BASE1)"
+        if [ "$FS_BASE" = "$FS_BASE1" ]; then
+          # reached root of FS
+          break
+        fi
+        if [ -e "$FS_BASE/$BSS_DIR" ]; then
+          # Treat directory with .bss.d/ as FS_BASE for non-btrfs
+          break
+        fi
+        FS_BASE="$($SUDO realpath "$FS_BASE/..")"
+      done
+      ;;
     esac
   fi
   __echo 4 "_: FS_BASE             = '$FS_BASE'"
-# FS_BASE is clean canonical absolute path pointing to the root of filesystem
-# containing FS_BASE0 (For non-btrfs, this may be where .bss.d/ exists.)
+  # FS_BASE is clean canonical absolute path pointing to the root of filesystem
+  # containing FS_BASE0 (For non-btrfs, this may be where .bss.d/ exists.)
   FS_BASE_MOD="755"
   FS_BASE_UID=$($SUDO stat -c %u "$FS_BASE")
   FS_BASE_GID=$($SUDO stat -c %g "$FS_BASE")
   __echo 4 "_: FS_BASE_UID         = '$FS_BASE_UID'"
   __echo 4 "_: FS_BASE_GID         = '$FS_BASE_GID'"
-# derivative parameters
+  # derivative parameters
   BSS_DIR_BASE="$FS_BASE/$BSS_DIR"
   BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
   __echo 4 "_: BSS_CONF_BASE       = '$BSS_CONF_BASE'"
@@ -580,7 +595,7 @@ __set_fs_base() {
   BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
   BSS_PRE_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$PRE_COPY_SCRIPT"
   BSS_POST_COPY_SCRIPT="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
-# 
+  #
 }
 ##############################################################################
 # load parameters
@@ -724,7 +739,7 @@ __load_config() {
 ##############################################################################
 __snapshot() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    if $BSS_MAY ; then
+    if $BSS_MAY; then
       __echo 1 "Skip snapshot since FS=$FS_TYPE, BASE=$FS_BASE (may)"
       exit $EXIT_SUCCESS
     else
@@ -823,23 +838,23 @@ __age() {
     # THIS             BSS_TEPO(THIS)           NOW_TEPO   diff=TAGE
     BSS_I=$((BSS_I - 1))
     __echo 4 "A: I=$BSS_I subvolume=$BSS_SV"
-    BSS_TSTR="${BSS_SV%%.*}"  # timestamp string for SV
+    BSS_TSTR="${BSS_SV%%.*}" # timestamp string for SV
     BSS_TYPE="${BSS_SV##*.}"
     BSS_EXTRA="${BSS_TYPE##*_}"
     if [ "$BSS_EXTRA" = "$BSS_TYPE" ]; then
       BSS_EXTRA=""
     fi
-    BSS_TEPO=$(date '+%s' -d"$BSS_TSTR")  # unix epoch time (s) for SV
-    BSS_TAGE=$((NOW_TEPO - BSS_TEPO))  # age (s) of SV
+    BSS_TEPO=$(date '+%s' -d"$BSS_TSTR") # unix epoch time (s) for SV
+    BSS_TAGE=$((NOW_TEPO - BSS_TEPO))    # age (s) of SV
     if [ "$BSS_TLAST" = "-1" ]; then
       # Ensure to keep the oldest SV
-      BSS_TLAST="$(($BSS_TAGE + $BSS_TSTEP * 2))"  # large fake age (s) of last SV
+      BSS_TLAST="$(($BSS_TAGE + $BSS_TSTEP * 2))" # large fake age (s) of last SV
     fi
-    S_TAGE="$(age_string $BSS_TAGE)"  # age string of SV
+    S_TAGE="$(age_string $BSS_TAGE)" # age string of SV
     # delta age of SV in seconds from last SV kept
-    BSS_TDEL=$((BSS_TLAST - BSS_TAGE))  # age delata (s) from last SV to this SV
-    S_TDEL="$(age_string $BSS_TDEL)"  # age delata string from last SV to this SV
-    S_TSTEP="$(age_string $BSS_TSTEP)"  # step string
+    BSS_TDEL=$((BSS_TLAST - BSS_TAGE)) # age delata (s) from last SV to this SV
+    S_TDEL="$(age_string $BSS_TDEL)"   # age delata string from last SV to this SV
+    S_TSTEP="$(age_string $BSS_TSTEP)" # step string
     __echo 4 "A: AGE=$BSS_TAGE=$S_TAGE LAST=$BSS_TLAST DEL=$BSS_TDEL=$S_TDEL STEP=$BSS_TSTEP=$S_TSTEP"
     #########################################################################
     # Index rules (no use to update TLAST, TDEL)
@@ -1023,8 +1038,8 @@ __process() {
     __echo 2 "Assess aging internally for process: $FS_BASE (silenced except for debug)"
     BSS_LOGGER_LEVEL="1" # Force __age to be quieter 3=='-v',2=='' -> 1=='-q'
   fi
-  for XBSS_SV in $(__age 2>/dev/null ); do
-  # STDOUT is age assessment result
+  for XBSS_SV in $(__age 2>/dev/null); do
+    # STDOUT is age assessment result
     BSS_LOGGER_LEVEL="$BASE_BSS_LOGGER_LEVEL"
     # drop first character + or - or #
     BSS_SV="${XBSS_SV#???_}"
@@ -1252,9 +1267,9 @@ __rsync() {
     __echo 0 "C: no copy destination given (or was /)"
     exit $EXIT_ERROR
   fi
-  if [ "$BSS_COPY_DEST" != "${BSS_COPY_DEST%:*}" ] || \
-      [ "$BSS_COPY_DEST" != "${BSS_COPY_DEST%@*}" ]; then
-        # remote path (ssh key is in user's home)
+  if [ "$BSS_COPY_DEST" != "${BSS_COPY_DEST%:*}" ] ||
+    [ "$BSS_COPY_DEST" != "${BSS_COPY_DEST%@*}" ]; then
+    # remote path (ssh key is in user's home)
     RSYNC="$RSYNC_REMOTE"
     __echo 2 "remote copy destination '$BSS_COPY_DEST'"
     RSYNC_OPTS="$RSYNC_OPTR $CMD_OPTV"
@@ -1338,7 +1353,7 @@ __rsync() {
 }
 ##############################################################################
 __gather_all() {
-  if [ -n "$1" ];then
+  if [ -n "$1" ]; then
     BSS_GATHER="${1}"
     shift
   fi
@@ -1384,10 +1399,10 @@ __gather_all() {
   fi
   if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
     __echo 2 "Generate $BSS_GATHER_TARGPG (overwritten)"
-    $SUDO $TAR -c $CMD_OPTV -C "$BSS_GATHER_GPG_DEST" "." | \
-      $GPG --encrypt -o "-" --default-recipient-self "-" > "${BSS_GATHER_TARGPG}"
+    $SUDO $TAR -c $CMD_OPTV -C "$BSS_GATHER_GPG_DEST" "." |
+      $GPG --encrypt -o "-" --default-recipient-self "-" >"${BSS_GATHER_TARGPG}"
     $SUDO rm -rf "$BSS_GATHER_GPG_DEST"
-    echo "This is a $BSS managed file.  Don't use this." > "$BSS_GATHER_GPG_DEST"
+    echo "This is a $BSS managed file.  Don't use this." >"$BSS_GATHER_GPG_DEST"
   fi
 }
 

@@ -1,9 +1,8 @@
-_bss()
-{
-    local cur prev words cword
-    _init_completion || return
+_bss() {
+  local cur prev words cword
+  _init_completion || return
 
-    local GLOGAL_BSS_OPTIONS='
+  local GLOGAL_BSS_OPTIONS='
         -q --quiet
         -t --type
         -c --conf
@@ -16,30 +15,30 @@ _bss()
         -h --help
     '
 
-    # see if the user selected a command already
-    local COMMANDS=(
-        "snapshot" "list" "age" "process" "base" "filter" "revert" "overview"
-        "copy" "jobs" "zap" "template" "batch" "BASE")
+  # see if the user selected a command already
+  local COMMANDS=(
+    "snapshot" "list" "age" "process" "base" "filter" "revert" "overview"
+    "copy" "jobs" "zap" "template" "batch" "BASE")
 
-    local command i
-    for (( i=0; i < ${#words[@]}-1; i++ )); do
-        if [[ ${COMMANDS[@]} =~ ${words[i]} ]]; then
-            command=${words[i]}
-            break
-        fi
-    done
-
-    case $prev in
-        -h|--help|--version|template|base|jobs)
-            return 0
-            ;;
-    esac
-
-    # no command yet, show what commands we have
-    if [ "$command" = "" ]; then
-        COMPREPLY=( $( compgen -W '${COMMANDS[@]} ${GLOGAL_BSS_OPTIONS[@]}' -- "$cur" ) )
+  local command i
+  for ((i = 0; i < ${#words[@]} - 1; i++)); do
+    if [[ ${COMMANDS[@]} =~ ${words[i]} ]]; then
+      command=${words[i]}
+      break
     fi
+  done
 
+  case $prev in
+  -h | --help | --version | template | base | jobs)
     return 0
+    ;;
+  esac
+
+  # no command yet, show what commands we have
+  if [ "$command" = "" ]; then
+    COMPREPLY=($(compgen -W '${COMMANDS[@]} ${GLOGAL_BSS_OPTIONS[@]}' -- "$cur"))
+  fi
+
+  return 0
 } &&
-complete -F _bss bss
+  complete -F _bss bss

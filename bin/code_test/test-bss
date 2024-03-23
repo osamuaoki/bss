@@ -4,8 +4,8 @@
 BSS="$(pwd)/../bss"
 SUBVOLUME_DIR=test
 
-setup () {
-  if [ -e $SUBVOLUME_DIR ] ; then
+setup() {
+  if [ -e $SUBVOLUME_DIR ]; then
     sudo chmod 777 "$SUBVOLUME_DIR"
     sudo btrfs subvolume delete $SUBVOLUME_DIR
   fi
@@ -13,14 +13,14 @@ setup () {
   sudo chmod 777 "$SUBVOLUME_DIR"
 }
 
-snap () {
+snap() {
   $BSS template
   echo "foo" >foo
   echo "===== SNAP     ============================================="
   faketime "2020-01-01T00:00:00+00:00" $BSS s
   faketime "2020-01-02T00:00:00+00:00" $BSS s
   faketime "2020-01-03T00:00:00+00:00" $BSS s
-  echo "bar" > bar
+  echo "bar" >bar
   faketime "2021-01-01T00:00:00+00:00" $BSS s
   faketime "2021-01-02T00:00:00+00:00" $BSS s
   faketime "2021-01-03T00:00:00+00:00" $BSS s
@@ -44,7 +44,7 @@ snap () {
   faketime "2023-04-01T00:00:09+00:00" $BSS s
 }
 
-process () {
+process() {
   echo "===== LIST     ============================================="
   faketime "2023-04-02T00:00:10+00:00" $BSS l
   echo "===== OVERVIEW ============================================="
@@ -57,18 +57,17 @@ process () {
   faketime "2023-04-02T00:00:10+00:00" $BSS l
 }
 
-delete () {
+delete() {
   echo "===== DELETE ==========================================="
   faketime "2023-04-02T00:00:10+00:00" $BSS zap .bss.d/*T*00:00.*
   echo "===== LIST       ==========================================="
   faketime "2023-04-02T00:00:10+00:00" $BSS l
 }
 
-clean () {
+clean() {
   echo "===== CLEAN  @ $(pwd)  ==========================================="
   sudo btrfs subvolume delete "$SUBVOLUME_DIR"
 }
-
 
 ##############################################################################
 ### MAIN ###
