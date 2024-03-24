@@ -33,7 +33,7 @@ install: bininstall
 #### Run this to clean up source tree
 clean:
 	-rm -f README.pre*
-	-rm -f bss.man0* bss.man1*
+	-rm -f bss.man0* bss.man1* bss.help2man
 
 distclean: clean
 

@@ -5,6 +5,50 @@ vim:set ai si sts=2 sw=2 et tw=79:
 * Edit usr/bin/bss, README.md? and run 'make README.md'
 -->
 
+## Note on gather configuration files
+
+`bss gather` uses gather configuration files ".gather.*.*rc":
+
+* ".gather.dir.absrc" and ".gather.gpg.absrc" to gather files with srcdir=`/` (root)
+* ".gather.dir.relrc" and ".gather.gpg.relrc" to gather files with srcdir=`~/` (home)
+
+For gather configuration file `.gather.rc`, `bss gather` executes `rsync` with
+the following (excluding details):
+
+```console
+ $ rsync -a --filter=". .gather.rc" $srcdir $destdir
+```
+
+The syntax of gather configuration file is defined in the "FILTER RULES" in
+rsync(1) manpage.
+
+Although this gather configuration file can be written in any order, I usually
+organize this file in the following order.
+
+* Partial path exclusion match rules to be forced
+  * file name match rule (e.g. "`- *~`" without "`/`")
+  * dir name match rule (e.g., "`- .git/`" with only one "`/`" at the end)
+* Full path inclusion match rules (pattern starts with "`/`")
+  * the parent3 dir inclusion match rule (e.g., "`+ /a/`" with "`/`" at the end)
+  * the parent2 dir inclusion match rule (e.g., "`+ /a/b/`" with "`/`" at the end)
+  * the parent1 dir inclusion match rule (e.g., "`+ /a/b/c/`" with "`/`" at the end)
+  * the target inclusion match rule (no "`/`" at the end)
+    * inclusion match rule for individual target file (e.g., "`+ /a/b/c/targetfile`")
+    * recursive inclusion match rule for files under target dir (e.g., "`+ /a/b/c/targetdir/***`")
+* Full path fall-back all-exclusion match rule (e.g., "`- /***`")
+
+The above execution is actually over-simplified.  In reality, details are taken
+care to avoid gathering snapshot files under the `.bss.d/` directory as:
+
+```console
+ $ rsync -aHS --delete-excluded --mkpath --filter="- .bss.d/" \
+              --filter=". .gather.rc" $srcdir $destdir
+```
+
+Please take a look at examples found in
+`/usr/share/doc/bss/examples/home/osamu/rsync` and
+`/usr/share/doc/bss/examples/home/osamu/Documents`.
+
 ## References
 
 * [bss: tips](bss_tips.md)

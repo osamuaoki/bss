@@ -1,3 +1,10 @@
+bss (2.2.1) UNRELEASED; urgency=medium
+
+  * Change internal logic of "bss gather" using "rsync -r --filter"
+    while breaking previous behavior.
+
+ -- Osamu Aoki <osamu@debian.org>  Sun, 24 Mar 2024 11:14:09 +0900
+
 bss (2.1.5) unstable; urgency=medium
 
   * Split and add btrfs example

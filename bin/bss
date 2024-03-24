@@ -52,12 +52,12 @@ RSYNC_REMOTE="rsync"
 # S: sparse
 # v: verbose
 # z: compress
-# less cpu load
-RSYNC_OPTA="-aHxS --delete --mkpath"
-# less communication bandwidth
+# less cpu load for local copy
+RSYNC_OPTL="-aHxS --delete --mkpath"
+# less communication bandwidth for remote copy
 RSYNC_OPTR="-aHxSz --delete --mkpath"
-# local and --mkpath for gather (uses --files-from so needs explicit -r)
-RSYNC_OPTG="-arHS --delete --mkpath"
+# local and --mkpath for local gather (no -x here!)
+RSYNC_OPTG="-aHS --delete-excluded --mkpath"
 # rsync /tar verbosity
 CMD_OPTV="" # set to "-v" for verbose (BSS_LOGGER_LEVEL=3,4)
 #
@@ -369,18 +369,19 @@ For "$BSS list", you may add the second argument to match snapshot "<TYPE>".
 "$BSS list . '(s.*|u.*)' " should list snapshots with "single", "snap" and
 "usb" types.
 
-For "$BSS copy BASE DEST_PATH", this is a combination of "$BSS snapshot" to
-create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
-"$RSYNC" command with its first argument "SOURCE_PATH" and the second argument
+For "$BSS copy PATH DEST_PATH", this is a combination of "$BSS snapshot" to
+create a snapshot of the "\$FS_BASE" directory for "PATH" and a wrapper for
+"rsync" command with its first argument "\$FS_PATH" and the second argument
 "DEST_PATH".  This command copy specified data recursively within filesystem
-boundaries.  Thus subvolumes and mounted filesystems are excluded. This command
-is smart enough to skip the "$BSS_DIR/" directory to allow independent
-management of data using "$BSS" on both the BASE directory and "DEST_PATH".
-(The tailing "/" in "DEST_PATH" is removed.)
+boundaries.  Thus subvolumes and mounted filesystems are excluded.  This
+command is also smart enough to skip the "$BSS_DIR/" directory on both the
+"\$FS_BASE" directory and "DEST_PATH" to allow independent snapshot management
+of data using "$BSS" on both ends.  The use of "--delete" option for "rsync"
+is the intentional choice.  (The tailing "/" in "DEST_PATH" is removed.)
 
 If "DEST_PATH" is a local path such as "/srv/backup", then
 
-  "$RSYNC $RSYNC_OPTA"
+  $RSYNC $RSYNC_OPTL --filter="- ${BSS_DIR}/"
 
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
@@ -393,29 +394,35 @@ treated as a relative path from the user's home directory.
 
 If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
 
-  "$RSYNC_REMOTE $RSYNC_OPTR"
+  $RSYNC_REMOTE $RSYNC_OPTR --filter="- ${BSS_DIR}/"
 
 is used to limit privilege and to save the network load. Also, this allows
 "$BSS copy" to use the SSH-key stored by the user's home directory under
 "~/.ssh/".
 
-For "$BSS gather BASE", this is a wrapper for "rsync -arHS --files-from=..."
-command to gather files and directories recursively using 4 configuration files
-found in the BASE directory (or more precisely in the "\$FS_BASE" directory).
-If any of these configuration files are missing, corresponding gather actions
-are skipped without error.  These configuration files must specify the exact
-list of files or directories.  These lists should be sorted.  No globbing nor
-comment allowed in them.  Even when any of the listed files are missing on the
-system, "$BSS" only emits logging messages but exits as success.
+For "$BSS gather PATH", files and directories are gathered recursively using 4
+configuration files found in the PATH directory (or more precisely in the
+"\$FS_BASE" directory).
 
   * "$BSS_GATHER_DIR_ABS_RC" and "$BSS_GATHER_DIR_REL_RC" gather files to the
-    "$BSS_GATHER_DIR_DEST" directory in the BASE directory.
+    "$BSS_GATHER_DIR_DEST" directory in the \$FS_BASE directory.
   * "$BSS_GATHER_GPG_ABS_RC" and "$BSS_GATHER_GPG_REL_RC" gather files to the
-    "$BSS_GATHER_TARGPG" encrypted archive in the BASE directory.
+    "$BSS_GATHER_TARGPG" encrypted archive in the \$FS_BASE directory.
   * "$BSS_GATHER_DIR_ABS_RC" and "$BSS_GATHER_GPG_ABS_RC" are for "/" directory
     as the source.
   * "$BSS_GATHER_DIR_REL_RC" and "$BSS_GATHER_GPG_REL_RC" use the home
     directory as the source.
+
+This "$BSS gather" is essentially a wrapper for
+
+  rsync $RSYNC_OPTG --filter="- ${BSS_DIR}/" --filter=". ${BSS_GATHER}.*.*rc"
+
+Unlike "$BSS copy", the recursive scope of "$BSS gather" is not limited within
+filesystem volume nor subvolume.  The configuration files "${BSS_GATHER}.*.*rc"
+follow "FILTER RULES" in rsync(1) manpage.  If any of these are missing,
+corresponding gather actions are skipped without error.  Even when error is
+encountered, "$BSS gather" only emits logging messages and exits as success.
+The use of "--delete-excluded" option for "rsync" is the intentional choice.
 
 "$BSS zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:
@@ -457,8 +464,8 @@ You can make a snapshot just by "$BSS" alone.
 You can use verbose "$BSS -v BASE" command to print current effective
 configuration parameters without side effects.
 
-This "$BSS" command can use systemd logger.  If usedm you can check results of
-its recent invocations with:
+This "$BSS" command can use systemd logger.  When used, the log of its
+invocations can be viewed with:
 
   $ journalctl -a -b -t bss
   $ journalctl -f -t bss
@@ -467,10 +474,10 @@ Although "$BSS" is focused on the snapshot operation for btrfs, subcommands
 which use "rsync" as their backend can be used for backup operations from any
 filesystem.  This design allows us to create nice snapshot backups to a btrfs
 partition on USB or remote storage from any filesystem to ensure data
-redundancies. For "$BSS template PATH" on non-btrfs, "$BSS_DIR" directory and
+redundancies. For "$BSS template PATH" on non-btrfs, "$BSS_DIR/" directory and
 related configuration files are created on "PATH" itself.  For "$BSS copy PATH
-..." and "$BSS gather PATH" on non-btrfs, the BASE directory (internal variable
-"\$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+..." and "$BSS gather PATH" on non-btrfs, the "\$FS_BASE" directory is searched
+from "PATH" and is set when "$BSS_DIR/" is found.
 
 CAVEAT:
 
@@ -1275,7 +1282,7 @@ __rsync() {
     RSYNC_OPTS="$RSYNC_OPTR $CMD_OPTV"
   else
     # BSS_COPY_DEST is local
-    RSYNC_OPTS="$RSYNC_OPTA $CMD_OPTV"
+    RSYNC_OPTS="$RSYNC_OPTL $CMD_OPTV"
     if [ "${BSS_COPY_DEST}" = "${BSS_COPY_DEST#/}" ]; then
       # relative path: (not started with '/')
       BSS_COPY_DEST="$(echo ~)/$BSS_COPY_DEST"
@@ -1329,7 +1336,7 @@ __rsync() {
     # --filter to exclude $BSS directory
     # Hidden undocumented argument handling: $@ (after source)
     # shellcheck disable=SC2086
-    __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+    __logger $RSYNC $RSYNC_OPTS "$@" --filter "- $BSS_DIR/" \
       "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}/" \
       "$BSS_COPY_DEST/" || $BSS_MAY
     # Since this could be slow long process, record ending
@@ -1339,7 +1346,7 @@ __rsync() {
     # --filter to exclude $BSS directory
     # Hidden undocumented argument handling: $@ (after source)
     # shellcheck disable=SC2086
-    __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" "$@" \
+    __logger $RSYNC $RSYNC_OPTS "$@" --filter "- $BSS_DIR/" \
       "$FS_BASE/" \
       "$BSS_COPY_DEST/" || $BSS_MAY
     # Since this could be slow long process, record ending
@@ -1386,7 +1393,7 @@ __gather_all() {
     __gather "$BSS_GATHER_DIR_ABS_RC" / "$BSS_GATHER_DIR_ABS_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_DIR_REL_RC" ]; then
-    __gather "$BSS_GATHER_DIR_REL_RC" ~ "$BSS_GATHER_DIR_REL_DEST" "$@"
+    __gather "$BSS_GATHER_DIR_REL_RC" ~/ "$BSS_GATHER_DIR_REL_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
     $SUDO rm -rf "$BSS_GATHER_GPG_DEST"
@@ -1395,7 +1402,7 @@ __gather_all() {
     __gather "$BSS_GATHER_GPG_ABS_RC" / "$BSS_GATHER_GPG_ABS_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
-    __gather "$BSS_GATHER_GPG_REL_RC" ~ "$BSS_GATHER_GPG_REL_DEST" "$@"
+    __gather "$BSS_GATHER_GPG_REL_RC" ~/ "$BSS_GATHER_GPG_REL_DEST" "$@"
   fi
   if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
     __echo 2 "Generate $BSS_GATHER_TARGPG (overwritten)"
@@ -1423,8 +1430,9 @@ __gather() {
   __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_GATHER_DEST"
   RSYNC_OPTS="$RSYNC_OPTG $CMD_OPTV"
   __echo 2 "Gather using '$BSS_GATHER_RC' to '$BSS_GATHER_DEST' (overwritten)"
-  __logger $RSYNC $RSYNC_OPTS --filter "- $BSS_DIR" \
-    --files-from="$BSS_GATHER_RC" "$BSS_GATHER_BASE" \
+  # Hidden undocumented argument handling: $@ (after source)
+  __logger $RSYNC $RSYNC_OPTS "$@" --filter="- $BSS_DIR/" \
+    --filter=". $BSS_GATHER_RC" "$BSS_GATHER_BASE" \
     "$BSS_GATHER_DEST" || true
 }
 ##############################################################################

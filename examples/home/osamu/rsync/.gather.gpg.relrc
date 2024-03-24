@@ -1,9 +1,47 @@
-.config/autostart
-.config/bss
-.config/nvim
-.config/systemd/user
-.gnupg
-.local/share/keyrings
-.sbuildrc
-.sbuildrc.d
-.ssh
+# Force exclude always for partial match (dir)
+- .git/
+- .bss.d/
+# Force exclude always for partial match (file)
+- *~
+- core
+# Pull path match for files in the base path
++ /.bashrc
++ /.benrc
++ /.caffrc
++ /.debrc
++ /.devscripts
++ /.editorconfig
++ /.face
++ /.face.icon
++ /.gbp.conf
++ /.gitconfig
++ /.mailrc
++ /.muttrc
++ /.profile
++ /.pycodestyle
++ /.quiltrc-dpkg
++ /.reportbugrc
++ /.sbuildrc
++ /.shellcheckrc
++ /.vimrc
+# Pull path match for recursive include -- match parent dir path first
++ /.config/
++ /.config/autostart/***
++ /.config/black/***
++ /.config/bss/***
++ /.config/flake8/***
++ /.config/kitty/***
++ /.config/pylint/***
++ /.config/systemd/***
++ /.config/nvim/***
++ /.gnupg/***
++ /.ssh/***
++ /.local/
++ /.local/share/
++ /.local/share/keyrings/***
++ /.sbuildrc.d/***
++ /.bashrc.d/***
++ /bin/***
+# Drop files and directory not included explicitly in the above
+- /***
+
