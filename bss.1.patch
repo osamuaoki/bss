@@ -1,7 +1,7 @@
---- bss.man1.orig	2024-01-14 23:50:42.050257837 +0900
-+++ bss.man1	2024-01-14 23:50:42.058257921 +0900
+--- bss.man1.orig	2024-03-25 17:26:38.617012156 +0900
++++ bss.man1	2024-03-25 17:26:38.629012315 +0900
 @@ -2,11 +2,12 @@
- .TH BSS "1" "January 2024" "bss  (@@@VERSION@@@)" "User Commands"
+ .TH BSS "1" "March 2024" "bss  (@@@VERSION@@@)" "User Commands"
  .SH NAME
  bss \- btrfs subvolume snapshot utility  (@@@VERSION@@@)
 -.SH DESCRIPTION
@@ -75,7 +75,7 @@
  * "/etc/bss/FNB" (root)
  .TP
  BASE
-@@ -210,6 +224,7 @@
+@@ -211,6 +225,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs filesystem or,
@@ -83,16 +83,16 @@
  * a subdirectory if it is on non\-btrfs filesystem.
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
-@@ -233,19 +248,15 @@
- system, "bss" only emits logging messages but exits as success.
+@@ -229,19 +244,15 @@
+ "$FS_BASE" directory).
  .IP
  * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
 -.IP
- ".gather.dir" directory in the BASE directory.
+ ".gather.dir" directory in the $FS_BASE directory.
  .IP
  * ".gather.gpg.absrc" and ".gather.gpg.relrc" gather files to the
 -.IP
- ".gather.tar.gpg" encrypted archive in the BASE directory.
+ ".gather.tar.gpg" encrypted archive in the $FS_BASE directory.
  .IP
  * ".gather.dir.absrc" and ".gather.gpg.absrc" are for "/" directory
 -.IP
@@ -102,9 +102,9 @@
 -.IP
  directory as the source.
  .PP
- "bss zap" always operates on the current working directory as "PATH".  Thus
-@@ -310,7 +321,7 @@
- its recent invocations with:
+ This "bss gather" is essentially a wrapper for
+@@ -317,7 +328,7 @@
+ invocations can be viewed with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
 -.br
@@ -112,7 +112,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  Although "bss" is focused on the snapshot operation for btrfs, subcommands
-@@ -352,6 +363,7 @@
+@@ -359,6 +370,7 @@
  recursive.
  .SH AUTHOR
  Written by Osamu Aoki.

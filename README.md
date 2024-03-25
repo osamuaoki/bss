@@ -1,5 +1,5 @@
 <!--
-version: 2.1.5
+version: 2.2.1
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -14,10 +14,15 @@ arguments to manage data on btrfs.  This `bss` is also a shell wrapper program
 to execute `rsync` with required arguments containing `-rx` to make backups of
 the subvolume.
 
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.2.1
+
+## Breaking changes
+
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.1.5
+* 2.1.0: Add "bss gather" to use "rsync --files-from" (2024-01-13)
+* 2.2.0: Change "bss gather" to use rsync FILTER RULES (2024-03-25)
 
 ## Design of `bss`
 
@@ -213,18 +218,19 @@ For "bss list", you may add the second argument to match snapshot "\<TYPE>".
 "bss list . '(s.*|u.*)' " should list snapshots with "single", "snap" and
 "usb" types.
 
-For "bss copy BASE DEST_PATH", this is a combination of "bss snapshot" to
-create a snapshot of the BASE directory to "SOURCE_PATH" and a wrapper for
-"sudo rsync" command with its first argument "SOURCE_PATH" and the second argument
+For "bss copy PATH DEST_PATH", this is a combination of "bss snapshot" to
+create a snapshot of the "$FS_BASE" directory for "PATH" and a wrapper for
+"rsync" command with its first argument "$FS_PATH" and the second argument
 "DEST_PATH".  This command copy specified data recursively within filesystem
-boundaries.  Thus subvolumes and mounted filesystems are excluded. This command
-is smart enough to skip the ".bss.d/" directory to allow independent
-management of data using "bss" on both the BASE directory and "DEST_PATH".
-(The tailing "/" in "DEST_PATH" is removed.)
+boundaries.  Thus subvolumes and mounted filesystems are excluded.  This
+command is also smart enough to skip the ".bss.d/" directory on both the
+"$FS_BASE" directory and "DEST_PATH" to allow independent snapshot management
+of data using "bss" on both ends.  The use of "--delete" option for "rsync"
+is the intentional choice.  (The tailing "/" in "DEST_PATH" is removed.)
 
 If "DEST_PATH" is a local path such as "/srv/backup", then
 
-* "sudo rsync -aHxS --delete --mkpath"
+* sudo rsync -aHxS --delete --mkpath --filter="- .bss.d/"
 
 is used to have enough privilege and to save the CPU load.  If this local
 "DEST_PATH" doesn't exist, it is created in advance as:
@@ -237,29 +243,35 @@ treated as a relative path from the user's home directory.
 
 If "DEST_PATH" is a remote path such as "[USER@]HOST:DEST_PATH", then
 
-* "rsync -aHxSz --delete --mkpath"
+* rsync -aHxSz --delete --mkpath --filter="- .bss.d/"
 
 is used to limit privilege and to save the network load. Also, this allows
 "bss copy" to use the SSH-key stored by the user's home directory under
 "\~/.ssh/".
 
-For "bss gather BASE", this is a wrapper for "rsync -arHS --files-from=..."
-command to gather files and directories recursively using 4 configuration files
-found in the BASE directory (or more precisely in the "$FS_BASE" directory).
-If any of these configuration files are missing, corresponding gather actions
-are skipped without error.  These configuration files must specify the exact
-list of files or directories.  These lists should be sorted.  No globbing nor
-comment allowed in them.  Even when any of the listed files are missing on the
-system, "bss" only emits logging messages but exits as success.
+For "bss gather PATH", files and directories are gathered recursively using 4
+configuration files found in the PATH directory (or more precisely in the
+"$FS_BASE" directory).
 
   * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
-    ".gather.dir" directory in the BASE directory.
+    ".gather.dir" directory in the $FS_BASE directory.
   * ".gather.gpg.absrc" and ".gather.gpg.relrc" gather files to the
-    ".gather.tar.gpg" encrypted archive in the BASE directory.
+    ".gather.tar.gpg" encrypted archive in the $FS_BASE directory.
   * ".gather.dir.absrc" and ".gather.gpg.absrc" are for "/" directory
     as the source.
   * ".gather.dir.relrc" and ".gather.gpg.relrc" use the home
     directory as the source.
+
+This "bss gather" is essentially a wrapper for
+
+* rsync -aHS --delete-excluded --mkpath --filter="- .bss.d/" --filter=". .gather.*.*rc"
+
+Unlike "bss copy", the recursive scope of "bss gather" is not limited within
+filesystem volume nor subvolume.  The configuration files ".gather.*.*rc"
+follow "FILTER RULES" in rsync(1) manpage.  If any of these are missing,
+corresponding gather actions are skipped without error.  Even when error is
+encountered, "bss gather" only emits logging messages and exits as success.
+The use of "--delete-excluded" option for "rsync" is the intentional choice.
 
 "bss zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:
@@ -301,8 +313,8 @@ You can make a snapshot just by "bss" alone.
 You can use verbose "bss -v BASE" command to print current effective
 configuration parameters without side effects.
 
-This "bss" command can use systemd logger.  If usedm you can check results of
-its recent invocations with:
+This "bss" command can use systemd logger.  When used, the log of its
+invocations can be viewed with:
 
 * $ journalctl -a -b -t bss
 * $ journalctl -f -t bss
@@ -311,10 +323,10 @@ Although "bss" is focused on the snapshot operation for btrfs, subcommands
 which use "rsync" as their backend can be used for backup operations from any
 filesystem.  This design allows us to create nice snapshot backups to a btrfs
 partition on USB or remote storage from any filesystem to ensure data
-redundancies. For "bss template PATH" on non-btrfs, ".bss.d" directory and
+redundancies. For "bss template PATH" on non-btrfs, ".bss.d/" directory and
 related configuration files are created on "PATH" itself.  For "bss copy PATH
-..." and "bss gather PATH" on non-btrfs, the BASE directory (internal variable
-"$FS_BASE") is searched from "PATH" and set when "BSS_DIR" is found.
+..." and "bss gather PATH" on non-btrfs, the "$FS_BASE" directory is searched
+from "PATH" and is set when ".bss.d/" is found.
 
 ### CAVEAT
 
@@ -352,6 +364,50 @@ vim:set ai si sts=2 sw=2 et tw=79:
 * 'README.md' is auto-generated file
 * Edit usr/bin/bss, README.md? and run 'make README.md'
 -->
+
+## Note on gather configuration files
+
+`bss gather` uses gather configuration files ".gather.*.*rc":
+
+* ".gather.dir.absrc" and ".gather.gpg.absrc" to gather files with srcdir=`/` (root)
+* ".gather.dir.relrc" and ".gather.gpg.relrc" to gather files with srcdir=`~/` (home)
+
+For gather configuration file `.gather.rc`, `bss gather` executes `rsync` with
+the following (excluding details):
+
+```console
+ $ rsync -a --filter=". .gather.rc" $srcdir $destdir
+```
+
+The syntax of gather configuration file is defined in the "FILTER RULES" in
+rsync(1) manpage.
+
+Although this gather configuration file can be written in any order, I usually
+organize this file in the following order.
+
+* Partial path exclusion match rules to be forced
+  * file name match rule (e.g. "`- *~`" without "`/`")
+  * dir name match rule (e.g., "`- .git/`" with only one "`/`" at the end)
+* Full path inclusion match rules (pattern starts with "`/`")
+  * the parent3 dir inclusion match rule (e.g., "`+ /a/`" with "`/`" at the end)
+  * the parent2 dir inclusion match rule (e.g., "`+ /a/b/`" with "`/`" at the end)
+  * the parent1 dir inclusion match rule (e.g., "`+ /a/b/c/`" with "`/`" at the end)
+  * the target inclusion match rule (no "`/`" at the end)
+    * inclusion match rule for individual target file (e.g., "`+ /a/b/c/targetfile`")
+    * recursive inclusion match rule for files under target dir (e.g., "`+ /a/b/c/targetdir/***`")
+* Full path fall-back all-exclusion match rule (e.g., "`- /***`")
+
+The above execution is actually over-simplified.  In reality, details are taken
+care to avoid gathering snapshot files under the `.bss.d/` directory as:
+
+```console
+ $ rsync -aHS --delete-excluded --mkpath --filter="- .bss.d/" \
+              --filter=". .gather.rc" $srcdir $destdir
+```
+
+Please take a look at examples found in
+`/usr/share/doc/bss/examples/home/osamu/rsync` and
+`/usr/share/doc/bss/examples/home/osamu/Documents`.
 
 ## References
 
