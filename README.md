@@ -21,8 +21,8 @@ the subvolume.
 This `bss` script is still in the early development stage and intended only for
 my personal usage.
 
-* 2.1.0: Add "bss gather" to use "rsync --files-from" (2024-01-13)
-* 2.2.0: Change "bss gather" to use rsync FILTER RULES (2024-03-25)
+* 2.1.1: Add "bss gather" to use "rsync --files-from" (2024-01-13)
+* 2.2.1: Change "bss gather" to use rsync FILTER RULES (2024-03-25)
 
 ## Design of `bss`
 
