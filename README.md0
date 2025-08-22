@@ -23,6 +23,7 @@ my personal usage.
 
 * 2.1.1: Add "bss gather" to use "rsync --files-from" (2024-01-13)
 * 2.2.1: Change "bss gather" to use rsync FILTER RULES (2024-03-25)
+* 2.2.2: No more exclusive run check inside of bss (2025-08-23)
 
 ## Design of `bss`
 

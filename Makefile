@@ -117,35 +117,21 @@ bss.1.patch: FORCE
 		echo "Patch updated for bss.1.patch" ; else \
 		echo "???? No patch generated for bss.1.patch"; fi
 ###########################################################################################
-README.pre0: bin/bss
-	bin/bss --help > $@
-
-%.pre1: %.pre0
-	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" $< > $@
-
-%.pre2: %.pre1
-	# make subsection titles
-	sed -e 's/^\(\S*\):$$/### \1/' $< >$@
-
-%.pre3: %.pre2
-	# make list in markdown for "  " starting lines
-	sed -e '/^  [^ *]/s/^  /* /' $< >$@
-
-%.pre4: %.pre3
-	# add ":" before first "  " in list
-	sed -e '/^\*/s/^\(\*.*\)  \(.*\)$$/\1: \2/' -e '/^\*/s/ *:/:/' $< >$@
-
-%.pre5: %.pre4
-	# trim long leading spaces
-	sed -e '/^      *\*/s/^[ ]*\*/  \* /' $< >$@
-
-%.pre6: %.pre5
-	# escape special characters
-	sed -e 's,~,\\~,g' -e 's,<,\\<,g'  $< >$@
-
-README.md: README.md0 README.pre6 README.md1 debian/changelog FORCE
+README.md: README.md0 bin/bss README.md1 debian/changelog FORCE
 	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" README.md0 > $@
-	cat README.pre6 >> $@
+	# reformat bss --help output
+	#  * make subsection titles
+	#  * make list in markdown for "  " starting lines
+	#  * add ":" before first "  " in list
+	#  * trim long leading spaces
+	#  * escape special characters
+	bin/bss --help |\
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" \
+	    -e 's/^\(\S*\):$$/### \1/' \
+	    -e '/^  [^ *]/s/^  /* /' \
+	    -e '/^\*/s/^\(\*.*\)  \(.*\)$$/\1: \2/' -e '/^\*/s/ *:/:/' \
+	    -e '/^      *\*/s/^[ ]*\*/  \* /' \
+	    -e 's,~,\\~,g' -e 's,<,\\<,g' >>$@
 	cat README.md1 >> $@
 
 .PHONY: FORCE

@@ -1,5 +1,5 @@
 <!--
-version: 2.2.1
+version: 2.2.2
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
@@ -14,7 +14,7 @@ arguments to manage data on btrfs.  This `bss` is also a shell wrapper program
 to execute `rsync` with required arguments containing `-rx` to make backups of
 the subvolume.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.2.1
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.2.2
 
 ## Breaking changes
 
@@ -23,6 +23,7 @@ my personal usage.
 
 * 2.1.1: Add "bss gather" to use "rsync --files-from" (2024-01-13)
 * 2.2.1: Change "bss gather" to use rsync FILTER RULES (2024-03-25)
+* 2.2.2: No more exclusive run check inside of bss (2025-08-23)
 
 ## Design of `bss`
 
