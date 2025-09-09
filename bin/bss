@@ -34,6 +34,8 @@ else
     exit $EXIT_ERROR
   fi
 fi
+# dash may not set HOME
+HOME=~
 #############################################################################
 # command and file path parameters (initial values)
 #############################################################################
@@ -109,19 +111,22 @@ BSS_FORCE=""
 # System Functions (trap)
 ##############################################################################
 # traps
+# shellcheck disable=SC2329
 __term_exit() {
   __echo 0 "Process externally interrupted.  Terminating $PROG_NAME."
-  exit $EXIT_ERROR
+  exit "$EXIT_ERROR"
 }
 trap '__term_exit' HUP INT QUIT TERM
 # dash: EXIT (but no ERR)
+# shellcheck disable=SC2329
 __err_exit() {
   __echo 0 "Internal process returned an error exit.  Terminating $PROG_NAME."
-  exit $EXIT_ERROR
+  exit "$EXIT_ERROR"
 }
+# shellcheck disable=SC2329
 __exit_exit() {
   # No error exit
-  exit $EXIT_SUCCESS
+  exit "$EXIT_SUCCESS"
 }
 trap '[ $? -eq 0 ] && __exit_exit || __err_exit' EXIT
 
@@ -237,6 +242,7 @@ __echo() {
   $SETX_ON
 }
 __logger() {
+  # shellcheck disable=SC2086
   $BSS_NOOP $BSS_LOGGER_CMD "$@"
 }
 #############################################################################
@@ -348,7 +354,7 @@ SUBCOMMAND:
              ("zap" is required to be typed in full text)
   template   make template files in the "$BSS_DIR/" directory:
                * "$BSS_CONF" (aging rule)
-               * "$BSS_FLTR[.disabled]" (filtering rule)
+               * "${BSS_FLTR}[.disabled]" (filtering rule)
   batch FNB  change the current working directory to the user's home directory
              and source the shell script found at:
                * "\$XDG_CONFIG_HOME/$BSS/FNB" (non-root, \$XDG_CONFIG_HOME set)
@@ -518,7 +524,7 @@ END_OF_HELP
 
 __version() {
   cat <<EOM
-$PROG_NAMR ($PROG_VERSION)
+$PROG_NAME ($PROG_VERSION)
 
 Copyright (C) 2021-2024 Osamu Aoki <osamu@debian.org>
 
@@ -605,7 +611,7 @@ __set_fs_base() {
   BSS_CONF_BASE="$BSS_DIR_BASE/$BSS_CONF"
   BSS_FLTR_BASE="$BSS_DIR_BASE/$BSS_FLTR"
   BSS_PRE_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$PRE_COPY_SCRIPT"
-  BSS_POST_COPY_SCRIPT="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
+  BSS_POST_COPY_SCRIPT_BASE="$BSS_DIR_BASE/$POST_COPY_SCRIPT"
   #
 }
 ##############################################################################
@@ -800,6 +806,7 @@ __snapshot() {
     __logger $BSV snapshot "$FS_BASE" "$BSS_SNAP_DEST_BASE/${NOW_TSTR}.${BSS_TYPE}"
     if [ "$($BSV list -o "$FS_BASE" | wc -l)" != 0 ]; then
       __echo 1 "snapshot source contains nested subvolumes as follows.  Data in them are not in the snapshot taken."
+      # shellcheck disable=SC2086
       __logger $BSV list -o "$FS_BASE"
     fi
   fi
@@ -1175,7 +1182,9 @@ __revert() {
   BSS_TYPE="last"
   __snapshot
   __echo 1 "revert: Revert $FS_BASE with $BSS_SNAP_DEST_BASE/$BSS_SV"
+  # shellcheck disable=SC2086
   __logger $BSV delete "$FS_BASE"
+  # shellcheck disable=SC2086
   __logger $BSV snapshot "$BSS_SNAP_DEST_BASE/$BSS_SV" "$FS_BASE"
 }
 
@@ -1251,33 +1260,44 @@ __rsync() {
     BSS_COPY_DEST="$1"
     shift
   fi
-  # process aliases
-  BSS_COPY_MODE=0
-  case $BSS_COPY_DEST in
-  1)
-    BSS_COPY_DEST="$BSS_COPY_DEST1"
-    BSS_COPY_MODE=1
-    EXT_COPY_PRE="${EXT_COPY_PRE}1"
-    EXT_COPY_POST="${EXT_COPY_POST}1"
-    ;;
-  2)
-    BSS_COPY_DEST="$BSS_COPY_DEST2"
-    BSS_COPY_MODE=2
-    EXT_COPY_PRE="${EXT_COPY_PRE}2"
-    EXT_COPY_POST="${EXT_COPY_POST}2"
-    ;;
-  3)
-    BSS_COPY_DEST="$BSS_COPY_DEST3"
-    BSS_COPY_MODE=3
-    EXT_COPY_PRE="${EXT_COPY_PRE}3"
-    EXT_COPY_POST="${EXT_COPY_POST}3"
-    ;;
-  esac
   # remove tailing /
   while [ "$BSS_COPY_DEST" = "${BSS_COPY_DEST%/}/" ]; do
     BSS_COPY_DEST="${BSS_COPY_DEST%/}"
   done
   # sanity checks
+  # process aliases
+  case $BSS_COPY_DEST in
+  1)
+    if [ -n "$BSS_COPY_DEST1" ]; then
+      BSS_COPY_DEST="$BSS_COPY_DEST1"
+    else
+      __echo 0 "BSS_COPY_DEST1 is unset in config"
+      exit $EXIT_ERROR
+    fi
+    EXT_COPY_PRE="${EXT_COPY_PRE}1"
+    EXT_COPY_POST="${EXT_COPY_POST}1"
+    ;;
+  2)
+    if [ -n "$BSS_COPY_DEST2" ]; then
+      BSS_COPY_DEST="$BSS_COPY_DEST2"
+    else
+      __echo 0 "BSS_COPY_DEST2 is unset in config"
+      exit $EXIT_ERROR
+    fi
+    EXT_COPY_PRE="${EXT_COPY_PRE}2"
+    EXT_COPY_POST="${EXT_COPY_POST}2"
+    ;;
+  3)
+    if [ -n "$BSS_COPY_DEST3" ]; then
+      BSS_COPY_DEST="$BSS_COPY_DEST3"
+    else
+      __echo 0 "BSS_COPY_DEST3 is unset in config"
+      exit $EXIT_ERROR
+    fi
+    EXT_COPY_PRE="${EXT_COPY_PRE}3"
+    EXT_COPY_POST="${EXT_COPY_POST}3"
+    ;;
+  esac
   if [ -z "$BSS_COPY_DEST" ]; then
     __echo 0 "rsync: no copy destination given (or was /)"
     exit $EXIT_ERROR
@@ -1293,7 +1313,7 @@ __rsync() {
     RSYNC_OPTS="$RSYNC_OPTL $CMD_OPTV"
     if [ "${BSS_COPY_DEST}" = "${BSS_COPY_DEST#/}" ]; then
       # relative path: (not started with '/')
-      BSS_COPY_DEST="$(echo ~)/$BSS_COPY_DEST"
+      BSS_COPY_DEST="$HOME/$BSS_COPY_DEST"
     fi
     if [ ! -e "${BSS_COPY_DEST%/*}" ]; then
       # make parent dir
@@ -1414,6 +1434,7 @@ __gather_all() {
   fi
   if [ -r "$BSS_GATHER_GPG_ABS_RC" ] || [ -r "$BSS_GATHER_GPG_REL_RC" ]; then
     __echo 2 "gather: Generate $BSS_GATHER_TARGPG (overwritten)"
+    # shellcheck disable=SC2086
     $SUDO $TAR -c $CMD_OPTV -C "$BSS_GATHER_GPG_DEST" "." |
       $GPG --encrypt -o "-" --default-recipient-self "-" >"${BSS_GATHER_TARGPG}"
     $SUDO rm -rf "$BSS_GATHER_GPG_DEST"
@@ -1439,6 +1460,7 @@ __gather() {
   RSYNC_OPTS="$RSYNC_OPTG $CMD_OPTV"
   __echo 2 "gather: Gather using '$BSS_GATHER_RC' to '$BSS_GATHER_DEST' (overwritten)"
   # Hidden undocumented argument handling: $@ (after source)
+    # shellcheck disable=SC2086
   __logger $RSYNC $RSYNC_OPTS "$@" --filter="- $BSS_DIR/" \
     --filter=". $BSS_GATHER_RC" "$BSS_GATHER_BASE" \
     "$BSS_GATHER_DEST" || true
@@ -1457,9 +1479,9 @@ __template_conf_btrfs() {
 ### Active DATA AGING PARAMETERS
 BSS_NMIN="$BSS_NMIN"  # NMIN: minimum items to keep (initial)
 BSS_NMAX="$BSS_NMAX"  # NMAX: maximum items to keep (last, if 0, keep all)
-BSS_TMAX="$BSS_TMAX"  # TMAX: stop aging, $(age_string $BSS_TMAX)
-BSS_TMID="$BSS_TMID"  # TMID: start process, $(age_string $BSS_TMID)
-BSS_TMIN="$BSS_TMIN"  # TMIN: start aging, $(age_string $BSS_TMIN)
+BSS_TMAX="$BSS_TMAX"  # TMAX: stop aging, $(age_string "$BSS_TMAX")
+BSS_TMID="$BSS_TMID"  # TMID: start process, $(age_string "$BSS_TMID")
+BSS_TMIN="$BSS_TMIN"  # TMIN: start aging, $(age_string "$BSS_TMIN")
 BSS_STEP="$BSS_STEP"  # STEP: aging step $BSS_STEP %, $(age_string $(($BSS_TMAX * $BSS_STEP / 100))) at BSS_TMAX
 BSS_TMAX_ACTION="$BSS_TMAX_ACTION"  # TMAX_ACTION: action at TMAX.  'keep' or 'drop'
 BSS_TMID_ACTION="$BSS_TMID_ACTION"  # TMID_ACTION: action at TMID.  'filter' or 'no_filter'
@@ -1468,9 +1490,9 @@ BSS_FMIN="$BSS_FMIN"  # FMIN: minimum required free disk % for snapshot
 ### Baseline DATA AGING PARAMETERS
 ## BSS_NMIN="$BSS_NMIN"  # NMIN: minimum items to keep (initial)
 ## BSS_NMAX="$BSS_NMAX"  # NMAX: maximum items to keep (last, if 0, keep all)
-## BSS_TMAX="$BSS_TMAX"  # TMAX: stop aging, $(age_string $BSS_TMAX)
-## BSS_TMID="$BSS_TMID"  # TMID: start process, $(age_string $BSS_TMID)
-## BSS_TMIN="$BSS_TMIN"  # TMIN: start aging, $(age_string $BSS_TMIN)
+## BSS_TMAX="$BSS_TMAX"  # TMAX: stop aging, $(age_string "$BSS_TMAX")
+## BSS_TMID="$BSS_TMID"  # TMID: start process, $(age_string "$BSS_TMID")
+## BSS_TMIN="$BSS_TMIN"  # TMIN: start aging, $(age_string "$BSS_TMIN")
 ## BSS_STEP="$BSS_STEP"  # STEP: aging step $BSS_STEP %, $(age_string $(($BSS_TMAX * $BSS_STEP / 100))) at BSS_TMAX
 ## BSS_TMAX_ACTION="$BSS_TMAX_ACTION"  # TMAX_ACTION: action at TMAX.  'keep' or 'drop'
 ## BSS_TMID_ACTION="$BSS_TMID_ACTION"  # TMID_ACTION: action at TMID.  'filter' or 'no_filter'
@@ -1743,7 +1765,7 @@ __batch() {
     if [ -n "$XDG_CONFIG_HOME" ]; then
       CONFIG_BSS="${XDG_CONFIG_HOME}/bss"
     else
-      CONFIG_BSS="$(echo ~)/.config/bss"
+      CONFIG_BSS="$HOME/.config/bss"
     fi
     mkdir -p "$CONFIG_BSS"
     chmod 755 "$CONFIG_BSS"
@@ -1769,6 +1791,7 @@ __batch() {
   export BSS_TYPE
   export BSS_MAY
   # simply source $BSS_BATCH_FILE: ~/.config/bss/<specified>
+  # shellcheck disable=SC1090
   . "$BSS_BATCH_FILE" || "$BSS_MAY"
 }
 ##############################################################################
@@ -1823,7 +1846,7 @@ while [ -n "$1" ]; do
     ;;
   -e | --echo)
     # force to enable screen echo
-    BSS_LOGGER_=1
+    BSS_LOGGER_ECHO=1
     ;;
   -E | --noecho)
     # force to disable screen echo
@@ -1847,6 +1870,8 @@ while [ -n "$1" ]; do
   esac
   shift
 done
+# set logger level
+__set_logger
 # update parameters for -c
 BSS_CONF="$BSS_STEM.$EXT_CONF"
 BSS_FLTR="$BSS_STEM.$EXT_FLTR"
@@ -1869,7 +1894,7 @@ j*) # jobs
   exit $EXIT_SUCCESS
   ;;
 b*) # batch (Always change PWD to ~/)
-  cd "$(echo ~)"
+  cd "$HOME"
   # batch mode: systend logger ON as default
   if [ "$BSS_LOGGER_JOURNAL" = "-1" ]; then
     BSS_LOGGER_JOURNAL=1
@@ -1907,6 +1932,7 @@ o*) # overview (for human check)
   __load_config
   # Logging outputs use STDERR, drop normal __age outputs to STDOUT
   BSS_LOGGER_LEVEL=3
+  __set_logger
   __age >/dev/null
   ;;
 p*) # process
