@@ -66,6 +66,7 @@ prep:
 	$(MAKE) test
 	$(MAKE) bss.1
 	$(MAKE) README.md
+	-rm -f bss.help2man bss.man0 bss.man1
 
 # auto-generate man page
 bss.help2man: bin/bss
