@@ -419,10 +419,14 @@ This "$BSS gather" is essentially a wrapper for
 
 Unlike "$BSS copy", the recursive scope of "$BSS gather" is not limited within
 filesystem volume nor subvolume.  The configuration files "${BSS_GATHER}.*.*rc"
-follow "FILTER RULES" in rsync(1) manpage.  If any of these are missing,
-corresponding gather actions are skipped without error.  Even when error is
-encountered, "$BSS gather" only emits logging messages and exits as success.
-The use of "--delete-excluded" option for "rsync" is the intentional choice.
+follow "FILTER RULES" in rsync(1) manpage.   Basically, this filter rule lists
+files and directories to be backed up preceded by "+ " then add "- *" at the
+end of it.
+
+If any of these filter rule files are missing, their corresponding gather
+actions are skipped without error.  Even when error is encountered, "$BSS gather"
+only emits logging messages and exits as success. The use of
+"--delete-excluded" option for "rsync" is the intentional choice.
 
 "$BSS zap" always operates on the current working directory as "PATH".  Thus
 the first argument is not "PATH" but one of following action specifies:
