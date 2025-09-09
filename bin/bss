@@ -131,9 +131,9 @@ __exit_exit() {
 trap '[ $? -eq 0 ] && __exit_exit || __err_exit' EXIT
 
 #############################################################################
-# System Variables (CMD_OPTV, BSS_LOGGER_CMD)
+# System Variables (set CMD_OPTV for BSS_LOGGER_LEVEL)
 ##############################################################################
-__set_logger() {
+__set_optv() {
   case $BSS_LOGGER_LEVEL in
   0)
     CMD_OPTV="-q"
@@ -157,27 +157,6 @@ __set_logger() {
     CMD_OPTV="-vvvv"
     ;;
   esac
-  if [ "$BSS_LOGGER_JOURNAL" = "1" ]; then
-    case $BSS_LOGGER_LEVEL in
-    0)
-      BSS_LOGGER_CMD="systemd-cat -p 3 -t $PROG_NAME"
-      ;;
-    1)
-      BSS_LOGGER_CMD="systemd-cat -p 4 -t $PROG_NAME"
-      ;;
-    2)
-      BSS_LOGGER_CMD="systemd-cat -p 5 -t $PROG_NAME"
-      ;;
-    3)
-      BSS_LOGGER_CMD="systemd-cat -p 6 -t $PROG_NAME"
-      ;;
-    4 | 5 | 6 | 7)
-      BSS_LOGGER_CMD="systemd-cat -p 7 -t $PROG_NAME"
-      ;;
-    esac
-  else
-    BSS_LOGGER_CMD=""
-  fi
 }
 #############################################################################
 # System Functions (__echo and __logger)
@@ -241,9 +220,35 @@ __echo() {
   fi
   $SETX_ON
 }
+
 __logger() {
-  # shellcheck disable=SC2086
-  $BSS_NOOP $BSS_LOGGER_CMD "$@"
+  if [ "$BSS_LOGGER_JOURNAL" = "1" ]; then
+    case $BSS_LOGGER_LEVEL in
+    0)
+      # shellcheck disable=SC2086
+      $BSS_NOOP systemd-cat -p 3 -t $PROG_NAME "$@"
+      ;;
+    1)
+      # shellcheck disable=SC2086
+      $BSS_NOOP systemd-cat -p 4 -t $PROG_NAME "$@"
+      ;;
+    2)
+      # shellcheck disable=SC2086
+      $BSS_NOOP systemd-cat -p 5 -t $PROG_NAME "$@"
+      ;;
+    3)
+      # shellcheck disable=SC2086
+      $BSS_NOOP systemd-cat -p 6 -t $PROG_NAME "$@"
+      ;;
+    4 | 5 | 6 | 7)
+      # shellcheck disable=SC2086
+      $BSS_NOOP systemd-cat -p 7 -t $PROG_NAME "$@"
+      ;;
+    esac
+  else
+    # shellcheck disable=SC2086
+    $BSS_NOOP "$@"
+  fi
 }
 #############################################################################
 # System Function (__help)
@@ -568,9 +573,9 @@ __set_fs_base() {
   #   * FS_TYPE: Filesystem type of FS_BASE0 and FS_BASE
   #   * FS_BASE_*, BSS_*, ...
   FS_BASE0="$($SUDO realpath "$FS_BASE0")"
-  __echo 4 "_: FS_BASE0            = '$FS_BASE0'"
+  __echo 4 "_: FS_BASE0            = '$FS_BASE0' (real path)"
   FS_BASE1="$($SUDO stat -c %m "$FS_BASE0")"
-  __echo 4 "_: FS_BASE1            = '$FS_BASE1'"
+  __echo 4 "_: FS_BASE1            = '$FS_BASE1' (mount point)"
   FS_BASE="$FS_BASE1"
   FS_TYPE="$($SUDO stat -f -c %T "$FS_BASE0")"
   __echo 4 "_: FS_TYPE             = '$FS_TYPE'"
@@ -1871,7 +1876,7 @@ while [ -n "$1" ]; do
   shift
 done
 # set logger level
-__set_logger
+__set_optv
 # update parameters for -c
 BSS_CONF="$BSS_STEM.$EXT_CONF"
 BSS_FLTR="$BSS_STEM.$EXT_FLTR"
@@ -1932,7 +1937,7 @@ o*) # overview (for human check)
   __load_config
   # Logging outputs use STDERR, drop normal __age outputs to STDOUT
   BSS_LOGGER_LEVEL=3
-  __set_logger
+  __set_optv
   __age >/dev/null
   ;;
 p*) # process
