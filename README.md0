@@ -44,9 +44,9 @@ This `bss` command is designed with following items in mind:
   * automatic and easy to execute (integration via `*.desktop` and
     `systemd.unit`(5) files)
   * flexible (no special subvolume name required: `@` or `@rootfs`)
-  * Rely only on standard backend tools
-    * `systemd`
+  * minimal system dependency by using only standard backend tools
     * Linux kernel (btrfs support)
+    * `systemd`
     * `btrfs-progs`
     * `openssh-client`
     * `rsync`
