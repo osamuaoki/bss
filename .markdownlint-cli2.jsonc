@@ -1,0 +1,16 @@
+/*
+ * Configuration file for markdownlint-cli2
+* https://github.com/LazyVim/LazyVim/discussions/4094
+* https://github.com/LazyVim/LazyVim/discussions/4094#discussioncomment-10178217
+*
+* https://github.com/igorshubovych/markdownlint-cli/?tab=readme-ov-file#configuration
+*
+ */
+{
+  "config": {
+    "MD007": false, // ul-indent Unordered list indentation
+    "MD013": false, // line-length Line length
+    "MD014": false, // commands-show-output Dollar signs
+    "MD034": false, // no-bare-urls Bare URL used
+  }
+}
