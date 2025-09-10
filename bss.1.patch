@@ -1,9 +1,9 @@
---- bss.man1.orig	2024-03-25 17:26:38.617012156 +0900
-+++ bss.man1	2024-03-25 17:26:38.629012315 +0900
+--- bss.man1.orig	2025-09-10 17:18:04.276949487 +0900
++++ bss.man1	2025-09-10 17:18:04.292949607 +0900
 @@ -2,11 +2,12 @@
- .TH BSS "1" "March 2024" "bss  (@@@VERSION@@@)" "User Commands"
+ .TH BSS "1" "September 2025" "bss (@@@VERSION@@@)" "User Commands"
  .SH NAME
- bss \- btrfs subvolume snapshot utility  (@@@VERSION@@@)
+ bss \- btrfs subvolume snapshot utility (@@@VERSION@@@)
 -.SH DESCRIPTION
 -.SS "USAGE:"
 -.IP
@@ -14,9 +14,9 @@
  bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
 +.SH DESCRIPTION
  .PP
- "bss" is basically a "btrfs subvolume ..." command wrapper to create and
+ "bss" is mostly a "btrfs subvolume ..." command wrapper to create and
  process historical snapshots with the intuitive snapshot subvolume name and
-@@ -39,28 +40,38 @@
+@@ -38,28 +39,38 @@
  ".bss.d/" directory.  This involves following actions:
  .IP
  * Secure minimum required free blocks (minimum FMIN %).
@@ -56,8 +56,8 @@
 +.RE
  .PP
  Subcommands such as "bss copy ...", "bss gather ..." which use "rsync" as
- their backend tool work with non\-btrfs filesystem.
-@@ -166,6 +177,7 @@
+ their backend tool work also with non\-btrfs filesystem.
+@@ -165,6 +176,7 @@
  make template files in the ".bss.d/" directory:
  .IP
  * ".bss.conf" (aging rule)
@@ -65,7 +65,7 @@
  * ".bss.fltr[.disabled]" (filtering rule)
  .TP
  batch FNB
-@@ -173,7 +185,9 @@
+@@ -172,7 +184,9 @@
  and source the shell script found at:
  .IP
  * "$XDG_CONFIG_HOME/bss/FNB" (non\-root, $XDG_CONFIG_HOME set)
@@ -75,7 +75,7 @@
  * "/etc/bss/FNB" (root)
  .TP
  BASE
-@@ -211,6 +225,7 @@
+@@ -212,6 +226,7 @@
  "DEST_PATH" doesn't exist, it is created in advance as:
  .IP
  * a subvolume if it is on btrfs filesystem or,
@@ -84,7 +84,7 @@
  .PP
  If "DEST_PATH" is a local relative path without the leading  "/", then it is
 @@ -229,19 +244,15 @@
- "$FS_BASE" directory).
+ configuration files found in the PATH directory.
  .IP
  * ".gather.dir.absrc" and ".gather.dir.relrc" gather files to the
 -.IP
@@ -103,7 +103,7 @@
  directory as the source.
  .PP
  This "bss gather" is essentially a wrapper for
-@@ -317,7 +328,7 @@
+@@ -321,7 +332,7 @@
  invocations can be viewed with:
  .IP
  \f(CW$ journalctl -a -b -t bss\fR
@@ -112,7 +112,7 @@
  \f(CW$ journalctl -f -t bss\fR
  .PP
  Although "bss" is focused on the snapshot operation for btrfs, subcommands
-@@ -359,6 +370,7 @@
+@@ -372,6 +383,7 @@
  recursive.
  .SH AUTHOR
  Written by Osamu Aoki.
