@@ -6,7 +6,7 @@ vim:set ai si sts=2 sw=2 et tw=79:
 ## Example system
 
 Let me present a simple system setup case of data snapshot and backup for the
-Gnome desktop system (Debian Bookworm 12) with UEFI PC hardware with the NVMe
+Gnome desktop system (Debian Trixie 13) with UEFI PC hardware with the NVMe
 SSD GPT disk as an example for tutorial.
 
 Let's assume a few things.
@@ -37,7 +37,7 @@ There will be time stamped read-only snapshots on the USB storage.
 
 Create `/etc/apt/sources.list.d/osamuaoki.sources` as:
 
-```
+```text
 Types: deb
 URIs: https://osamuaoki.github.io/debian/
 Suites: sid
@@ -66,13 +66,13 @@ Signed-By:
 This adds my personal APT repository.  Then `bss` can be installed by
 `sudo aptitude -u` or by:
 
-```
+```console
  $ sudo apt update && sudo apt install bss
 ```
 
 ### For other system (or for testing)
 
-```
+```console
  $ git clone https://github.com/osamuaoki/bss.git
  $ cd bss
  $ sudo make bininstall
@@ -80,7 +80,7 @@ This adds my personal APT repository.  Then `bss` can be installed by
 
 ### For Debain/Ubuntu system (via local deb package)
 
-```
+```console
  $ git clone https://github.com/osamuaoki/bss.git
  $ cd bss
  $ debuild
@@ -92,7 +92,7 @@ This adds my personal APT repository.  Then `bss` can be installed by
 
 Run following commands to setup configuration files for `bss`:
 
-```
+```console
  $ bss template ~
 ```
 
@@ -113,15 +113,16 @@ environment to `/media/penguin/BKUP_USB` by `udisks2` package.
 
 You can find out its systemd unit for mounting it.
 
-```
+```console
  $ systemctl list-units -t mount | fgrep -e '/media/penguin/BKUP_USB'
   media-penguin-BKUP_USB.mount    loaded active mounted /media/penguin/BKUP_USB
 ```
 
-## Backup upon each mount event 
+## Backup upon each mount event
 
 Create `~/.config/systemd/user/bss-BKUP_USB.service` as:
-```
+
+```text
 [Unit]
 Description=USB Disk backup
 Requires=media-penguin-BKUP_USB.mount
@@ -135,7 +136,8 @@ WantedBy=media-penguin-BKUP_USB.mount
 ```
 
 Create `~/.config/bss/BKUP_USB`
-```
+
+```text
 ########################################################################
 # make new backup copy (path are relative from $HOME)
 # * source is a btrfs subvolume at ~/SRC_SUBVOL
@@ -161,13 +163,13 @@ bss_usb_backup Documents BKUP_USB
 
 Then, activate this service unit as:
 
-```sh
+```console
  $ systemctl --user enable bss-BKUP_USB.service
 ```
 
 Somehow, I get the following unexpected spurious yellow warning.
 
-```
+```console
 Unit /home/penguin/.config/systemd/user/bss-BKUP_USB.service is added as a dependency to a non-existent unit media-penguin-BKUP_USB.mount.
 ```
 
@@ -180,7 +182,7 @@ clickable GUI icon for its trigger.
 
 Create `~/.local/share/applications/bss-BKUP_USB.desktop` as:
 
-```
+```text
 [Desktop Entry]
 Name=bss backup
 Comment=USB Disk backup

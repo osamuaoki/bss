@@ -31,7 +31,7 @@ Let's consider to setup a simple system using 2 subvolumes:
 * User data subvolume `@penguin` mounted on `~/`.
 
 (Actual system setup which I use is more complicated to handle many subvolumes
-and many USB storage devices.  See 
+and many USB storage devices.  See
 [examples directory in this source](https://github.com/osamuaoki/bss/tree/main/examples) )
 
 I tend to forget to run snapshot and backup scripts.  So I want these backup
@@ -58,7 +58,7 @@ The first step of reconfiguration is to reboot this PC using the [system-rescue
 USB stick](https://www.system-rescue.org/) into rescue system environment and
 mount `newhost` system on `/target` and make system reconfiguration as:
 
-```
+```console
  rescue # mkdir /target
  rescue # mount UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /target
  rescue # btrfs subvolume create /target/@penguin
@@ -69,7 +69,7 @@ mount `newhost` system on `/target` and make system reconfiguration as:
 The 2nd step of reconfiguration is to move out old data and create a new empty
 directoy to be used as the mount point.
 
- ```
+ ```console
  rescue # mv /target/@rootfs/home/penguin /target/@rootfs/home/penguin-old
  rescue # mkdir -p /target/@rootfs/btrfs_root
  rescue # mkdir -p /target/@rootfs/home/penguin
@@ -79,7 +79,7 @@ directoy to be used as the mount point.
 The 3rd step of reconfiguration is to update `/target/@rootfs/etc/fstab` under
 this rescue environment as:
 
-```
+```text
 UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /             btrfs defaults,subvol=@rootfs 0 0
 UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /btrfs_root   btrfs defaults,subvol=/ 0 0
 UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/penguin btrfs defaults,subvol=@penguin 0 1
@@ -87,14 +87,13 @@ UUID=fe3e1db5-6454-46d6-a14c-071208ebe4b1 /home/penguin btrfs defaults,subvol=@p
 
 Now this PC is ready to be rebooted back into the normal `newhost` instance.
 
-
 ## Installation of `bss`
 
 ### For Debain/Ubuntu system (via APT)
 
 Create `/etc/apt/sources.list.d/osamuaoki.sources` as:
 
-```
+```text
 Types: deb
 URIs: https://osamuaoki.github.io/debian/
 Suites: sid
@@ -123,13 +122,13 @@ Signed-By:
 This adds my personal APT repository.  Then `bss` can be installed by
 `sudo aptitude -u` or by:
 
-```
+```console
  $ sudo apt update && sudo apt install bss
 ```
 
 ### For other system (or for testing)
 
-```
+```console
  $ git clone https://github.com/osamuaoki/bss.git
  $ cd bss
  $ sudo make bininstall
@@ -137,7 +136,7 @@ This adds my personal APT repository.  Then `bss` can be installed by
 
 ### For Debain/Ubuntu system (via local deb package)
 
-```
+```console
  $ git clone https://github.com/osamuaoki/bss.git
  $ cd bss
  $ debuild
@@ -149,7 +148,7 @@ This adds my personal APT repository.  Then `bss` can be installed by
 
 Run following commands to setup configuration files for `bss`:
 
-```
+```console
  $ sudo bss template /
  $ sudo mkdir -p /btrfs_root/root_snapshots
  $ bss template ~
@@ -178,7 +177,7 @@ environment to `/media/penguin/BKUP_USB` by `udisks2` package.
 
 You can find out its systemd unit for mounting it.
 
-```
+```console
  $ systemctl list-units -t mount | fgrep -e '/media/penguin/BKUP_USB'
   media-penguin-BKUP_USB.mount    loaded active mounted /media/penguin/BKUP_USB
 ```
@@ -186,7 +185,8 @@ You can find out its systemd unit for mounting it.
 ## Snapshot with 15 minute interval timer
 
 Create `~/.config/systemd/user/bss-snap.timer` as:
-```
+
+```text
 # activate by: systemctl --user enable bss-snap.timer
 [Unit]
 Description=Run bss commands hourly
@@ -199,11 +199,13 @@ OnUnitInactiveSec=900
 [Install]
 WantedBy=timers.target
 ```
+
 This is a time unit for `bss-snap.service`.  `bss-snap.service` is started 30
 seconds after start of the system and 300 seconds after its last execution.
 
 Create `~/.config/systemd/user/bss-snap.service` as:
-```
+
+```text
 [Unit]
 Description=Run bss commands to make snapshots
 Documentation=man:bss(1)
@@ -224,7 +226,8 @@ StandardError=null
 ```
 
 Create `~/.config/bss/snapshots`
-```
+
+```text
 # make new snapshots
 bss snapshot           || "$BSS_MAY"
 bss gather   Documents || "$BSS_MAY"
@@ -239,7 +242,7 @@ all lines without stopping in the middle.
 
 Prepare subvolumes as:
 
-```
+```console
  $ bss template ~
  $ bss template ~/Documents
  $ sudo bss template /
@@ -248,14 +251,16 @@ Prepare subvolumes as:
 Update `/bss.d/.bss.conf` if you want to optimize aging behavior to your needs.
 
 Then, activate this timer unit as:
-```sh
+
+```console
  $ systemcrl --user enable bss-snap.timer
 ```
 
-## Backup upon each mount event 
+## Backup upon each mount event
 
 Create `~/.config/systemd/user/bss-BKUP_USB.service` as:
-```
+
+```text
 [Unit]
 Description=USB Disk backup
 Requires=media-penguin-BKUP_USB.mount
@@ -269,7 +274,8 @@ WantedBy=media-penguin-BKUP_USB.mount
 ```
 
 Create `~/.config/bss/BKUP_USB`
-```
+
+```text
 ########################################################################
 # make new backup copy (path are relative from $HOME)
 # * source is a btrfs subvolume at ~/SRC_SUBVOL
@@ -295,13 +301,13 @@ bss_usb_backup Documents BKUP_USB
 
 Then, activate this service unit as:
 
-```sh
+```console
  $ systemctl --user enable bss-BKUP_USB.service
 ```
 
 Somehow, I get the following unexpected spurious yellow warning.
 
-```
+```text
 Unit /home/penguin/.config/systemd/user/bss-BKUP_USB.service is added as a dependency to a non-existent unit media-penguin-BKUP_USB.mount.
 ```
 
@@ -318,7 +324,7 @@ Here is an example to make snapshot of system image for `@rootfs`.
 
 Create `/etc/apt/apt.conf.d/80bss` as:
 
-```
+```text
   DPkg::Pre-Invoke  { "/usr/bin/bss snapshot --logger --type=pre  / || true" ; } ;
   DPkg::Post-Invoke { "/usr/bin/bss snapshot --logger --type=post / || true" ; } ;
 ```
@@ -327,7 +333,7 @@ Then `bss snapshot ...` for root filesystem is invoked for every APT event.
 
 Here, `/bss.d/.bss.conf` has:
 
-```
+```text
 BSS_SNAP_DEST="/btrfs_root/@rootfs-snapshots"
 ```
 
@@ -344,7 +350,7 @@ realized by offering clickable GUI icon for its trigger.
 
 Create `~/.local/share/applications/bss-rsync.desktop` as:
 
-```
+```text
 [Desktop Entry]
 Name=bss remote backup
 Comment=rsync from ~/rsync to rsync.net
@@ -354,7 +360,7 @@ Type=Application
 
 Create `~/.config/bss/rsyncnet` as:
 
-```
+```text
 ########################################################################
 # Backup to the rsync.net
 ########################################################################
@@ -384,4 +390,3 @@ Please see examples/ directory in the source code repository of this bss.
 There I use `secret-tool` to avoid including unnecessary information hard-coded
 into source code and `notify-send` to help user with the situation awareness of
 the slow background processes.
-

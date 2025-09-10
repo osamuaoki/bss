@@ -11,8 +11,7 @@ vim:set ai si sts=2 sw=2 et tw=79:
 This is Osamu's "Btrfs Subvolume Snapshot" utility `bss` which is a shell
 wrapper program to execute `btrfs subvolume snapshot` command with required
 arguments to manage data on btrfs.  This `bss` is also a shell wrapper program
-to execute `rsync` with required arguments containing `-rx` to make backups of
-the subvolume.
+to execute `rsync` with required arguments to make copies and backups.
 
 * [bss: source repository](https://github.com/osamuaoki/bss) -- version: @@@VERSION@@@
 
@@ -24,26 +23,28 @@ my personal usage.
 * 2.1.1: Add "bss gather" to use "rsync --files-from" (2024-01-13)
 * 2.2.1: Change "bss gather" to use rsync FILTER RULES (2024-03-25)
 * 2.2.2: No more exclusive run check inside of bss (2025-08-23)
+* 2.2.3: Clean up code and documentation (2025-09-10)
 
 ## Design of `bss`
 
-In order to be absolutely sure to recover from accidental erase of important
-data, disastrous disk failure, or even loss of the workstation, this `bss`
-command is designed with following items in mind:
+This `bss` command is designed with following items in mind:
 
+* Offer robust data recovery capability against:
+  * accidental erase of important data,
+  * disastrous disk failure, or 
+  * loss of the workstation,
+* Offer all basic backup features:
+  * enable snapshots on the local disk with time stamp
+  * enable aging and processing of older snapshots
+  * enable easy backups to the plug-in USB storage
+  * enable secure backups to the remote storage service (rsync.net)
 * Keep it simple
   * single file shell script
   * simple to configure via batch files `~/.config/bss/*` etc.
   * automatic and easy to execute (integration via `*.desktop` and
     `systemd.unit`(5) files)
   * flexible (no special subvolume name required: `@` or `@rootfs`)
-* Offer all basic features
-  * enable snapshots on the local disk with time stamp
-  * enable aging and processing of older snapshots
-  * enable easy backups to the plug-in USB storage
-  * enable secure backups to the remote storage service (rsync.net)
-* Offer robust data recovery capability
-  * rely only on standard backend tools
+  * Rely only on standard backend tools
     * `systemd`
     * Linux kernel (btrfs support)
     * `btrfs-progs`
