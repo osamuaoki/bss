@@ -59,7 +59,8 @@ test:
 #### normal build since this is just for synchronizing documentation with the
 #### script.
 
-#### Run "make prep" and commit successful results to the git repo in advance.
+#### Run "make prep" and commit successful results to the git repo in advance
+#### after bumping to new version.
 
 prep:
 	$(MAKE) clean

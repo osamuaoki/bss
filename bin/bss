@@ -650,23 +650,19 @@ __set_fs_base() {
 # load parameters
 ##############################################################################
 __load_config() {
-  __echo 3 "conf: Run '$BSS $BSS_COMMAND' on BASE=$FS_BASE (inode=256) $FS_BASE_UID:$FS_BASE_GID"
-  __echo 4 "conf: BSS_FLTR            = '$BSS_FLTR'"
-  __echo 4 "conf: BSS_GATHER          = '$BSS_GATHER'"
-  __echo 4 "conf: BSS_NOOP            = '$BSS_NOOP'"
-  __echo 4 "conf: BSS_LOGGER_LEVEL    = '$BSS_LOGGER_LEVEL'"
-  __echo 4 "conf: BSS_LOGGER_ECHO     = '$BSS_LOGGER_ECHO'"
-  __echo 4 "conf: BSS_LOGGER_JOURNAL  = '$BSS_LOGGER_JOURNAL'"
+  __echo 4 "conf: Run '$BSS $BSS_COMMAND' with"
+  __echo 4 "conf:   FS_BASE             = '$FS_BASE' (inode=256) $FS_BASE_UID:$FS_BASE_GID"
+  __echo 4 "conf:   BSS_FLTR            = '$BSS_FLTR'"
+  __echo 4 "conf:   BSS_GATHER          = '$BSS_GATHER'"
+  __echo 4 "conf:   BSS_NOOP            = '$BSS_NOOP'"
+  __echo 4 "conf:   BSS_LOGGER_LEVEL    = '$BSS_LOGGER_LEVEL'"
+  __echo 4 "conf:   BSS_LOGGER_ECHO     = '$BSS_LOGGER_ECHO'"
+  __echo 4 "conf:   BSS_LOGGER_JOURNAL  = '$BSS_LOGGER_JOURNAL'"
   if [ -r "$BSS_CONF_BASE" ]; then
-    __echo 3 "conf:  configuration at    $BSS_CONF_BASE"
+    __echo 3 "conf: BSS_CONF_BASE         = '$BSS_CONF_BASE'"
   else
-    __echo 0 "conf:  configuration missing, please use '$BSS template $FS_BASE'"
+    __echo 0 "conf: configuration '$BSS_CONF_BASE' missing, please use '$BSS template $FS_BASE'"
     exit $EXIT_ERROR
-  fi
-  if [ -r "$BSS_FLTR_BASE" ]; then
-    __echo 3 "conf:  filter        at    $BSS_FLTR_BASE"
-  else
-    __echo 3 "conf:  filter  missing     (probably OK)."
   fi
   # __echo 3 "Ensure to run a single instance of $BSS (wait up to 30 sec)"
   #  # fd=9 not used elsewhere in this script. (/ home, ... starts this script)
@@ -689,7 +685,7 @@ __load_config() {
     exit $EXIT_ERROR
   fi
   # ensure proper permissions
-  __echo 3 "conf: Set permissions to $FS_BASE_UID:$FS_BASE_GID $FS_BASE_MOD for $BSS_DIR_BASE"
+  __echo 3 "conf: BSS_DIR_BASE          = '$BSS_DIR_BASE' set to $FS_BASE_UID:$FS_BASE_GID $FS_BASE_MOD"
   # match owner with the parent directory
   __logger $SUDO chown "$FS_BASE_UID":"$FS_BASE_GID" "$BSS_DIR_BASE"
   __logger $SUDO chmod "$FS_BASE_MOD" "$BSS_DIR_BASE"
@@ -697,6 +693,32 @@ __load_config() {
     # shellcheck disable=SC1090
     . "$BSS_CONF_BASE"
     __echo 4 "conf: Sourced $BSS_CONF for BASE=$FS_BASE"
+  fi
+  # normalize BSS_TMID_ACTION
+  if [ "$BSS_TMID_ACTION" = "filter" ]; then
+    BSS_TMID_ACTION="filter"
+  else
+    BSS_TMID_ACTION="no_filter"
+  fi
+  if [ -r "$BSS_FLTR_BASE" ] && [ "$BSS_TMID_ACTION" = "filter" ]; then
+    __echo 4 "conf: BSS_TMID_ACTION = $BSS_TMID_ACTION BSS_FLTR=$BSS_FLTR (filter exists and is used)"
+  elif [ -r "$BSS_FLTR_BASE" ] && [ "$BSS_TMID_ACTION" = "no_filter" ]; then
+    __echo 1 "conf: BSS_TMID_ACTION = $BSS_TMID_ACTION BSS_FLTR=$BSS_FLTR (filter exists but is ignored)"
+  elif [ ! -r "$BSS_FLTR_BASE" ] && [ "$BSS_TMID_ACTION" = "no_filter" ]; then
+    __echo 4 "conf: BSS_TMID_ACTION = $BSS_TMID_ACTION BSS_FLTR=$BSS_FLTR (filter missing and not filtered)"
+  else
+    __echo 1 "conf: BSS_TMID_ACTION = $BSS_TMID_ACTION BSS_FLTR=$BSS_FLTR (filter missing and force no_filter)"
+    BSS_TMID_ACTION="no_filter"
+  fi
+  # normaliz BSS_TMAX_ACTIONe
+  if [ "$BSS_TMAX_ACTION" = "drop" ]; then
+    BSS_TMAX_ACTION="drop"
+  else
+    BSS_TMAX_ACTION="keep"
+  fi
+  if [ "$BSS_TMAX_ACTION" = "drop" ] && [ "$BSS_TMAX" = "0" ]; then
+    __echo 1 "conf: TMAX_ACTION is 'drop' despite TMAX=0 (no_limit), force to change TMAX_ACTION to 'keep'"
+    BSS_TMAX_ACTION="keep"
   fi
   # normalize and sanity check parameters (ensure gaps TMIN TMID TMAX etc.)
   if [ "$BSS_NMIN" -lt "1" ]; then
@@ -730,28 +752,6 @@ __load_config() {
     __echo 1 "conf: Aging step too big, force STEP=90% (i.e. 10x age ratio from the younger one)"
     BSS_STEP=90
   fi
-  # normalize
-  if [ "$BSS_TMAX_ACTION" = "drop" ]; then
-    BSS_TMAX_ACTION="drop"
-  else
-    BSS_TMAX_ACTION="keep"
-  fi
-  if [ "$BSS_TMID_ACTION" = "filter" ]; then
-    BSS_TMID_ACTION="filter"
-  else
-    BSS_TMID_ACTION="no_filter"
-  fi
-  if [ "$BSS_TMAX_ACTION" = "drop" ] && [ "$BSS_TMAX" = "0" ]; then
-    __echo 1 "conf: TMAX_ACTION is 'drop' despite TMAX=0 (no_limit), force to change TMAX_ACTION to 'keep'"
-    BSS_TMAX_ACTION="keep"
-  fi
-  if [ "$BSS_TMID_ACTION" != "filter" ] && [ -r "$BSS_FLTR_BASE" ]; then
-    __echo 1 "conf: TMID_ACTION=no_filter but unused filter $BSS_FLTR exists for BASE=$FS_BASE"
-  fi
-  if [ "$BSS_TMID_ACTION" = "filter" ] && [ ! -r "$BSS_FLTR_BASE" ]; then
-    __echo 1 "conf: Force TMID_ACTION=no_filter since $BSS_FLTR is missing for BASE=$FS_BASE"
-    BSS_TMID_ACTION="no_filter"
-  fi
   # Human readable string
   S_NMIN="$BSS_NMIN"
   if [ "$BSS_NMAX" = "0" ]; then
@@ -773,19 +773,19 @@ __load_config() {
     # snapshot non-visible from the original FS
     BSS_SNAP_DEST_BASE="$BSS_SNAP_DEST"
   fi
-  __echo 3 "conf: snapshot source: BASE=$FS_BASE"
-  __echo 3 "conf: snapshot destination: BSS_SNAP_DEST_BASE=$BSS_SNAP_DEST_BASE"
-  __echo 3 "conf: NMAX = '$BSS_NMAX' = $S_NMAX (maximum number of SV to keep)"
-  __echo 3 "conf: NMIN = '$BSS_NMIN' = $S_NMIN (minimum number of SV to keep)"
-  __echo 3 "conf: TMAX = '$BSS_TMAX' = $S_TMAX (time to stop aging)"
-  __echo 3 "conf: TMID = '$BSS_TMID' = $S_TMID (time to stop prioritizing and optionally apply filter)"
-  __echo 3 "conf: TMIN = '$BSS_TMIN' = $S_TMIN (time to start aging SV)"
-  __echo 3 "conf: STEP = '$BSS_STEP'% (age gap ratio to keep a newer SV, (age_gap_ratio) = (age_old - age_new)/age_old"
+  __echo 3 "conf: FS_BASE               = '$FS_BASE' (snapshot source)"
+  __echo 3 "conf: BSS_SNAP_DEST_BASE    = '$BSS_SNAP_DEST_BASE' (snapshot destination)"
+  __echo 3 "conf: NMAX                  = '$BSS_NMAX' = $S_NMAX (maximum number of SV to keep)"
+  __echo 3 "conf: NMIN                  = '$BSS_NMIN' = $S_NMIN (minimum number of SV to keep)"
+  __echo 3 "conf: TMAX                  = '$BSS_TMAX' = $S_TMAX (time to stop aging)"
+  __echo 3 "conf: TMAX_ACTION           = '$BSS_TMAX_ACTION' (action at TMAX)"
+  __echo 3 "conf: TMID                  = '$BSS_TMID' = $S_TMID (time to stop prioritizing and optionally apply filter)"
+  __echo 3 "conf: TMID_ACTION           = '$BSS_TMID_ACTION' (action at TMID)"
+  __echo 3 "conf: TMIN = '$BSS_TMIN'    = $S_TMIN (time to start aging SV)"
+  __echo 3 "conf: STEP = '$BSS_STEP'% age gap ratio to keep a newer SV, (age_gap_ratio) = (age_old - age_new)/age_old"
   __echo 3 "conf:     STEP maximum     $(age_string $(($BSS_TMAX * $BSS_STEP / 100)))"
   __echo 3 "conf:     STEP middle      $(age_string $(($BSS_TMID * $BSS_STEP / 100)))"
   __echo 3 "conf:     STEP minimum     $(age_string $(($BSS_TMIN * $BSS_STEP / 100)))"
-  __echo 3 "conf: TMAX_ACTION = '$BSS_TMAX_ACTION' (action at TMAX)"
-  __echo 3 "conf: TMID_ACTION = '$BSS_TMID_ACTION' (action at TMID)"
   __echo 3 "conf: FMIN = '$BSS_FMIN'% (minimum required free disk % for snapshot)"
 }
 
@@ -1083,20 +1083,20 @@ __age() {
 ##############################################################################
 __process() {
   if [ "$FS_TYPE" != "btrfs" ]; then
-    __echo 0 "process: Wrong filesystem: FS=$FS_TYPE, BASE=$FS_BASE "
+    __echo 0 "process: FS=$FS_TYPE, BASE=$FS_BASE exit (wrong filesystem)"
     exit $EXIT_ERROR
   fi
-  __echo 2 "process: Process snapshots: BASE=$FS_BASE TIME=$NOW_TSTR"
+  __echo 2 "process: TIME = $NOW_TSTR NOW  BASE=$FS_BASE ($FS_TYPE)"
   BASE_BSS_LOGGER_LEVEL="$BSS_LOGGER_LEVEL"
   if [ "$BSS_LOGGER_LEVEL" -le "3" ]; then
-    __echo 2 "process: Assess aging internally for process: $FS_BASE (silenced except for debug)"
-    BSS_LOGGER_LEVEL="1" # Force __age to be quieter 3=='-v',2=='' -> 1=='-q'
+    BSS_LOGGER_LEVEL="1" # Force __age to be quieter 3->2"'-v',2->1:'' -> 1->0:'-q'
   fi
   for XBSS_SV in $(__age 2>/dev/null); do
     # STDOUT is age assessment result
     BSS_LOGGER_LEVEL="$BASE_BSS_LOGGER_LEVEL"
     # drop first character + or - or #
     BSS_SV="${XBSS_SV#???_}"
+    BSS_SV0="${BSS_SV%_filter}"
     BSS_TSTR="${BSS_SV%%.*}"
     BSS_TYPE="${BSS_SV##*.}"
     BSS_EXTRA="${BSS_TYPE##*_}"
@@ -1107,26 +1107,26 @@ __process() {
     BSS_TAGE=$((NOW_TEPO - BSS_TEPO)) # age of SV in seconds
     S_TAGE="$(age_string $BSS_TAGE)"
     if [ -z "${XBSS_SV%%---_*}" ]; then
-      __echo 2 "process: --- Del. snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 2 "process: --- SV=$BSS_SV AGE=$S_TAGE drop snapshot"
       # shellcheck disable=SC2086
       __logger $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
     elif [ -z "${XBSS_SV%%+++_*}" ]; then
-      __echo 3 "process: +++ Keep snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 2 "process: +++ SV=$BSS_SV AGE=$S_TAGE keep snapshot"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_TMID_ACTION" = "no_filter" ]; then
-      __echo 2 "process: === Keep snapshot (BSS_TMID_ACTION=$BSS_TMID_ACTION): BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 2 "process: === SV=$BSS_SV AGE=$S_TAGE keep snapshot (BSS_TMID_ACTION=$BSS_TMID_ACTION)"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_EXTRA" != "filter" ]; then
       # if not already filtered and aged to be qualify for filter
-      __echo 2 "process: ### Filter snapshot (first time): BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
+      __echo 2 "process: ### SV=$BSS_SV AGE=$S_TAGE filter -> ${BSS_SV0}_filter "
       __filter "$BSS_SV"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_FORCE" = "FORCE" ]; then
       # if already filtered but --force is used and aged to be qualify for filter
-      __echo 2 "process: ||| Filter snapshot (filtered but --force): BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV} AGE=$S_TAGE"
+      __echo 2 "process: ||| SV=$BSS_SV AGE=$S_TAGE filter -> ${BSS_SV0}_filter (--force)"
       __filter "$BSS_SV"
     elif [ -z "${XBSS_SV%%###_*}" ] ; then
       # if already filtered but --force isn't used and aged to be qualify for filter (just keep as is)
-      __echo 3 "process: #=# Keep snapshot (filtered and no --force): BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 3 "process: #=# SV=$BSS_SV AGE=$S_TAGE keep snapshot (filtered and no --force)"
     else
-      __echo 1 "process:     ???? snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE ( ??? strange ??? )"
+      __echo 1 "process:     SV=$BSS_SV AGE=$S_TAGE ( ??? strange ??? )"
     fi
   done
 }
