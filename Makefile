@@ -118,8 +118,8 @@ bss.1.patch: FORCE
 		echo "Patch updated for bss.1.patch" ; else \
 		echo "???? No patch generated for bss.1.patch"; fi
 ###########################################################################################
-README.md: README.md0 bin/bss README.md1 debian/changelog FORCE
-	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" README.md0 > $@
+README.md: README0.md bin/bss README1.md debian/changelog FORCE
+	sed -e "s/@@@VERSION@@@/$$(dpkg-parsechangelog -S Version)/" README0.md > $@
 	# reformat bss --help output
 	#  * make subsection titles
 	#  * make list in markdown for "  " starting lines
@@ -131,9 +131,9 @@ README.md: README.md0 bin/bss README.md1 debian/changelog FORCE
 	    -e 's/^\(\S*\):$$/### \1/' \
 	    -e '/^  [^ *]/s/^  /* /' \
 	    -e '/^\*/s/^\(\*.*\)  \(.*\)$$/\1: \2/' -e '/^\*/s/ *:/:/' \
-	    -e '/^      *\*/s/^[ ]*\*/  \* /' \
+	    -e '/^      *\*/s/^[ ]*\*/  \*/' \
 	    -e 's,~,\\~,g' -e 's,<,\\<,g' >>$@
-	cat README.md1 >> $@
+	cat README1.md >> $@
 
 .PHONY: FORCE
 FORCE:

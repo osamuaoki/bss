@@ -4,7 +4,7 @@ version: @@@VERSION@@@
 vim:set ai si sts=2 sw=2 et tw=79:
 
 * 'README.md' is auto-generated file
-* Edit usr/bin/bss, README.md? and run 'make README.md'
+* Edit usr/bin/bss, README?.md and run 'make README.md'
 -->
 # "Btrfs Subvolume Snapshot" utility
 
@@ -31,7 +31,7 @@ This `bss` command is designed with following items in mind:
 
 * Offer robust data recovery capability against:
   * accidental erase of important data,
-  * disastrous disk failure, or 
+  * disastrous disk failure, or
   * loss of the workstation,
 * Offer all basic backup features:
   * enable snapshots on the local disk with time stamp
@@ -65,6 +65,7 @@ Please read the followings:
 * [Debian Reference: 10.2. Backup and
   recovery](https://www.debian.org/doc/manuals/debian-reference/ch10.en.html#_backup_and_recovery)
   -- generic concepts
+* [bss: Tutorial 0](bss_tutorial0.md) -- for snapshot timing choices
 * [bss: Tutorial 1](bss_tutorial1.md) -- for a basic Debian system on ext4
 * [bss: Tutorial 2](bss_tutorial2.md) -- for an advanced Debian system on btrfs
 
@@ -78,7 +79,7 @@ subvolume.
 
 You can manually run `bss` command directly from the command line as:
 
-```
+```sh
  $ bss snapshot /path/to/sobvol # make snapshot
  $ bss gather   /path/to/sobvol # gather files and directories
  $ bss overview /path/to/subvol # observe the aging status
@@ -87,12 +88,10 @@ You can manually run `bss` command directly from the command line as:
  $ bss jobs     /path/to/subvol # check scheduled bss systemd jobs
  $ bss copy     /path/to/subvol /path/to           # make snapshot and rsync to /path/to
  $ bss copy     /path/to/subvol user@host.dom:foo  # make snapshot and rsync to user@host.dom:foo
- $ bss batch    batchname       # execute shell script in ~/.config/bss/batchname 
+ $ bss batch    batchname       # execute shell script in ~/.config/bss/batchname
  $ bss help                     # command help
 ```
 Please note that the subcommand of `bss` can be shortened to a single character.
 
-
 ## Command reference: `bss`
-
 

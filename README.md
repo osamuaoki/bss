@@ -31,7 +31,7 @@ This `bss` command is designed with following items in mind:
 
 * Offer robust data recovery capability against:
   * accidental erase of important data,
-  * disastrous disk failure, or 
+  * disastrous disk failure, or
   * loss of the workstation,
 * Offer all basic backup features:
   * enable snapshots on the local disk with time stamp
@@ -78,7 +78,7 @@ subvolume.
 
 You can manually run `bss` command directly from the command line as:
 
-```
+```sh
  $ bss snapshot /path/to/sobvol # make snapshot
  $ bss gather   /path/to/sobvol # gather files and directories
  $ bss overview /path/to/subvol # observe the aging status
@@ -87,16 +87,15 @@ You can manually run `bss` command directly from the command line as:
  $ bss jobs     /path/to/subvol # check scheduled bss systemd jobs
  $ bss copy     /path/to/subvol /path/to           # make snapshot and rsync to /path/to
  $ bss copy     /path/to/subvol user@host.dom:foo  # make snapshot and rsync to user@host.dom:foo
- $ bss batch    batchname       # execute shell script in ~/.config/bss/batchname 
+ $ bss batch    batchname       # execute shell script in ~/.config/bss/batchname
  $ bss help                     # command help
 ```
 Please note that the subcommand of `bss` can be shortened to a single character.
 
-
 ## Command reference: `bss`
 
-
 ### USAGE
+
 * bss [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
 * bss SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
 
@@ -197,16 +196,15 @@ their backend tool work also with non-btrfs filesystem.
 * zap: zap (=delete) particular snapshot(s) specified by its arguments
              ("zap" is required to be typed in full text)
 * template: make template files in the ".bss.d/" directory:
-  *  ".bss.conf" (aging rule)
-  *  ".bss.fltr[.disabled]" (filtering rule)
+  * ".bss.conf" (aging rule)
+  * ".bss.fltr[.disabled]" (filtering rule)
 * batch FNB: change the current working directory to the user's home directory
              and source the shell script found at:
-  *  "$XDG_CONFIG_HOME/bss/FNB" (non-root, $XDG_CONFIG_HOME set)
-  *  "\~/.config/bss/FNB" (non-root, $XDG_CONFIG_HOME unset)
-  *  "/etc/bss/FNB" (root)
+  * "$XDG_CONFIG_HOME/bss/FNB" (non-root, $XDG_CONFIG_HOME set)
+  * "\~/.config/bss/FNB" (non-root, $XDG_CONFIG_HOME unset)
+  * "/etc/bss/FNB" (root)
 * BASE: print the BASE directory and its filesystem type for "bss"
 * jobs: list all systemd timer schedule jobs for bss
-
 
 ### ARGUMENTS
 
@@ -375,7 +373,7 @@ Copyright 2022 - 2024 Osamu Aoki \<osamu@debian.org>, GPL 2+
 vim:set ai si sts=2 sw=2 et tw=79:
 
 * 'README.md' is auto-generated file
-* Edit usr/bin/bss, README.md? and run 'make README.md'
+* Edit usr/bin/bss, README?.md and run 'make README.md'
 -->
 
 ## Note on gather configuration files
@@ -426,4 +424,3 @@ Please take a look at examples found in
 
 * [bss: tips](bss_tips.md)
 * [Btrfs migration tips](https://wiki.debian.org/Btrfs%20migration)
-

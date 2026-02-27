@@ -2,7 +2,7 @@
 vim:set ai si sts=2 sw=2 et tw=79:
 
 * 'README.md' is auto-generated file
-* Edit usr/bin/bss, README.md? and run 'make README.md'
+* Edit usr/bin/bss, README?.md and run 'make README.md'
 -->
 
 ## Note on gather configuration files
@@ -53,4 +53,3 @@ Please take a look at examples found in
 
 * [bss: tips](bss_tips.md)
 * [Btrfs migration tips](https://wiki.debian.org/Btrfs%20migration)
-

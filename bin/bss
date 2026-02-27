@@ -257,6 +257,7 @@ __logger() {
 __help() {
   cat <<END_OF_HELP
 USAGE:
+
   $BSS [OPTIONS] SUBCOMMAND [PATH [ [ARG]...]
   $BSS SUBCOMMAND [OPTIONS] [PATH [ [ARG]...]
 
@@ -366,7 +367,6 @@ SUBCOMMAND:
                * "/etc/$BSS/FNB" (root)
   BASE       print the BASE directory and its filesystem type for "$BSS"
   jobs       list all systemd timer schedule jobs for $BSS
-
 
 ARGUMENTS:
 
@@ -1107,21 +1107,26 @@ __process() {
     BSS_TAGE=$((NOW_TEPO - BSS_TEPO)) # age of SV in seconds
     S_TAGE="$(age_string $BSS_TAGE)"
     if [ -z "${XBSS_SV%%---_*}" ]; then
-      __echo 2 "process: Del. snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+      __echo 2 "process: --- Del. snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
       # shellcheck disable=SC2086
       __logger $BSV delete "$BSS_SNAP_DEST_BASE/$BSS_SV"
     elif [ -z "${XBSS_SV%%+++_*}" ]; then
-      __echo 3 "process: Keep snapshot: BASE=$FS_BASE SV=$BSS_SV"
+      __echo 3 "process: +++ Keep snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+    elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_TMID_ACTION" = "no_filter" ]; then
+      __echo 2 "process: === Keep snapshot (BSS_TMID_ACTION=$BSS_TMID_ACTION): BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_EXTRA" != "filter" ]; then
-      __echo 2 "process: Filter snapshot: BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
+      # if not already filtered and aged to be qualify for filter
+      __echo 2 "process: ### Filter snapshot (first time): BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV}_filter AGE=$S_TAGE"
       __filter "$BSS_SV"
     elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_FORCE" = "FORCE" ]; then
-      __echo 2 "process: Filter snapshot again: BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV} AGE=$S_TAGE"
+      # if already filtered but --force is used and aged to be qualify for filter
+      __echo 2 "process: ||| Filter snapshot (filtered but --force): BASE=$FS_BASE SV=$BSS_SV -> ${BSS_SV} AGE=$S_TAGE"
       __filter "$BSS_SV"
-    elif [ -z "${XBSS_SV%%###_*}" ] && [ "$BSS_EXTRA" = "filter" ]; then
-      __echo 3 "process: Keep snapshot (filtered): BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
+    elif [ -z "${XBSS_SV%%###_*}" ] ; then
+      # if already filtered but --force isn't used and aged to be qualify for filter (just keep as is)
+      __echo 3 "process: #=# Keep snapshot (filtered and no --force): BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE"
     else
-      __echo 1 "process: ???? snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE (strange)"
+      __echo 1 "process:     ???? snapshot: BASE=$FS_BASE SV=$BSS_SV AGE=$S_TAGE ( ??? strange ??? )"
     fi
   done
 }
@@ -1151,10 +1156,7 @@ __filter() {
   BSS_SV="${1}"
   BSS_SV0="${BSS_SV%_filter}"
   # sanity check first
-  if [ ! -r "$BSS_FLTR_BASE" ]; then
-    __echo 1 "filter: Do nothing since $BSS_FLTR is missing for BASE=$FS_BASE"
-    exit $EXIT_SUCCESS
-  elif [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw" ]; then
+  if [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_rw" ]; then
     __echo 0 "filter: Pre-existing ${BSS_SV0}_rw blocks filter BASE=$FS_BASE SV=$BSS_SV"
     exit $EXIT_ERROR
   elif [ "$BSS_FORCE" != "FORCE" ] && [ -d "$BSS_SNAP_DEST_BASE/${BSS_SV0}_filter" ]; then
