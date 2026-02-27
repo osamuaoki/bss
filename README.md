@@ -1,10 +1,10 @@
 <!--
-version: 2.2.3
+version: 2.2.4
 
 vim:set ai si sts=2 sw=2 et tw=79:
 
 * 'README.md' is auto-generated file
-* Edit usr/bin/bss, README.md? and run 'make README.md'
+* Edit usr/bin/bss, README?.md and run 'make README.md'
 -->
 # "Btrfs Subvolume Snapshot" utility
 
@@ -13,7 +13,7 @@ wrapper program to execute `btrfs subvolume snapshot` command with required
 arguments to manage data on btrfs.  This `bss` is also a shell wrapper program
 to execute `rsync` with required arguments to make copies and backups.
 
-* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.2.3
+* [bss: source repository](https://github.com/osamuaoki/bss) -- version: 2.2.4
 
 ## Breaking changes
 
@@ -65,6 +65,7 @@ Please read the followings:
 * [Debian Reference: 10.2. Backup and
   recovery](https://www.debian.org/doc/manuals/debian-reference/ch10.en.html#_backup_and_recovery)
   -- generic concepts
+* [bss: Tutorial 0](bss_tutorial0.md) -- for snapshot timing choices
 * [bss: Tutorial 1](bss_tutorial1.md) -- for a basic Debian system on ext4
 * [bss: Tutorial 2](bss_tutorial2.md) -- for an advanced Debian system on btrfs
 

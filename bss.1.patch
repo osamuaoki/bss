@@ -1,11 +1,11 @@
---- bss.man1.orig	2025-09-10 17:18:04.276949487 +0900
-+++ bss.man1	2025-09-10 17:18:04.292949607 +0900
+--- bss.man0	2026-02-28 01:22:48.084022072 +0900
++++ bss.man1	2026-02-28 01:26:46.183419787 +0900
 @@ -2,11 +2,12 @@
- .TH BSS "1" "September 2025" "bss (@@@VERSION@@@)" "User Commands"
+ .TH BSS "1" "February 2026" "bss (@@@VERSION@@@)" "User Commands"
  .SH NAME
  bss \- btrfs subvolume snapshot utility (@@@VERSION@@@)
 -.SH DESCRIPTION
--.SS "USAGE:"
+-.SH USAGE
 -.IP
 +.SH SYNOPSIS
 +.PP
