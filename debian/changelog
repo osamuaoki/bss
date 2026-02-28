@@ -1,3 +1,9 @@
+bss (2.2.5) unstable; urgency=medium
+
+  * better format
+
+ -- Osamu Aoki <osamu@debian.org>  Sat, 28 Feb 2026 13:42:30 +0900
+
 bss (2.2.4) unstable; urgency=medium
 
   * doc: touch up
